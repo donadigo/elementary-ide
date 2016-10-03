@@ -25,4 +25,3 @@ ensure_vala_version ("0.26" MINIMUM)
 include (ValaPrecompile)
 
 add_subdirectory (src)
-add_subdirectory (data)
