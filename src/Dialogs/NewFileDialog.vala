@@ -119,7 +119,7 @@ namespace IDE {
 		}
 
 		private void on_create_button_clicked () {
-			var file = File.new_for_path ("/home/donadigo/%s".printf (package_name_entry.get_text ()));
+			var file = File.new_for_path ("/tmp/%s".printf (package_name_entry.get_text ()));
 			try {
 				if (!file.query_exists ()) {
 					file.create (FileCreateFlags.NONE);
