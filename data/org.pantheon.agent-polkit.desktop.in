@@ -1,0 +1,8 @@
+[Desktop Entry]
+_Name=Authentication Dialog
+Exec=pantheon-agent-polkit
+Icon=dialog-password
+Terminal=false
+Type=Application
+StartupNotify=false
+NoDisplay=true
