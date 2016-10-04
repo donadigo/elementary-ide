@@ -181,10 +181,37 @@ namespace IDE.Utils {
         } else if (symbol is Vala.EnumValue) {
             var enum_val = (Vala.EnumValue)symbol;
             builder.append ("const int ");
-            builder.append (enum_val.get_full_name () + " ");
+            builder.append (enum_val.get_full_name ());
             if (enum_val.@value != null) {
-                builder.append ("= ");
-                builder.append (enum_val.value.value_type.to_string ());
+                builder.append (" = ");
+                builder.append (enum_val.value.to_string ());
+            }
+        } else if (symbol is Vala.Class) {
+            var klass = (Vala.Class)symbol;
+            if (klass.is_abstract) {
+                builder.append ("abstract ");
+            }
+
+            if (klass.is_compact) {
+                builder.prepend ("[Compact]\n");
+            }
+
+            builder.append ("class ");
+
+            builder.append (klass.get_this_type ().to_string ());
+            var base_types = klass.get_base_types ();
+            if (base_types.size > 0) {
+                builder.append (" : ");
+
+                int index = 0;
+                foreach (var base_type in base_types) {
+                    builder.append (base_type.to_string ());
+                    if (index + 1 < base_types.size) {
+                        builder.append (", ");
+                    }
+
+                    index++;
+                }
             }
         } else {
             builder.append (symbol.get_full_name ());

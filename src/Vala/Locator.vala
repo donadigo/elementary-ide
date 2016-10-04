@@ -106,28 +106,25 @@ namespace IDE {
 
 		public override void visit_block (Vala.Block b) {
 			update_location (b);
-			b.accept_children(this);
+			b.accept_children (this);
 		}
 
 		public override void visit_namespace (Vala.Namespace ns) {
 			update_location (ns);
-			ns.accept_children(this);
+			ns.accept_children (this);
 		}
 		public override void visit_class (Vala.Class cl) {
-			/* the location of a class contains only its declaration, not its content */
 			update_location (cl);
-				//return;
-			cl.accept_children(this);
+			cl.accept_children (this);
 		}
 
 		public override void visit_struct (Vala.Struct st) {
 			update_location (st);
-				//return;
 			st.accept_children(this);
 		}
 		public override void visit_interface (Vala.Interface iface) {
 			update_location (iface);
-			iface.accept_children(this);
+			iface.accept_children (this);
 		}
 
 		public override void visit_method (Vala.Method m) {
@@ -148,12 +145,12 @@ namespace IDE {
 
 		public override void visit_creation_method (Vala.CreationMethod m) {
 			update_location (m);
-			m.accept_children(this);
+			m.accept_children (this);
 		}
 
 		public override void visit_property (Vala.Property prop) {
 			update_location (prop);
-			prop.accept_children(this);
+			prop.accept_children (this);
 		}
 
 		public override void visit_property_accessor (Vala.PropertyAccessor acc) {
@@ -161,17 +158,17 @@ namespace IDE {
 		}
 		public override void visit_constructor (Vala.Constructor c) {
 			update_location (c);
-			c.accept_children(this);
+			c.accept_children (this);
 		}
 		public override void visit_destructor (Vala.Destructor d) {
 			update_location (d);
-			d.accept_children(this);
+			d.accept_children (this);
 		}
 		public override void visit_if_statement (Vala.IfStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		public override void visit_switch_statement (Vala.SwitchStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		public override void visit_switch_section (Vala.SwitchSection section) {
 			visit_block (section);
@@ -193,25 +190,25 @@ namespace IDE {
 		}
 
 		public override void visit_while_statement (Vala.WhileStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		public override void visit_do_statement (Vala.DoStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		public override void visit_for_statement (Vala.ForStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		public override void visit_foreach_statement (Vala.ForeachStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		public override void visit_try_statement (Vala.TryStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		public override void visit_catch_clause (Vala.CatchClause clause) {
-			clause.accept_children(this);
+			clause.accept_children (this);
 		}
 		public override void visit_lock_statement (Vala.LockStatement stmt) {
-			stmt.accept_children(this);
+			stmt.accept_children (this);
 		}
 		// add these functions.
 		public override void visit_lambda_expression (Vala.LambdaExpression expr) {

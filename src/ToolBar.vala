@@ -32,8 +32,6 @@ namespace IDE {
         private MenuButton preferences_button;
         private MenuButton run_button;
 
-        //private NewFileDialog new_file_dialog;
-
         construct {
             show_close_button = true;
 
