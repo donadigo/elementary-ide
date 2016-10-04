@@ -124,6 +124,10 @@ namespace IDE {
             source_buffer.set_language (lang);
         }
 
+        public Gtk.SourceLanguage get_language () {
+            return source_buffer.get_language ();
+        }
+
         public void set_progress (double progress) {
             progress_bar.set_fraction (progress);
             Utils.set_widget_visible (progress_bar, progress > 0.0 && progress < 1.0);
@@ -175,13 +179,6 @@ namespace IDE {
             return (Gtk.SourceBuffer)source_view.get_buffer ();
         }
 
-        private void settings_button_clicked (Gtk.Button sender) {
-            sender.sensitive = false;
-
-            var dialog = new EditorPreferencesDialog (this);
-            dialog.hide.connect (() => sender.sensitive = true);
-        }
-
         /*private void add_providers () {
             var word_provider = new Gtk.SourceCompletionWords (_("Word Completion"), null);
             word_provider.activation = Gtk.SourceCompletionActivation.INTERACTIVE;
@@ -226,8 +223,7 @@ namespace IDE {
                 return false;
             }
 
-            show_info_window (start_iter, (int)event.x_root + 10, (int)event.y_root);
-
+            show_info_window (start_iter, (int)event.x_root + 10, (int)event.y_root + 10);
             return false;
         }
     }

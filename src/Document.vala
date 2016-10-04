@@ -22,11 +22,9 @@ namespace IDE {
         public signal void content_changed ();
 
         public EditorWindow editor_window;
-        public Document? child = null;
-        public Gtk.Paned paned;
         private Gtk.SourceFile? source_file;
         private ThemedIcon unsaved_icon;
-        private Project? project;
+        private Project? project = null;
 
         private FileMonitor? monitor = null;
         private ulong monitor_handle_id = 0U;
@@ -50,37 +48,28 @@ namespace IDE {
             unsaved_icon = new ThemedIcon ("radio-symbolic");
 
             editor_window = new EditorWindow ();
-            editor_window.get_buffer ().modified_changed.connect (update_saved_state);      
-
-            paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
-            paned.position = 200;
-            paned.wide_handle = true;
-            paned.pack1 (editor_window, true, true);        
+            editor_window.get_buffer ().modified_changed.connect (update_saved_state);         
+            editor_window.source_buffer.changed.connect (on_source_buffer_changed);
         }
 
         public Document (File file, Project? project) {
             source_file.set_location (file);
             this.project = project;
 
-            init ();
+            init_document ();
         }
 
         public Document.empty () {
-            source_file.set_location (null);
-            project = null;
-
-            init ();
+            init_document ();
         }
 
-        private void init () {
-            page = paned;
+        private void init_document () {
+            page = editor_window;
             update_props ();
 
             if (source_file.get_location () != null) {
                 start_monitor ();
             }
-
-            editor_window.source_buffer.changed.connect (on_source_buffer_changed);
         }
 
         private void update_saved_state () {
@@ -105,7 +94,7 @@ namespace IDE {
 
         private void update_language () {
             var lang_manager = Gtk.SourceLanguageManager.get_default ();
-            var lang = lang_manager.guess_language (get_file_path (), editor_window.get_buffer ().text);
+            var lang = lang_manager.guess_language (get_file_path (), null);
             if (lang != null) {
                 editor_window.set_language (lang);
             }
@@ -118,13 +107,17 @@ namespace IDE {
         }
 
         private void start_monitor () {
-            monitor = source_file.get_location ().monitor (FileMonitorFlags.NONE, null);
-            monitor_handle_id = monitor.changed.connect ((src, dest, event) => {
-                if (event == FileMonitorEvent.CHANGES_DONE_HINT && !saving) {
-                    saving = false;
-                    load ();
-                }
-            });
+            try {
+                monitor = source_file.get_location ().monitor (FileMonitorFlags.NONE, null);
+                monitor_handle_id = monitor.changed.connect ((src, dest, event) => {
+                    if (event == FileMonitorEvent.CHANGES_DONE_HINT && !saving) {
+                        saving = false;
+                        load.begin ();
+                    }
+                });
+            } catch (Error e) {
+                warning (e.message);
+            }
         }
 
         private void stop_monitor () {
@@ -154,19 +147,6 @@ namespace IDE {
             stop_monitor ();
         }
 
-        public void set_child (Document? document) {
-            if (child != null && document == null) {
-                paned.remove (child);
-                child = null;
-                return;
-            }
-
-            child = document;
-            child.paned.unparent ();
-            paned.pack2 (child.paned, true, true);
-            //child.page = child.paned;
-        }
-
         public bool get_is_vala_source () {
             if (source_file.get_location () == null) {
                 return false;
@@ -182,10 +162,15 @@ namespace IDE {
             }
 
             var loader = new Gtk.SourceFileLoader (editor_window.get_buffer (), source_file);
-            bool success = yield loader.load_async (Priority.DEFAULT, null, file_progress_cb);
-            update_props ();
+            try {
+                bool success = yield loader.load_async (Priority.DEFAULT, null, file_progress_cb);
+                update_props ();
+                return success;
+            } catch (Error e) {
+                warning (e.message);
+            }
 
-            return success;
+            return false;
         }
 
         public async bool save () {
@@ -200,10 +185,16 @@ namespace IDE {
             }
 
             var saver = new Gtk.SourceFileSaver (editor_window.get_buffer (), source_file);
-            bool success = yield saver.save_async (Priority.DEFAULT, null, file_progress_cb);
-            update_props ();
+            try {
+                bool success = yield saver.save_async (Priority.DEFAULT, null, file_progress_cb);
+                update_props ();
 
-            return success;
+                return success;
+            } catch (Error e) {
+                warning (e.message);
+            }
+
+            return false;
         }
 
         public async bool save_as () {
@@ -240,9 +231,14 @@ namespace IDE {
             var file_buffer = new Gtk.SourceBuffer (null);
             var source_buffer = editor_window.get_buffer ();
             var loader = new Gtk.SourceFileLoader (file_buffer, source_file);
-            bool success = yield loader.load_async (Priority.DEFAULT, null, null);
+            try {
+                bool success = yield loader.load_async (Priority.DEFAULT, null, null);
 
-            if (!success) {
+                if (!success) {
+                    return false;
+                }
+            } catch (Error e) {
+                warning (e.message);
                 return false;
             }
 
@@ -292,7 +288,11 @@ namespace IDE {
 
         private void ensure_file_exists () {
             if (!get_exists ()) {
-                FileUtils.set_contents (get_file_path (), "");
+                try {
+                    FileUtils.set_contents (get_file_path (), "");
+                } catch (Error e) {
+                    warning (e.message);
+                }
             }
         }
 

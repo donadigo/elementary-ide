@@ -148,7 +148,9 @@ namespace IDE {
 
             if (sym is Vala.Signal) {
                 var sig = sym as Vala.Signal;
-                foreach (var p in sig.get_parameters ()) {}
+                foreach (var p in sig.get_parameters ()) {
+                    list.add (p);
+                }
             }
 
             if (sym is Vala.Method) {
@@ -643,7 +645,9 @@ namespace IDE {
                 }               
             }   
 
-            file.context.entry_point = null;
+            if (entry_point != null) {
+                file.context.entry_point = null;
+            }
         }
 
         public void update_document_content (Document document) {
@@ -657,9 +661,10 @@ namespace IDE {
         }
 
         public void queue_parse () {
-            Thread.create<void> (() => {
+            new Thread<bool> ("parse", () => {
                 parse ();
-            }, false);
+                return true;
+            });
         }
 
         private void parse () {

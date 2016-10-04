@@ -50,8 +50,12 @@ namespace IDE {
         private Gtk.Label comment_label;
 
         construct {
-            member_access = new Regex ("""((?:\w+(?:\s*\([^()]*\))?\.)*)(\w*)$""");
-            member_access_split = new Regex ("""(\s*\([^()]*\))?\.""");
+            try {
+                member_access = new Regex ("""((?:\w+(?:\s*\([^()]*\))?\.)*)(\w*)$""");
+                member_access_split = new Regex ("""(\s*\([^()]*\))?\.""");
+            } catch (RegexError e) {
+                warning (e.message);
+            }
 
             definition_label = new Gtk.Label (null);
             definition_label.use_markup = true;

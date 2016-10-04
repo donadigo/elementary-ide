@@ -19,6 +19,14 @@
 
 namespace IDE {
     public class ToolBar : Gtk.HeaderBar {
+        public bool show_editor_buttons {
+            set {
+                Utils.set_widget_visible (open_button, visible);
+                Utils.set_widget_visible (new_button, visible);
+                Utils.set_widget_visible (run_button, visible);
+            }
+        }
+
     	private MenuButton open_button;
         private Gtk.Button new_button;
         private MenuButton preferences_button;

@@ -60,25 +60,32 @@ namespace IDE {
 
         private static Project? load_from_metadata (File file) {
             var key = new KeyFile ();
-            if (!key.load_from_file (file.get_path (), KeyFileFlags.NONE)) {
-                return null;
-            }
-
-            string name = key.get_string (PROJECT_KEY, NAME_KEY);
-            string display_name = key.get_string (PROJECT_KEY, DISPLAY_NAME_KEY);
-            int type = key.get_integer (PROJECT_KEY, TYPE_KEY);
-
-            string? root_path = key.get_string (PROJECT_KEY, ROOT_PATH_KEY);
-            if (root_path == null || root_path == "") {
-                var parent = file.get_parent ();
-                if (parent != null) {
-                    root_path = parent.get_path ();
-                } else {
-                    root_path = "";
+            try {
+                if (!key.load_from_file (file.get_path (), KeyFileFlags.NONE)) {
+                    return null;
                 }
+
+                string name = key.get_string (PROJECT_KEY, NAME_KEY);
+                string display_name = key.get_string (PROJECT_KEY, DISPLAY_NAME_KEY);
+                int type = key.get_integer (PROJECT_KEY, TYPE_KEY);
+
+                string? root_path = key.get_string (PROJECT_KEY, ROOT_PATH_KEY);
+                if (root_path == null || root_path == "") {
+                    var parent = file.get_parent ();
+                    if (parent != null) {
+                        root_path = parent.get_path ();
+                    } else {
+                        root_path = "";
+                    }
+                }
+
+
+                return new Project ((ProjectType)type, name, display_name, root_path);
+            } catch (Error e) {
+                warning (e.message);
             }
 
-            return new Project ((ProjectType)type, name, display_name, root_path);
+            return null;
         }
 
         private static Project? load_from_generic (File file) {

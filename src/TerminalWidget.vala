@@ -26,9 +26,12 @@ namespace IDE {
 			terminal = new Vte.Terminal ();
 			terminal.expand = true;
 
-			pty = new Vte.Pty.sync (Vte.PtyFlags.DEFAULT);
-
-			terminal.set_pty (pty);
+			try {
+				pty = new Vte.Pty.sync (Vte.PtyFlags.DEFAULT);
+				terminal.set_pty (pty);
+			} catch (Error e) {
+				warning (e.message);
+			}
 
 			add (terminal);
 
@@ -53,10 +56,14 @@ namespace IDE {
 			string[] envv = Environ.get ();
 
 			Idle.add (() => {
-				Pid child_pid;
-				terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
-                                envv, SpawnFlags.SEARCH_PATH, null, out child_pid, null);	
-
+				try {
+					Pid child_pid;
+					terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
+                                	envv, SpawnFlags.SEARCH_PATH, null, out child_pid, null);	
+				} catch (Error e) {
+					warning (e.message);
+				}
+				
 				return false;
 			});
 		}

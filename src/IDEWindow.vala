@@ -65,6 +65,7 @@ namespace IDE {
             main_stack.add_named (editor_view, Constants.EDITOR_VIEW_NAME);
 
             main_stack.visible_child_name = Constants.WELCOME_VIEW_NAME;
+            toolbar.show_editor_buttons = false;
 
             add (main_stack);
 
@@ -86,8 +87,7 @@ namespace IDE {
                     }
 
                     main_stack.visible_child_name = Constants.EDITOR_VIEW_NAME;
-
-                    // TODO: show / hide toolbar items
+                    toolbar.show_editor_buttons = true;
                 }
 
                 dialog.destroy ();

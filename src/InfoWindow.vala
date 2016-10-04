@@ -1,29 +1,48 @@
 namespace IDE {
-	public class InfoWindow : Gtk.Window {
-		private Gtk.Label definition_label;
+    public class InfoWindow : Gtk.Window {
+        private Gtk.SourceView definition_view;
+        private Gtk.SourceBuffer buffer;
 
-		construct {
-			type_hint = Gdk.WindowTypeHint.TOOLTIP;
-			decorated = false;
+        construct {
+            type_hint = Gdk.WindowTypeHint.TOOLTIP;
+            decorated = false;
 
-			var main_grid = new Gtk.Grid ();
-			main_grid.margin = 6;
+            var main_grid = new Gtk.Grid ();
 
-			definition_label = new Gtk.Label (null);
-			definition_label.halign = Gtk.Align.START;
-			definition_label.wrap_mode = Pango.WrapMode.WORD_CHAR;
-			main_grid.add (definition_label);			
-			add (main_grid);
-		}
+            var frame = new Gtk.Frame (null);
+            frame.add (main_grid);
 
-		public void set_current_symbol (Vala.Symbol symbol) {
-			var item = new ValaDocumentProvider.SymbolItem (symbol);
-			definition_label.label = item.info;
-		}
+            buffer = new Gtk.SourceBuffer (null);
 
-		public void show_at (int x, int y) {
-			move (x, y);
-			show_all ();
-		}
-	}
+            definition_view = new Gtk.SourceView.with_buffer (buffer);
+            definition_view.expand = true;
+            definition_view.editable = false;
+            definition_view.show_right_margin = false;
+            definition_view.cursor_visible = false;
+
+            main_grid.add (definition_view);
+            add (frame);
+        }
+
+        public void set_current_symbol (Vala.Symbol symbol) {
+            string definition = Utils.convert_symbol_to_definition (symbol);
+            definition_view.buffer.text = definition + "\n\n\n";
+            update_language ();
+            resize (1, 1);
+        }
+
+        public void show_at (int x, int y) {
+            move (x, y);
+            show_all ();
+        }
+
+        private void update_language () {
+            var document = IDEWindow.get_instance ().editor_view.get_current_document ();
+            if (document == null) {
+                return;
+            }
+
+            buffer.set_language (document.editor_window.get_language ());       
+        }
+    }
 }

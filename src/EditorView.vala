@@ -117,21 +117,7 @@ namespace IDE {
             horizontal_paned.pack1 (scrolled, false, false);
             horizontal_paned.pack2 (vertical_paned, true, true);
 
-            update_report_view_timeout_id = Timeout.add (2000, () => {
-                clear_view_tags ();
-                if (index.parsing) {
-                    return true;
-                }
-
-                if (document_recently_changed) {
-                    document_recently_changed = false;
-                    return true;
-                }
-
-                update_report_view (index.report);
-                update_view_tags (index.report);
-                return true;
-            });
+            update_report_view_timeout_id = Timeout.add (2000, update_report_view);
 
             add (horizontal_paned);
             show_all ();
@@ -145,6 +131,22 @@ namespace IDE {
         public void add_new_document () {
             var document = new Document.empty ();
             add_document (document, true);
+        }
+
+        private bool update_report_view () {
+            clear_view_tags ();
+            if (index.parsing) {
+                return true;
+            }
+
+            if (document_recently_changed) {
+                document_recently_changed = false;
+                return true;
+            }
+
+            update_report_widget (index.report);
+            update_view_tags (index.report);
+            return true;
         }
 
         private void process_root_directory () {
@@ -174,46 +176,50 @@ namespace IDE {
         }
 
         private void process_directory (File directory, Granite.Widgets.SidebarHeader? previous_header = null) {
-            var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NONE, null);
+            try {
+                var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NONE, null);
 
-            Granite.Widgets.SidebarHeader? header = previous_header;
-            FileInfo? info;
-            while ((info = enumerator.next_file ()) != null) {
-                if (info.get_name ().has_prefix (".")) {
-                    continue;
+                Granite.Widgets.SidebarHeader? header = previous_header;
+                FileInfo? info;
+                while ((info = enumerator.next_file ()) != null) {
+                    if (info.get_name ().has_prefix (".")) {
+                        continue;
+                    }
+
+                    var subfile = directory.resolve_relative_path (info.get_name ());
+                    if (info.get_file_type () == FileType.DIRECTORY) {
+                        header = new Granite.Widgets.SidebarHeader (info.get_name ());
+                        header.row_activated.connect (on_row_activated);
+
+                        if (previous_header != null) {
+                            /* WIP */
+                            // header.add_child (header);
+                        } else {
+                            sidebar.add (header);
+                        }
+
+                        process_directory (subfile, header);
+                    } else {
+                        string icon_name;
+                        var icon = (ThemedIcon)info.get_icon ();
+                        string[] names = icon.get_names ();
+                        if (names.length > 0 && Gtk.IconTheme.get_default ().has_icon (names[0])) {
+                            icon_name = icon.get_names ()[0];
+                        } else {
+                            icon_name = "application-octet-stream";
+                        }
+
+                        var row = new SidebarFileRow (info.get_name (), icon_name);
+                        row.filename = subfile.get_path ();
+                        if (header != null) {
+                            header.add_child (row);
+                        } else {
+                            sidebar.add (row);
+                        }
+                    }
                 }
-
-                var subfile = directory.resolve_relative_path (info.get_name ());
-                if (info.get_file_type () == FileType.DIRECTORY) {
-                    header = new Granite.Widgets.SidebarHeader (info.get_name ());
-                    header.row_activated.connect (on_row_activated);
-
-                    if (previous_header != null) {
-                        /* WIP */
-                        // header.add_child (header);
-                    } else {
-                        sidebar.add (header);
-                    }
-
-                    process_directory (subfile, header);
-                } else {
-                    string icon_name;
-                    var icon = (ThemedIcon)info.get_icon ();
-                    string[] names = icon.get_names ();
-                    if (names.length > 0 && Gtk.IconTheme.get_default ().has_icon (names[0])) {
-                        icon_name = icon.get_names ()[0];
-                    } else {
-                        icon_name = "application-octet-stream";
-                    }
-
-                    var row = new SidebarFileRow (info.get_name (), icon_name);
-                    row.filename = subfile.get_path ();
-                    if (header != null) {
-                        header.add_child (row);
-                    } else {
-                        sidebar.add (row);
-                    }
-                }
+            } catch (Error e) {
+                warning (e.message);
             }
         }
 
@@ -264,13 +270,18 @@ namespace IDE {
         }
 
         public void add_document (Document document, bool focus = true) {
-            document.load ();
+            document.load.begin ();
 
             if (document.get_is_vala_source ()) {
                 index.add_document (document);    
             }
 
-            document.editor_window.source_view.completion.add_provider (provider);
+            try {
+                document.editor_window.source_view.completion.add_provider (provider);
+            } catch (Error e) {
+                warning (e.message);
+            }
+            
             document.content_changed.connect (() => document_content_changed (document));
 
             document.editor_window.source_buffer.notify["cursor-position"].connect (() => update_location_label ());
@@ -319,7 +330,7 @@ namespace IDE {
             report_widget.location_label.label = _("Line %i, Column %i".printf (current.current_line + 1, current.current_column));
         }
 
-        private void update_report_view (Report report) {
+        private void update_report_widget (Report report) {
             report_widget.clear ();
             report_widget.set_report (report);
         }
