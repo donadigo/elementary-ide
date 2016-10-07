@@ -16,31 +16,31 @@
  */
 
 namespace IDE {
-	/* Finds the innermost block containing the given location */
-	public class BlockLocator : Vala.SymbolResolver {
-		public struct Location {
-			int line;
-			int column;
-			public Location (int line, int column) {
-				this.line = line;
-				this.column = column;
-			}
-
-			public bool inside (Vala.SourceReference src) {
-				var begin = Location (src.begin.line, src.begin.column);
-				var end = Location (src.end.line, src.end.column);
-				return begin.before (this) && this.before(end);
-			}
-			
-			public bool before (Location other) {
-				if (line > other.line)
-					return false;
-				if (line == other.line && column > other.column)
-					return false;
-				return true;
-			}
+	public struct Location {
+		int line;
+		int column;
+		public Location (int line, int column) {
+			this.line = line;
+			this.column = column;
 		}
 
+		public bool inside (Vala.SourceReference src) {
+			var begin = Location (src.begin.line, src.begin.column);
+			var end = Location (src.end.line, src.end.column);
+			return begin.before (this) && this.before(end);
+		}
+		
+		public bool before (Location other) {
+			if (line > other.line)
+				return false;
+			if (line == other.line && column > other.column)
+				return false;
+			return true;
+		}
+	}
+	
+	/* Finds the innermost block containing the given location */
+	public class BlockLocator : Vala.SymbolResolver {
 		Location location;
 		Vala.Symbol innermost;
 		Location innermost_begin;

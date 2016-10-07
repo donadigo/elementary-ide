@@ -21,7 +21,7 @@ namespace IDE {
     public class IDEApplication : Granite.Application {
         construct {
             program_name = "elementary IDE";
-            exec_name = "elementary IDE";
+            exec_name = "elementary-ide";
 
             /*build_data_dir = Constants.DATADIR;
             build_pkg_data_dir = Constants.PKGDATADIR;
@@ -44,6 +44,8 @@ namespace IDE {
             about_authors = { "Adam Bieńkowski <donadigos159@gmail.com>" };
             about_translators = _("about-translators");
             about_license_type = Gtk.License.GPL_3_0;
+
+            flags |= GLib.ApplicationFlags.HANDLES_OPEN;
         }
 
         private static IDEApplication? instance = null;
@@ -53,10 +55,6 @@ namespace IDE {
             }
 
             return instance;
-        }
-
-        public IDEApplication () {
-            this.flags |= GLib.ApplicationFlags.HANDLES_OPEN;
         }
 
         public override void open (File[] files, string hint) {

@@ -16,10 +16,10 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Vala/ValaDocumentProvider.vala
     Vala/Locator.vala
     Vala/ValaIndex.vala
-    Vala/ValaDocumentation.vala
     BuildSystem/BuildSystem.vala
     BuildSystem/CMakeBuildSystem.vala
     BuildSystem/CMakeParser.vala
+    BuildSystem/CMakeCommand.vala
     Report.vala
     ReportWidget.vala
     TerminalWidget.vala

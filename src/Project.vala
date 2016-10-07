@@ -20,12 +20,8 @@
 namespace IDE {
     public enum ProjectType {
         UNKNOWN = 0,
-        EMPTY_PROJECT,
-        GRANITE_APPLICATION,
-        VALA_LIBRARY,
-        SWITCHBOARD_PLUG,
-        WINGPANEL_INDICATOR,
-        GALA_PLUGIN,
+        VALA_APPLICATION,
+        VALA_LIBRARY
     }
 
     public class Project : Object {

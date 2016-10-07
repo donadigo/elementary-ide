@@ -9,7 +9,7 @@ set (EXEC_NAME ${CMAKE_PROJECT_NAME})
 set (VERSION "0.1")
 set (DOLLAR "$")
 
-add_definitions (-DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\")
+add_definitions (-DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}")
 add_definitions (-w)
 
 find_package (PkgConfig)

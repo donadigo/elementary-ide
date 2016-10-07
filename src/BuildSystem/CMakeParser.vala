@@ -18,58 +18,121 @@
  */
 
 namespace IDE {
-	public enum TokenType {
-		LEFT_PARENTHESIS,
-		RIGHT_PARENTHESIS,
-		STRING,
-		WORD,
-		NEWLINE
-	}
+    public class CMakeParser : Object {
+        private Scanner scanner;
 
-	public struct CMakeArgument {
-		string name;
-		Value value;
-	}
+        private Gee.ArrayList<string> sources;
+        private Gee.ArrayList<CMakeCommand> commands;
+        private Gee.ArrayList<string> comments;
 
-	public struct CMakeCommand {
-		string name;
-		CMakeArgument[] arguments;
-	}
+        private string prev_value;
+        private CMakeCommand? current_command;
 
-	public class CMakeParser : Object {
-		public List<CMakeCommand?> commands;
-		private List<string> source_list;
-		//private Regex command_regex;
+        construct {
+            // TODO: Better config
+            scanner = new Scanner (null);
+            scanner.config.skip_comment_multi = true;
+            scanner.config.skip_comment_single = false;
+            scanner.config.identifier_2_string = true;
+            scanner.config.symbol_2_token = true;
+            scanner.config.scan_float = true;
+            scanner.config.scan_binary = false;
+            scanner.config.scan_identifier_NULL = false;
+            scanner.config.scan_identifier_1char = true;
+            scanner.config.scan_identifier = true;            
 
-		construct {
-			commands = new List<CMakeCommand?> ();
-			source_list = new List<string> ();
-			//command_regex = new Regex ("/^\s*(?P<name>.*)\s*(\s*(?P<parameters>.*)\s*)/");
-		}
+            string cset_identifier_nth = scanner.config.cset_identifier_nth;
+            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "-_");
 
-		public void add_source (string source) {
-			source_list.append (source);
-		}
+            sources = new Gee.ArrayList<string> ();
+            commands = new Gee.ArrayList<CMakeCommand> ();
+            comments = new Gee.ArrayList<string> ();
+        }
 
-		public void remove_source (string source) {
-			unowned List<string> _source = source_list.find_custom (source, strcmp);
-			source_list.remove_link (_source);
-		}
+        public Gee.ArrayList get_sources () {
+            return sources;
+        }
 
-		public void parse () {
-			foreach (string source in source_list) {
-				parse_source (source);
-			}
-		}
+        public Gee.ArrayList get_commands () {
+            return commands;
+        }
 
-		private void parse_source (string source) {
-			string buffer;
-			try {
-				FileUtils.get_contents (source, out buffer);
-			} catch (Error e) {
-				warning (e.message);
-			}
+        public Gee.ArrayList get_comments () {
+            return comments;
+        }
 
-		}
-	}
+        public void add_cmake_source (string source) {
+            sources.add (source);
+        }   
+
+        public void remove_cmake_source (string source) {
+            sources.remove (source);
+        }
+
+        public void parse () {
+            commands.clear ();
+            comments.clear ();
+
+            foreach (string source in sources) {
+                parse_file (source);
+            }
+        }
+
+        private void parse_file (string source) {
+            string contents;
+
+            try {
+                FileUtils.get_contents (source, out contents);
+            } catch (Error e) {
+                warning (e.message);
+                return;
+            }
+
+            contents = contents.compress ();
+            scanner.input_text (contents, contents.length);
+
+            while (!scanner.eof ()) {
+                var token = scanner.get_next_token ();
+                var val = scanner.cur_value ();
+                switch (token) {
+                    case TokenType.LEFT_PAREN:
+                        current_command = new CMakeCommand (prev_value);
+                        break;
+                    case TokenType.RIGHT_PAREN:
+                        commands.add (current_command);
+                        current_command = null;
+                        break;
+                    case TokenType.STRING:
+                        string str = val.string;
+                        if (current_command != null) {
+                            current_command.add_argument (str);
+                        }
+
+                        prev_value = str;
+                        break;
+                    case TokenType.FLOAT:
+                        string str = val.float.to_string ();
+                        if (current_command != null) {
+                            current_command.add_argument (str);
+                        }
+
+                        prev_value = str;
+                        break;
+                    case TokenType.COMMENT_SINGLE:
+                        comments.add (val.comment);
+                        break;
+                    case TokenType.INT:
+                        string str = val.int.to_string ();
+                        if (current_command != null) {
+                            current_command.add_argument (str);
+                        }
+
+                        prev_value = str;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }   
+    }
 }
