@@ -8,6 +8,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     MenuButton.vala
     Template.vala
     Project.vala
+    CMakeProject.vala
     Utils.vala
     TabWidget.vala
     Document.vala

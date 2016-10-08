@@ -29,4 +29,18 @@ namespace IDE.Constants {
     public const string EDITOR_VIEW_NAME = "editor-view";
     public const string REPORT_VIEW_NAME = "report-view";
     public const string TERMINAL_VIEW_NAME = "terminal-view";
+
+    public const string CMAKE_TARGET = "CMakeLists.txt";
+    public const string PROJECT_CMD = "project";
+    public const string PKG_CHECK_MODULES_CMD = "pkg_check_modules";
+    public const string VALA_PRECOMIPLE_CMD = "vala_precompile";
+    public const string SET_CMD = "set";
+    public const string[] VALA_PRECOMPILE_HEADERS =  { "SOURCES",
+                                                    "PACKAGES",
+                                                    "OPTIONS",
+                                                    "DIRECTORY",
+                                                    "PACKAGES",
+                                                    "GENERATE_HEADER",
+                                                    "DEFINITIONS",
+                                                    "CUSTOM_VAPIS" };
 }

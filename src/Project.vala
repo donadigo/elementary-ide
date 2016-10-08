@@ -35,8 +35,16 @@ namespace IDE {
         public string name { get; set; }
         public string display_name { get; set; }
         public string root_path { get; set; }
+        public string version { get; set; }
+        public string[] packages { get; set; }
+        public string[] sources { get; set; }
+        public string[] options { get; set; }
+        public string[] check_dependencies { get; set; }
         public ProjectType project_type { get; set; }
-        public EditorView editor_view { get; set; }
+
+        public static bool check (File file) {
+            return true;
+        }
 
         public static bool get_is_metadata_file (File file) {
             if (!file.query_exists ()) {
@@ -46,9 +54,14 @@ namespace IDE {
             return Utils.get_extension (file) == METADATA_EXTENSION;
         }
 
-        public static Project? load (File file) {
+        public static async Project? load (File file) {
             if (get_is_metadata_file (file)) {
                 return load_from_metadata (file);
+            }
+
+            var cmake_project = yield CMakeProject.load (file);
+            if (cmake_project != null) {
+                return cmake_project;
             }
 
             return load_from_generic (file);
@@ -76,7 +89,7 @@ namespace IDE {
                 }
 
 
-                return new Project ((ProjectType)type, name, display_name, root_path);
+                return new Project.from_data ((ProjectType)type, name, display_name, root_path);
             } catch (Error e) {
                 warning (e.message);
             }
@@ -95,15 +108,14 @@ namespace IDE {
                 root_path = file.get_path ();
             }
 
-            return new Project (ProjectType.UNKNOWN, name, "", root_path);
+            return new Project.from_data (ProjectType.UNKNOWN, name, "", root_path);
         }
 
-        public Project (ProjectType project_type, string name, string display_name, string root_path) {
+        public Project.from_data (ProjectType project_type, string name, string display_name, string root_path) {
             this.project_type = project_type;
             this.name = name;
             this.display_name = display_name;
             this.root_path = root_path;
-            this.editor_view = new EditorView.from_project (this);
         }
     }
 }

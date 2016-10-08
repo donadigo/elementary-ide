@@ -42,22 +42,22 @@ namespace IDE {
             scanner.config.scan_identifier = true;            
 
             string cset_identifier_nth = scanner.config.cset_identifier_nth;
-            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "-_");
+            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "=-_.\\/");
 
             sources = new Gee.ArrayList<string> ();
             commands = new Gee.ArrayList<CMakeCommand> ();
             comments = new Gee.ArrayList<string> ();
         }
 
-        public Gee.ArrayList get_sources () {
+        public Gee.ArrayList<string> get_sources () {
             return sources;
         }
 
-        public Gee.ArrayList get_commands () {
+        public Gee.ArrayList<CMakeCommand> get_commands () {
             return commands;
         }
 
-        public Gee.ArrayList get_comments () {
+        public Gee.ArrayList<string> get_comments () {
             return comments;
         }
 
@@ -74,7 +74,7 @@ namespace IDE {
             comments.clear ();
 
             foreach (string source in sources) {
-                parse_file (source);
+                parse_file (source);       
             }
         }
 
@@ -91,6 +91,7 @@ namespace IDE {
             contents = contents.compress ();
             scanner.input_text (contents, contents.length);
 
+            // TODO: variables
             while (!scanner.eof ()) {
                 var token = scanner.get_next_token ();
                 var val = scanner.cur_value ();
