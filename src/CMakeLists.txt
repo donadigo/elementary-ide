@@ -20,6 +20,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     BuildSystem/CMakeBuildSystem.vala
     BuildSystem/CMakeParser.vala
     BuildSystem/CMakeCommand.vala
+    BuildSystem/CMakeVariable.vala
     Report.vala
     ReportWidget.vala
     TerminalWidget.vala

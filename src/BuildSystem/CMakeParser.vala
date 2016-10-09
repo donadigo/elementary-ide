@@ -23,6 +23,7 @@ namespace IDE {
 
         private Gee.ArrayList<string> sources;
         private Gee.ArrayList<CMakeCommand> commands;
+        private Gee.ArrayList<CMakeVariable> variables;
         private Gee.ArrayList<string> comments;
 
         private string prev_value;
@@ -42,11 +43,15 @@ namespace IDE {
             scanner.config.scan_identifier = true;            
 
             string cset_identifier_nth = scanner.config.cset_identifier_nth;
-            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "=-_.\\/");
+            string cset_identifier_first = scanner.config.cset_identifier_first;
+
+            scanner.config.cset_identifier_first = (string*)(cset_identifier_first + "${}");
+            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "{}=-_.\\/");
 
             sources = new Gee.ArrayList<string> ();
             commands = new Gee.ArrayList<CMakeCommand> ();
             comments = new Gee.ArrayList<string> ();
+            variables = new Gee.ArrayList<CMakeVariable> ();
         }
 
         public Gee.ArrayList<string> get_sources () {
@@ -55,6 +60,10 @@ namespace IDE {
 
         public Gee.ArrayList<CMakeCommand> get_commands () {
             return commands;
+        }
+        
+        public Gee.ArrayList<CMakeVariable> get_variables () {
+            return variables;
         }
 
         public Gee.ArrayList<string> get_comments () {
@@ -76,6 +85,18 @@ namespace IDE {
             foreach (string source in sources) {
                 parse_file (source);       
             }
+
+            parse_variables ();
+        }
+
+        public CMakeVariable? find_variable_by_name (string name) {
+            foreach (var variable in variables) {
+                if (variable.name == name) {
+                    return variable;
+                }
+            }
+
+            return null;
         }
 
         private void parse_file (string source) {
@@ -91,13 +112,12 @@ namespace IDE {
             contents = contents.compress ();
             scanner.input_text (contents, contents.length);
 
-            // TODO: variables
             while (!scanner.eof ()) {
                 var token = scanner.get_next_token ();
                 var val = scanner.cur_value ();
                 switch (token) {
                     case TokenType.LEFT_PAREN:
-                        current_command = new CMakeCommand (prev_value);
+                        current_command = new CMakeCommand (source, prev_value);
                         break;
                     case TokenType.RIGHT_PAREN:
                         commands.add (current_command);
@@ -135,5 +155,63 @@ namespace IDE {
                 }
             }
         }   
+
+        private void parse_variables () {
+            foreach (var command in commands) {
+                if (command.name != Constants.SET_CMD) {
+                    continue;
+                }
+
+                var arguments = command.get_arguments ();
+                if (arguments.length < 2) {
+                    continue;
+                }
+
+                var variable = new CMakeVariable (arguments[0], arguments[1]);
+                variables.add (variable);
+            }
+
+            foreach (var variable in variables) {
+                evaluate_variable (variable);
+            }
+        }
+
+        private void evaluate_variable (CMakeVariable target) {
+            string current = "";
+            bool dollar = false;
+            bool rv = false;
+            foreach (char ch in target.value.to_utf8 ()) {
+                switch (ch) {
+                    case '$':
+                        dollar = true;
+                        break;
+                    case '{':
+                        if (dollar) {
+                            rv = true;    
+                        }
+                    
+                        break;
+                    case '}':
+                        dollar = false;
+                        rv = false;
+
+                        var source = find_variable_by_name (current);
+                        if (source != null) {
+                            target.value = target.value.replace ("${" + current + "}", source.value);
+                        }       
+
+                        current = "";
+
+                        break;
+
+                    default:
+                        if (rv) {
+                            current += ch.to_string ();
+                        }
+
+                        break;
+                }
+            }
+        }
     }
 }

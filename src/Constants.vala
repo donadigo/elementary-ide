@@ -25,10 +25,18 @@ namespace IDE.Constants {
 }
 """;
 
+
+    // TODO: fetch this from CMake
+    public const string APP_NAME = "elementary IDE";
+    public const string EXEC_NAME = "elementary-ide";
+
     public const string WELCOME_VIEW_NAME = "welcome";
     public const string EDITOR_VIEW_NAME = "editor-view";
     public const string REPORT_VIEW_NAME = "report-view";
     public const string TERMINAL_VIEW_NAME = "terminal-view";
+
+    public const string NO_DOCUMENTS_VIEW_NAME = "no-documents";
+    public const string NOTEBOOK_VIEW_NAME = "notebook";
 
     public const string CMAKE_TARGET = "CMakeLists.txt";
     public const string PROJECT_CMD = "project";

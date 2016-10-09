@@ -20,8 +20,8 @@
 namespace IDE {
     public class IDEApplication : Granite.Application {
         construct {
-            program_name = "elementary IDE";
-            exec_name = "elementary-ide";
+            program_name = Constants.APP_NAME;
+            exec_name = Constants.EXEC_NAME;
 
             /*build_data_dir = Constants.DATADIR;
             build_pkg_data_dir = Constants.PKGDATADIR;
@@ -62,6 +62,8 @@ namespace IDE {
         }
 
         public override void activate () {
+            Project.load.begin (File.new_for_path ("/home/donadigo/Projects/elementary-ide"));
+
             var window = IDEWindow.get_instance ();
             window.show_all ();
             Gtk.main ();

@@ -63,14 +63,19 @@ namespace IDE {
             this.root_path = root_path;
             this.parser = parser;
 
+            update ();
+        }
+
+        public override void update () {
             parser.parse ();
 
+            string? project_name = null;
             foreach (var command in parser.get_commands ()) {
                 switch (command.name) {
                     case Constants.PROJECT_CMD:
                         var arguments = command.get_arguments ();
                         if (arguments.length == 1) {
-                            name = arguments[0];
+                            project_name = arguments[0];
                         }
 
                         break;
@@ -107,7 +112,7 @@ namespace IDE {
                                 }   
 
                                 if (current_header == Constants.VALA_PRECOMPILE_HEADERS[0]) {
-                                    _sources += argument;
+                                    _sources += Path.build_filename (Path.get_dirname (command.filename), argument);
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[1]) {
                                     _packages += argument;
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[2]) {
@@ -124,6 +129,27 @@ namespace IDE {
                     default:
                         break;
                 }
+            }
+
+            if (project_name != null) {
+                name = "%s (%s)".printf (project_name, Path.get_basename (root_path));
+            } else {
+                name = Path.get_basename (root_path);
+            }
+
+            var version_var = parser.find_variable_by_name ("VERSION");
+            if (version_var != null) {
+                version = version_var.value;
+            }
+
+            var exec_name_var = parser.find_variable_by_name ("EXEC_NAME");
+            if (exec_name_var != null) {
+                exec_name = exec_name_var.value;
+            }
+
+            var release_name_var = parser.find_variable_by_name ("RELEASE_NAME");
+            if (release_name_var != null) {
+                release_name = release_name_var.value;
             }
         }
     }

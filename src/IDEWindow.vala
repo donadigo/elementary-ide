@@ -64,12 +64,23 @@ namespace IDE {
             main_stack.add_named (welcome, Constants.WELCOME_VIEW_NAME);
             main_stack.add_named (editor_view, Constants.EDITOR_VIEW_NAME);
 
-            main_stack.visible_child_name = Constants.WELCOME_VIEW_NAME;
-            toolbar.show_editor_buttons = false;
+            set_project (null);
 
             add (main_stack);
-
             destroy.connect (on_destroy);
+        }
+
+        private void set_project (Project? project) {
+            bool valid = project != null;
+            title = valid ? project.name : Constants.APP_NAME;
+            toolbar.show_editor_buttons = valid;
+
+            editor_view.set_project (project);
+            if (valid) {
+                main_stack.visible_child_name = Constants.EDITOR_VIEW_NAME;
+            } else {
+                main_stack.visible_child_name = Constants.WELCOME_VIEW_NAME;
+            }
         }
 
         private void on_activated (int idx) {
@@ -88,6 +99,23 @@ namespace IDE {
 
                     main_stack.visible_child_name = Constants.EDITOR_VIEW_NAME;
                     toolbar.show_editor_buttons = true;
+                }
+
+                dialog.destroy ();
+            } else if (idx == open_id) {
+                var dialog = new Gtk.FileChooserDialog (_("Open project…"), this, Gtk.FileChooserAction.SELECT_FOLDER,
+                                                        _("Cancel"),
+                                                        Gtk.ResponseType.CANCEL,
+                                                        _("Open"),
+                                                        Gtk.ResponseType.ACCEPT);
+                if (dialog.run () == Gtk.ResponseType.ACCEPT) {
+                    string root_path = dialog.get_current_folder ();
+                    Project.load.begin (File.new_for_path (root_path), (obj, res) => {
+                        var project = Project.load.end (res);
+                        if (project != null) {
+                            set_project (project);                  
+                        }
+                    });
                 }
 
                 dialog.destroy ();

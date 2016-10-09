@@ -36,6 +36,8 @@ namespace IDE {
         public string display_name { get; set; }
         public string root_path { get; set; }
         public string version { get; set; }
+        public string exec_name { get; set; }
+        public string release_name { get; set; }
         public string[] packages { get; set; }
         public string[] sources { get; set; }
         public string[] options { get; set; }
@@ -116,6 +118,9 @@ namespace IDE {
             this.name = name;
             this.display_name = display_name;
             this.root_path = root_path;
+        }
+
+        public virtual void update () {
         }
     }
 }

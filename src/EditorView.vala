@@ -38,6 +38,8 @@ namespace IDE {
         private ValaDocumentProvider provider;
 
         private Granite.Widgets.ModeButton mode_button;
+        private Granite.Widgets.AlertView no_documents_view;
+        private Gtk.Stack notebook_stack;
         private Gtk.Stack bottom_stack;
 
         private bool document_recently_changed = false;
@@ -57,6 +59,11 @@ namespace IDE {
 
             terminal_widget = new TerminalWidget ();
 
+            notebook_stack = new Gtk.Stack ();
+
+            no_documents_view = new Granite.Widgets.AlertView (_("No documents opened"), _("Open a document to begin editing"), "dialog-information");
+            no_documents_view.show_all ();
+
             notebook = new Granite.Widgets.DynamicNotebook ();
             notebook.expand = true;
             notebook.show_tabs = true;
@@ -69,6 +76,9 @@ namespace IDE {
             notebook.tab_switched.connect (on_tab_switched);
             notebook.tab_removed.connect (tab_removed);
             notebook.add_button_tooltip = _("New empty document");
+
+            notebook_stack.add_named (no_documents_view, Constants.NO_DOCUMENTS_VIEW_NAME);
+            notebook_stack.add_named (notebook, Constants.NOTEBOOK_VIEW_NAME);
 
             location_label = new Gtk.Label (null);
 
@@ -110,7 +120,7 @@ namespace IDE {
             scrolled.add (sidebar);
 
             vertical_paned = new Gtk.Paned (Gtk.Orientation.VERTICAL);
-            vertical_paned.pack1 (notebook, true, false);
+            vertical_paned.pack1 (notebook_stack, true, false);
             vertical_paned.pack2 (bottom_bar, false, false);
 
             var horizontal_paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
@@ -119,13 +129,28 @@ namespace IDE {
 
             update_report_view_timeout_id = Timeout.add (2000, update_report_view);
 
+            update_notebook_stack ();
             add (horizontal_paned);
             show_all ();
         }
 
-        public EditorView.from_project (Project project) {
+        public void set_project (Project? project) {
             this.project = project;
-            process_root_directory ();
+
+            // TODO: clear previous project
+            if (project != null) {
+                process_root_directory ();
+
+                foreach (string package in project.packages) {
+                    index.add_package (package);
+                }
+
+                foreach (string source in project.sources) {
+                    index.add_source (source);
+                }
+
+                terminal_widget.spawn_default (project.root_path);
+            }
         }
 
         public void add_new_document () {
@@ -150,13 +175,13 @@ namespace IDE {
         }
 
         private void process_root_directory () {
-            if (project == null) {
-                return;
-            }
-
             var file = File.new_for_path (project.root_path);
             process_directory (file);
             sidebar.show_all ();
+        }
+
+        private void update_notebook_stack () {
+            notebook_stack.visible_child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
         }
 
         private void on_mode_changed () {
@@ -254,6 +279,7 @@ namespace IDE {
 
         private void tab_removed (Granite.Widgets.Tab tab) {
             remove_document ((Document)tab);
+            update_notebook_stack ();
         }
 
         private void on_tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab) {
@@ -262,11 +288,6 @@ namespace IDE {
 
         public void remove_document (Document document) {
             document.close ();
-
-            if (notebook.n_tabs == 0) {
-                // TODO: do not quit here
-                Gtk.main_quit ();
-            }
         }
 
         public void add_document (Document document, bool focus = true) {
@@ -296,6 +317,7 @@ namespace IDE {
             }
 
             queue_parse ();
+            update_notebook_stack ();
         }
 
         public Document? get_current_document () {

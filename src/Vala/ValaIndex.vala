@@ -25,10 +25,8 @@ namespace IDE {
             context.mem_profiler = false;
             context.hide_internal = false;
 
-            // TODO: do not hardcode these
             context.add_external_package ("glib-2.0");
             context.add_external_package ("gobject-2.0");
-            context.add_external_package ("granite");
 
             locator.resolve (context);
 
@@ -42,8 +40,12 @@ namespace IDE {
             Vala.CodeContext.pop ();        
         }
         
-        public bool add_package (string package) {
-            return context.add_external_package (package);
+        public void add_package (string package) {
+            lock (context) {
+                Vala.CodeContext.push (context);
+                context.add_external_package (package);
+                Vala.CodeContext.pop ();
+            }
         }
         
         public void add_document (Document document) {
@@ -70,17 +72,17 @@ namespace IDE {
         }
         
         public void add_source (string source) {
-            foreach (var file in context.get_source_files ()) {
-                if (file.filename == source) {
-                    Vala.CodeContext.pop ();
-                    return;
+            lock (context) {
+                Vala.CodeContext.push (context);
+                foreach (var file in context.get_source_files ()) {
+                    if (file.filename == source) {
+                        Vala.CodeContext.pop ();
+                        return;
+                    }
                 }
-            }
 
-            context.add_source_filename (source);
-            if (!context.has_package ("gobject-2.0")) {
-                context.add_external_package ("glib-2.0");
-                context.add_external_package ("gobject-2.0");
+                context.add_source_filename (source);
+                Vala.CodeContext.pop ();
             }
         }
         

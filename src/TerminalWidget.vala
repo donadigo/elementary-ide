@@ -34,20 +34,18 @@ namespace IDE {
 			}
 
 			add (terminal);
-
-			spawn_shell ("bash");
 		}
 
 		public Vte.Terminal get_terminal () {
 			return terminal;
 		}
 
-		private void spawn_shell (string shell) {
-			string[] argv = { shell };
-			spawn_command (argv);
+		public void spawn_default (string? working_directory = null) {
+			string[] argv = { Environment.get_variable ("SHELL") };
+			spawn_command (argv, working_directory);
 		}
 
-		private void spawn_command (string[] argv, string? working_directory = null) {
+		public void spawn_command (string[] argv, string? working_directory = null) {
 			string[] _argv = {};
 			foreach (string arg in argv) {
 				_argv += arg;
