@@ -37,10 +37,6 @@ namespace IDE {
             arguments.add (argument);
         }
 
-        public void clear_arguments () {
-            arguments.clear ();
-        }
-
         public string[] get_arguments () {
             return arguments.to_array ();
         }
