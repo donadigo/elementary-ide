@@ -59,10 +59,8 @@ namespace IDE {
 
             terminal_widget = new TerminalWidget ();
 
-            notebook_stack = new Gtk.Stack ();
-
             no_documents_view = new Granite.Widgets.AlertView (_("No documents opened"), _("Open a document to begin editing"), "dialog-information");
-            no_documents_view.show_all ();
+            no_documents_view.visible = true;
 
             notebook = new Granite.Widgets.DynamicNotebook ();
             notebook.expand = true;
@@ -77,6 +75,7 @@ namespace IDE {
             notebook.tab_removed.connect (tab_removed);
             notebook.add_button_tooltip = _("New empty document");
 
+            notebook_stack = new Gtk.Stack ();
             notebook_stack.add_named (no_documents_view, Constants.NO_DOCUMENTS_VIEW_NAME);
             notebook_stack.add_named (notebook, Constants.NOTEBOOK_VIEW_NAME);
 
@@ -129,9 +128,10 @@ namespace IDE {
 
             update_report_view_timeout_id = Timeout.add (2000, update_report_view);
 
-            update_notebook_stack ();
             add (horizontal_paned);
             show_all ();
+
+            update_notebook_stack ();
         }
 
         public void set_project (Project? project) {
@@ -150,6 +150,7 @@ namespace IDE {
                 }
 
                 terminal_widget.spawn_default (project.root_path);
+                index.queue_parse ();
             }
         }
 
@@ -218,7 +219,7 @@ namespace IDE {
 
                         if (previous_header != null) {
                             /* WIP */
-                            // header.add_child (header);
+                            //previous_header.add (header);
                         } else {
                             sidebar.add (header);
                         }
@@ -270,11 +271,11 @@ namespace IDE {
 
             iter.set_line (line);
 
+            document.grab_focus ();
             document.editor_window.source_view.scroll_to_iter (iter, 0.4, true, 0, 0);
 
             iter.set_line_offset (column);
             document.editor_window.source_buffer.place_cursor (iter);
-            document.grab_focus ();
         }
 
         private void tab_removed (Granite.Widgets.Tab tab) {
@@ -292,10 +293,6 @@ namespace IDE {
 
         public void add_document (Document document, bool focus = true) {
             document.load.begin ();
-
-            if (document.get_is_vala_source ()) {
-                index.add_document (document);    
-            }
 
             try {
                 document.editor_window.source_view.completion.add_provider (provider);
@@ -316,7 +313,6 @@ namespace IDE {
                 notebook.current = document;
             }
 
-            queue_parse ();
             update_notebook_stack ();
         }
 

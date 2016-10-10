@@ -132,7 +132,12 @@ namespace IDE {
 		}
 
 		private bool filter_func (Gtk.ListBoxRow row) {
-			int type = int.parse (type_combo.get_active_id ());
+			string? id = type_combo.get_active_id ();
+			if (id == null) {
+				return true;
+			}
+
+			int type = int.parse (id);
 			if (type == -1) {
 				return true;
 			}

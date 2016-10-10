@@ -22,45 +22,18 @@ namespace IDE {
         private CMakeParser parser;
 
         public new static async Project? load (File file) {
-            var sources = yield get_cmake_sources (file);
-            if (sources.size <= 0) {
+            string root_source = Path.build_filename (file.get_path (), Constants.CMAKE_TARGET);
+            if (!FileUtils.test (root_source, FileTest.EXISTS)) {
                 return null;
             }
 
-            var parser = new CMakeParser ();
-            foreach (var source in sources) {
-                parser.add_cmake_source (source.get_path ());
-            }
-
-            var project = new CMakeProject (file.get_path (), parser);
+            var parser = new CMakeParser (root_source);
+            var project = new CMakeProject (parser);
             return project;
         }
 
-        private static async Gee.ArrayList<File> get_cmake_sources (File file) {
-            var list = new Gee.ArrayList<File> ();
-
-            try {
-                var enumerator = yield file.enumerate_children_async ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
-
-                FileInfo? info = null;
-                while ((info = enumerator.next_file ()) != null) {
-                    if (info.get_file_type () == FileType.DIRECTORY) {
-                        var subdir = file.resolve_relative_path (info.get_name ());
-                        list.add_all (yield get_cmake_sources (subdir));
-                    } else if (info.get_name () == Constants.CMAKE_TARGET) {
-                        var subfile = file.resolve_relative_path (info.get_name ());
-                        list.add (subfile);
-                    }
-                }
-            } catch (Error e) {
-                warning (e.message);
-            }
-
-            return list;
-        }
-
-        public CMakeProject (string root_path, CMakeParser parser) {
-            this.root_path = root_path;
+        public CMakeProject (CMakeParser parser) {
+            this.root_path = Path.get_dirname (parser.root_source);
             this.parser = parser;
 
             update ();
@@ -80,31 +53,20 @@ namespace IDE {
 
                         break;
                     case Constants.PKG_CHECK_MODULES_CMD:
-                        string[] _check_dependencies = {};
                         var arguments = command.get_arguments ();
                         if (arguments.length > 2) {
                             for (int i = 3; i < arguments.length; i++) {
-                                _check_dependencies += arguments[i];
+                                check_dependencies.add (arguments[i]);
                             }
-
-                            check_dependencies = _check_dependencies;
                         }
 
                         break;
-                    case Constants.VALA_PRECOMIPLE_CMD:
-                        string[] _sources = {};
-                        string[] _packages = {};
-                        string[] _options = {};
-
+                    case Constants.VALA_PRECOMPILE_CMD:
                         string current_header = Constants.VALA_PRECOMPILE_HEADERS[0];
 
                         var arguments = command.get_arguments ();
                         if (arguments.length > 2) {
-                            for (int i = 0; i < arguments.length; i++) {
-                                if (i < 2) {
-                                    continue;
-                                }
-
+                            for (int i = 1; i < arguments.length; i++) {
                                 string argument = arguments[i];
                                 if (argument in Constants.VALA_PRECOMPILE_HEADERS) {
                                     current_header = argument;
@@ -112,17 +74,13 @@ namespace IDE {
                                 }   
 
                                 if (current_header == Constants.VALA_PRECOMPILE_HEADERS[0]) {
-                                    _sources += Path.build_filename (Path.get_dirname (command.filename), argument);
+                                    sources.add (Path.build_filename (Path.get_dirname (command.filename), argument));
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[1]) {
-                                    _packages += argument;
+                                    packages.add (argument);
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[2]) {
-                                    _options += argument;
+                                    options.add (argument);
                                 }
                             }
-
-                            sources = _sources;
-                            packages = _packages;
-                            options = _options;
                         }
 
                         break;
@@ -131,25 +89,36 @@ namespace IDE {
                 }
             }
 
-            if (project_name != null) {
-                name = "%s (%s)".printf (project_name, Path.get_basename (root_path));
+            string basename = Path.get_basename (root_path);
+            if (project_name != null && project_name != basename) {
+                name = "%s (%s)".printf (project_name, basename);
             } else {
-                name = Path.get_basename (root_path);
+                name = basename;
             }
 
             var version_var = parser.find_variable_by_name ("VERSION");
             if (version_var != null) {
-                version = version_var.value;
+                version = version_var.get_first_value ();
             }
 
             var exec_name_var = parser.find_variable_by_name ("EXEC_NAME");
             if (exec_name_var != null) {
-                exec_name = exec_name_var.value;
+                exec_name = exec_name_var.get_first_value ();
             }
 
             var release_name_var = parser.find_variable_by_name ("RELEASE_NAME");
             if (release_name_var != null) {
-                release_name = release_name_var.value;
+                release_name = release_name_var.get_first_value ();
+            }
+
+            var library_command = parser.find_command_by_name (Constants.ADD_LIBRARY_CMD);
+            if (library_command != null) {
+                project_type |= ProjectType.VALA_LIBRARY;
+            }
+
+            var executable_command = parser.find_command_by_name (Constants.ADD_EXECUTABLE_CMD);
+            if (executable_command != null) {
+                project_type |= ProjectType.VALA_APPLICATION;
             }
         }
     }

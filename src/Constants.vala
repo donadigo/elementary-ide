@@ -41,8 +41,11 @@ namespace IDE.Constants {
     public const string CMAKE_TARGET = "CMakeLists.txt";
     public const string PROJECT_CMD = "project";
     public const string PKG_CHECK_MODULES_CMD = "pkg_check_modules";
-    public const string VALA_PRECOMIPLE_CMD = "vala_precompile";
+    public const string VALA_PRECOMPILE_CMD = "vala_precompile";
+    public const string ADD_LIBRARY_CMD = "add_library";
+    public const string ADD_EXECUTABLE_CMD = "add_executable";
     public const string SET_CMD = "set";
+    public const string ADD_SUBDIRECTORY_CMD = "add_subdirectory";
     public const string[] VALA_PRECOMPILE_HEADERS =  { "SOURCES",
                                                     "PACKAGES",
                                                     "OPTIONS",

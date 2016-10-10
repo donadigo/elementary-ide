@@ -62,8 +62,6 @@ namespace IDE {
         }
 
         public override void activate () {
-            Project.load.begin (File.new_for_path ("/home/donadigo/Projects/elementary-ide"));
-
             var window = IDEWindow.get_instance ();
             window.show_all ();
             Gtk.main ();

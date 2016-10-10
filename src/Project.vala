@@ -38,10 +38,10 @@ namespace IDE {
         public string version { get; set; }
         public string exec_name { get; set; }
         public string release_name { get; set; }
-        public string[] packages { get; set; }
-        public string[] sources { get; set; }
-        public string[] options { get; set; }
-        public string[] check_dependencies { get; set; }
+        public Gee.ArrayList<string> packages { public get; private set; }
+        public Gee.ArrayList<string> sources { public get; private set; }
+        public Gee.ArrayList<string> options { public get; private set; }
+        public Gee.ArrayList<string> check_dependencies { public get; private set; }
         public ProjectType project_type { get; set; }
 
         public static bool check (File file) {
@@ -113,6 +113,13 @@ namespace IDE {
             return new Project.from_data (ProjectType.UNKNOWN, name, "", root_path);
         }
 
+        construct {
+            packages = new Gee.ArrayList<string> ();
+            sources = new Gee.ArrayList<string> ();
+            options = new Gee.ArrayList<string> ();
+            check_dependencies = new Gee.ArrayList<string> ();
+        }
+
         public Project.from_data (ProjectType project_type, string name, string display_name, string root_path) {
             this.project_type = project_type;
             this.name = name;
@@ -121,6 +128,7 @@ namespace IDE {
         }
 
         public virtual void update () {
+            
         }
     }
 }

@@ -43,6 +43,11 @@ namespace IDE {
         public void add_package (string package) {
             lock (context) {
                 Vala.CodeContext.push (context);
+                if (context.has_package (package)) {
+                    Vala.CodeContext.pop ();    
+                    return;
+                }
+
                 context.add_external_package (package);
                 Vala.CodeContext.pop ();
             }

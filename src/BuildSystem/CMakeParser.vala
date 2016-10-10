@@ -19,39 +19,26 @@
 
 namespace IDE {
     public class CMakeParser : Object {
-        private Scanner scanner;
-
+        public string root_source { get; set; }
+        
         private Gee.ArrayList<string> sources;
         private Gee.ArrayList<CMakeCommand> commands;
         private Gee.ArrayList<CMakeVariable> variables;
         private Gee.ArrayList<string> comments;
 
         private string prev_value;
-        private CMakeCommand? current_command;
 
         construct {
             // TODO: Better config
-            scanner = new Scanner (null);
-            scanner.config.skip_comment_multi = true;
-            scanner.config.skip_comment_single = false;
-            scanner.config.identifier_2_string = true;
-            scanner.config.symbol_2_token = true;
-            scanner.config.scan_float = true;
-            scanner.config.scan_binary = false;
-            scanner.config.scan_identifier_NULL = false;
-            scanner.config.scan_identifier_1char = true;
-            scanner.config.scan_identifier = true;            
-
-            string cset_identifier_nth = scanner.config.cset_identifier_nth;
-            string cset_identifier_first = scanner.config.cset_identifier_first;
-
-            scanner.config.cset_identifier_first = (string*)(cset_identifier_first + "${}");
-            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "{}=-_.\\/");
 
             sources = new Gee.ArrayList<string> ();
             commands = new Gee.ArrayList<CMakeCommand> ();
             comments = new Gee.ArrayList<string> ();
             variables = new Gee.ArrayList<CMakeVariable> ();
+        }
+
+        public CMakeParser (string root_source) {
+            this.root_source = root_source;
         }
 
         public Gee.ArrayList<string> get_sources () {
@@ -82,11 +69,17 @@ namespace IDE {
             commands.clear ();
             comments.clear ();
 
-            foreach (string source in sources) {
-                parse_file (source);       
+            parse_file (root_source);
+        }
+
+        public CMakeCommand? find_command_by_name (string name) {
+            foreach (var command in commands) {
+                if (command.name == name) {
+                    return command;
+                }
             }
 
-            parse_variables ();
+            return null;
         }
 
         public CMakeVariable? find_variable_by_name (string name) {
@@ -109,9 +102,28 @@ namespace IDE {
                 return;
             }
 
+            var scanner = new Scanner (null);
+            scanner.config.skip_comment_multi = true;
+            scanner.config.skip_comment_single = false;
+            scanner.config.identifier_2_string = true;
+            scanner.config.scan_float = true;
+            scanner.config.scan_binary = false;
+            scanner.config.scan_identifier_NULL = false;
+            scanner.config.scan_identifier_1char = true;
+            scanner.config.scan_identifier = true;            
+
+            string cset_identifier_nth = scanner.config.cset_identifier_nth;
+            string cset_identifier_first = scanner.config.cset_identifier_first;
+
+            scanner.config.cset_identifier_first = (string*)(cset_identifier_first + "><=+_.");
+            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "{=-+_.\\/");
+
             contents = contents.compress ();
             scanner.input_text (contents, contents.length);
 
+            CMakeCommand? current_command = null;
+            bool parse_variable = false;
+ 
             while (!scanner.eof ()) {
                 var token = scanner.get_next_token ();
                 var val = scanner.cur_value ();
@@ -121,11 +133,46 @@ namespace IDE {
                         break;
                     case TokenType.RIGHT_PAREN:
                         commands.add (current_command);
+                        if (current_command.name == Constants.SET_CMD) {
+                            var arguments = current_command.get_arguments ();
+                            if (arguments.length > 0) {
+                                var variable = new CMakeVariable (arguments[0]);
+                                for (int i = 1; i < arguments.length; i++) {
+                                    variable.add_value (arguments[i]);
+                                }
+
+                                variables.add (variable);
+                            }
+                        } else if (current_command.name == Constants.ADD_SUBDIRECTORY_CMD) {
+                            var arguments = current_command.get_arguments ();
+                            if (arguments.length > 0) {
+                                string next_source = Path.build_filename (Path.get_dirname (root_source), arguments[0], Constants.CMAKE_TARGET);
+                                if (FileUtils.test (next_source, FileTest.IS_REGULAR)) {
+                                    parse_file (next_source);
+                                }
+                            }
+                        }
+
                         current_command = null;
                         break;
+                    case TokenType.LEFT_CURLY:
+                        parse_variable = true;
+                        break;
                     case TokenType.STRING:
+                        // TODO: check if the previous string was a dollar
+
                         string str = val.string;
-                        if (current_command != null) {
+
+                        if (parse_variable && current_command != null) {
+                            var variable = find_variable_by_name (str);
+                            if (variable != null) {
+                                foreach (string value in variable.get_values ()) {
+                                    current_command.add_argument (value);
+                                }
+                            }
+
+                            parse_variable = false;
+                        } else if (current_command != null) {
                             current_command.add_argument (str);
                         }
 
@@ -155,63 +202,5 @@ namespace IDE {
                 }
             }
         }   
-
-        private void parse_variables () {
-            foreach (var command in commands) {
-                if (command.name != Constants.SET_CMD) {
-                    continue;
-                }
-
-                var arguments = command.get_arguments ();
-                if (arguments.length < 2) {
-                    continue;
-                }
-
-                var variable = new CMakeVariable (arguments[0], arguments[1]);
-                variables.add (variable);
-            }
-
-            foreach (var variable in variables) {
-                evaluate_variable (variable);
-            }
-        }
-
-        private void evaluate_variable (CMakeVariable target) {
-            string current = "";
-            bool dollar = false;
-            bool rv = false;
-            foreach (char ch in target.value.to_utf8 ()) {
-                switch (ch) {
-                    case '$':
-                        dollar = true;
-                        break;
-                    case '{':
-                        if (dollar) {
-                            rv = true;    
-                        }
-                    
-                        break;
-                    case '}':
-                        dollar = false;
-                        rv = false;
-
-                        var source = find_variable_by_name (current);
-                        if (source != null) {
-                            target.value = target.value.replace ("${" + current + "}", source.value);
-                        }       
-
-                        current = "";
-
-                        break;
-
-                    default:
-                        if (rv) {
-                            current += ch.to_string ();
-                        }
-
-                        break;
-                }
-            }
-        }
     }
 }
