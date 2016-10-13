@@ -163,20 +163,23 @@ namespace IDE {
 
                         string str = val.string;
 
-                        if (parse_variable && current_command != null) {
-                            var variable = find_variable_by_name (str);
-                            if (variable != null) {
-                                foreach (string value in variable.get_values ()) {
-                                    current_command.add_argument (value);
-                                }
+                        if (current_command != null) {
+                            if (parse_variable) {
+                                var variable = find_variable_by_name (str);
+                                if (variable != null) {
+                                    foreach (string value in variable.get_values ()) {
+                                        current_command.add_argument (value);
+                                        prev_value = value;
+                                    }
+                                }                                
+                            } else {
+                                current_command.add_argument (str);
+                                prev_value = str;
                             }
-
-                            parse_variable = false;
-                        } else if (current_command != null) {
-                            current_command.add_argument (str);
+                        } else {
+                            prev_value = str;
                         }
 
-                        prev_value = str;
                         break;
                     case TokenType.FLOAT:
                         string str = val.float.to_string ();

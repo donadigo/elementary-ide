@@ -19,6 +19,8 @@
 
 namespace IDE {
     public class EditorView : Gtk.Box, DocumentManager {
+        private const Gtk.TargetEntry[] targets = {{ "text/uri-list", 0, 0 }};
+
         private ValaIndex index;
 
         private Project project;
@@ -78,6 +80,9 @@ namespace IDE {
             notebook_stack = new Gtk.Stack ();
             notebook_stack.add_named (no_documents_view, Constants.NO_DOCUMENTS_VIEW_NAME);
             notebook_stack.add_named (notebook, Constants.NOTEBOOK_VIEW_NAME);
+
+            Gtk.drag_dest_set (notebook_stack, Gtk.DestDefaults.ALL, targets, Gdk.DragAction.COPY);
+            notebook_stack.drag_data_received.connect (on_drag_data_received);
 
             location_label = new Gtk.Label (null);
 
@@ -185,6 +190,18 @@ namespace IDE {
             notebook_stack.visible_child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
         }
 
+        private void on_drag_data_received (Gdk.DragContext ctx, int x, int y, Gtk.SelectionData sel,  uint info, uint time) {
+            foreach (string uri in sel.get_uris ()) {
+                try {
+                    open_focus_filename (Filename.from_uri (uri));
+                } catch (Error e) {
+                    warning (e.message);
+                }
+            }
+
+            Gtk.drag_finish (ctx, true, false, time);
+        }
+
         private void on_mode_changed () {
             if (mode_button.selected == report_widget_id) {
                 bottom_stack.visible_child_name = Constants.REPORT_VIEW_NAME;
@@ -256,13 +273,7 @@ namespace IDE {
         }
 
         private void on_jump_to (string filename, int line, int column) {
-            var document = get_document_by_filename (filename);
-            if (document == null) {
-                document = new Document (File.new_for_path (filename), null);
-                add_document (document, false);
-            }
-
-            notebook.current = document;
+            var document = open_focus_filename (filename);
 
             var source_buffer = document.editor_window.source_buffer;
 
@@ -276,6 +287,18 @@ namespace IDE {
 
             iter.set_line_offset (column);
             document.editor_window.source_buffer.place_cursor (iter);
+        }
+
+        private Document open_focus_filename (string filename) {
+            var document = get_document_by_filename (filename);
+            if (document == null) {
+                document = new Document (File.new_for_path (filename), null);
+                add_document (document, true);
+            } else {
+                notebook.current = document;
+            }
+
+            return document;
         }
 
         private void tab_removed (Granite.Widgets.Tab tab) {
