@@ -29,7 +29,9 @@ namespace IDE {
             headers_visible = false;
             activate_on_single_click = true;
 
+            // TODO: margins and spacing
             var column = new Gtk.TreeViewColumn ();
+
             var pixbuf = new Gtk.CellRendererPixbuf ();
             column.pack_start (pixbuf, false);
             column.add_attribute (pixbuf, "icon-name", 1);
@@ -37,6 +39,8 @@ namespace IDE {
 
             var cell = new Gtk.CellRendererText ();
             insert_column_with_attributes (-1, null, cell, "text", 2);
+
+            get_style_context ().add_class ("sidebar");
         }
 
         public void get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) {
