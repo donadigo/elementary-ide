@@ -37,7 +37,7 @@ PACKAGES
     vte-2.91
     posix
     gee-0.8
-    libvala-0.32
+    libvala-0.34
 OPTIONS
   --target-glib=2.32
   --thread
