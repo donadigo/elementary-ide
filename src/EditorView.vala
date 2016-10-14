@@ -29,7 +29,7 @@ namespace IDE {
         private TerminalWidget terminal_widget;
 
         private Granite.Widgets.DynamicNotebook notebook;
-        private Granite.Widgets.Sidebar sidebar;
+        private Sidebar sidebar;
         private Gtk.Paned vertical_paned;
 
         private Gtk.Label location_label;
@@ -89,7 +89,9 @@ namespace IDE {
             var info_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
             info_box.add (location_label);
 
-            sidebar = new Granite.Widgets.Sidebar ();
+            sidebar = new Sidebar ();
+            sidebar.row_activated.connect (on_row_activated);
+
             info_window = new InfoWindow ();
 
             report_widget = new ReportWidget ();
@@ -144,7 +146,7 @@ namespace IDE {
 
             // TODO: clear previous project
             if (project != null) {
-                process_root_directory ();
+                sidebar.set_file (File.new_for_path (project.root_path));
 
                 foreach (string package in project.packages) {
                     index.add_package (package);
@@ -180,12 +182,6 @@ namespace IDE {
             return true;
         }
 
-        private void process_root_directory () {
-            var file = File.new_for_path (project.root_path);
-            process_directory (file);
-            sidebar.show_all ();
-        }
-
         private void update_notebook_stack () {
             notebook_stack.visible_child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
         }
@@ -218,58 +214,18 @@ namespace IDE {
             }
         }
 
-        private void process_directory (File directory, Granite.Widgets.SidebarHeader? previous_header = null) {
-            try {
-                var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NONE, null);
+        private void on_row_activated (Gtk.TreePath path, Gtk.TreeViewColumn column) {
+            Gtk.TreeIter iter;
+            sidebar.model.get_iter (out iter, path);
 
-                Granite.Widgets.SidebarHeader? header = previous_header;
-                FileInfo? info;
-                while ((info = enumerator.next_file ()) != null) {
-                    if (info.get_name ().has_prefix (".")) {
-                        continue;
-                    }
-
-                    var subfile = directory.resolve_relative_path (info.get_name ());
-                    if (info.get_file_type () == FileType.DIRECTORY) {
-                        header = new Granite.Widgets.SidebarHeader (info.get_name ());
-                        header.row_activated.connect (on_row_activated);
-
-                        if (previous_header != null) {
-                            /* WIP */
-                            //previous_header.add (header);
-                        } else {
-                            sidebar.add (header);
-                        }
-
-                        process_directory (subfile, header);
-                    } else {
-                        string icon_name;
-                        var icon = (ThemedIcon)info.get_icon ();
-                        string[] names = icon.get_names ();
-                        if (names.length > 0 && Gtk.IconTheme.get_default ().has_icon (names[0])) {
-                            icon_name = icon.get_names ()[0];
-                        } else {
-                            icon_name = "application-octet-stream";
-                        }
-
-                        var row = new SidebarFileRow (info.get_name (), icon_name);
-                        row.filename = subfile.get_path ();
-                        if (header != null) {
-                            header.add_child (row);
-                        } else {
-                            sidebar.add (row);
-                        }
-                    }
-                }
-            } catch (Error e) {
-                warning (e.message);
+            Value value;
+            sidebar.model.get_value (iter, 0, out value);
+            if (value.type () != typeof (string)) {
+                return;
             }
-        }
 
-        private void on_row_activated (Gtk.ListBoxRow child) {
-            var row = (SidebarFileRow)child;
-            var document = new Document (File.new_for_path (row.filename), null);
-            add_document (document, true);
+            string filename = (string)value;
+            open_focus_filename (filename);
         }
 
         private void on_jump_to (string filename, int line, int column) {
