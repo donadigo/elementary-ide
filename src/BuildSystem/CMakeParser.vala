@@ -171,7 +171,9 @@ namespace IDE {
                                         current_command.add_argument (value);
                                         prev_value = value;
                                     }
-                                }                                
+                                }
+
+                                parse_variable = false;                                
                             } else {
                                 current_command.add_argument (str);
                                 prev_value = str;
