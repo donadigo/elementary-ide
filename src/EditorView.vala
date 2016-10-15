@@ -263,6 +263,7 @@ namespace IDE {
 
         public void remove_document (Document document) {
             document.close ();
+            update_location_label ();
         }
 
         public void add_document (Document document, bool focus = true) {
@@ -288,6 +289,7 @@ namespace IDE {
             }
 
             update_notebook_stack ();
+            update_location_label ();
         }
 
         public Document? get_current_document () {
@@ -314,12 +316,12 @@ namespace IDE {
         private void update_location_label () {
             var current = get_current_document ();
             if (current == null) {
-                // TODO: hide location label
+                Utils.set_widget_visible (report_widget.location_label, false);
                 return;
             }
 
-            // TODO: show location label
             report_widget.location_label.label = _("Line %i, Column %i".printf (current.current_line + 1, current.current_column));
+            Utils.set_widget_visible (report_widget.location_label, true);
         }
 
         private void update_report_widget (Report report) {
