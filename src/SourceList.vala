@@ -21,22 +21,20 @@ namespace IDE {
     public class SourceList : Granite.Widgets.SourceList {
         public class FileItem : Granite.Widgets.SourceList.Item {
             public string filename { get; set; }
-            public string basename { get; set; }
 
-            public FileItem (string filename, string basename, string icon_name) {
+            public FileItem (string filename, string name, string icon_name) {
                 this.filename = filename;
-                name = basename;
+                this.name = name;
                 icon = new ThemedIcon (icon_name);
             }
         }
 
         public class FolderItem : Granite.Widgets.SourceList.ExpandableItem {
             public string filename { get; set; }
-            public string basename { get; set; }
 
-            public FolderItem (string filename, string basename) {
+            public FolderItem (string filename, string name) {
                 this.filename = filename;
-                name = basename;
+                this.name = name;
                 icon = new ThemedIcon ("folder");
             }
         }
