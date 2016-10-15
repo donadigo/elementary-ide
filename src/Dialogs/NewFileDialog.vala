@@ -88,7 +88,7 @@ namespace IDE {
             inherits_entry = new Gtk.Entry ();
             inherits_entry.hexpand = true;
 
-            var inherits_label = new Gtk.Label (_("Interits:"));
+            var inherits_label = new Gtk.Label (_("Inherits:"));
             inherits_label.halign = Gtk.Align.END;
 
             main_grid.attach (inherits_label, 0, 4, 1, 1);
