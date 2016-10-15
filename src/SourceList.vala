@@ -57,12 +57,12 @@ namespace IDE {
         }
 
         private void update_file () {
-            process_directory (file, null);
+            process_directory.begin (file, null);
         }
 
-        private void process_directory (File directory, Granite.Widgets.SourceList.ExpandableItem? prev_item) {
+        private async void process_directory (File directory, Granite.Widgets.SourceList.ExpandableItem? prev_item) {
             try {
-                var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NONE, null);
+                var enumerator = yield directory.enumerate_children_async ("standard::*", FileQueryInfoFlags.NONE);
 
                 FileInfo? info;
                 while ((info = enumerator.next_file ()) != null) {
@@ -79,7 +79,7 @@ namespace IDE {
                             project_root.add (expandable_item);
                         }
 
-                        process_directory (subfile, expandable_item);
+                        process_directory.begin (subfile, expandable_item);
                     } else {
                         string icon_name;
                         var icon = (ThemedIcon)info.get_icon ();
