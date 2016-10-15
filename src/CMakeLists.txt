@@ -25,7 +25,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     ReportWidget.vala
     TerminalWidget.vala
     InfoWindow.vala
-    Sidebar.vala
+    SourceList.vala
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/BaseDialog.vala
     Dialogs/NewFileDialog.vala

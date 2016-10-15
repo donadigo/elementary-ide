@@ -29,7 +29,7 @@ namespace IDE {
         private TerminalWidget terminal_widget;
 
         private Granite.Widgets.DynamicNotebook notebook;
-        private Sidebar sidebar;
+        private SourceList source_list;
         private Gtk.Paned vertical_paned;
 
         private Gtk.Label location_label;
@@ -89,8 +89,8 @@ namespace IDE {
             var info_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
             info_box.add (location_label);
 
-            sidebar = new Sidebar ();
-            sidebar.row_activated.connect (on_row_activated);
+            source_list = new SourceList ();
+            source_list.item_selected.connect (on_item_selected);
 
             info_window = new InfoWindow ();
 
@@ -123,7 +123,7 @@ namespace IDE {
 
             var scrolled = new Gtk.ScrolledWindow (null, null);
             scrolled.min_content_width = 200;
-            scrolled.add (sidebar);
+            scrolled.add (source_list);
 
             vertical_paned = new Gtk.Paned (Gtk.Orientation.VERTICAL);
             vertical_paned.pack1 (notebook_stack, true, false);
@@ -146,7 +146,7 @@ namespace IDE {
 
             // TODO: clear previous project
             if (project != null) {
-                sidebar.set_file (File.new_for_path (project.root_path));
+                source_list.set_file (File.new_for_path (project.root_path));
 
                 foreach (string package in project.packages) {
                     index.add_package (package);
@@ -214,17 +214,12 @@ namespace IDE {
             }
         }
 
-        private void on_row_activated (Gtk.TreePath path, Gtk.TreeViewColumn column) {
-            Gtk.TreeIter iter;
-            sidebar.model.get_iter (out iter, path);
-
-            Value value;
-            sidebar.model.get_value (iter, 0, out value);
-            if (value.type () != typeof (string)) {
+        private void on_item_selected (Granite.Widgets.SourceList.Item? item) {
+            if (item == null || !(item is SourceList.FileItem)) {
                 return;
             }
 
-            string filename = (string)value;
+            string filename = ((SourceList.FileItem)item).filename;
             open_focus_filename (filename);
         }
 

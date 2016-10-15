@@ -18,46 +18,51 @@
  */
 
 namespace IDE {
-    public class Sidebar : Gtk.TreeView {
-        private File file;
-        private Gtk.TreeStore store;
+    public class SourceList : Granite.Widgets.SourceList {
+        public class FileItem : Granite.Widgets.SourceList.Item {
+            public string filename { get; set; }
+            public string basename { get; set; }
 
-        construct {
-            store = new Gtk.TreeStore (3, typeof (string), typeof (string), typeof (string));
-            model = store;
-
-            headers_visible = false;
-            activate_on_single_click = true;
-
-            // TODO: margins and spacing
-            var column = new Gtk.TreeViewColumn ();
-
-            var pixbuf = new Gtk.CellRendererPixbuf ();
-            column.pack_start (pixbuf, false);
-            column.add_attribute (pixbuf, "icon-name", 1);
-            append_column (column);
-
-            var cell = new Gtk.CellRendererText ();
-            insert_column_with_attributes (-1, null, cell, "text", 2);
-
-            get_style_context ().add_class ("sidebar");
+            public FileItem (string filename, string basename, string icon_name) {
+                this.filename = filename;
+                name = basename;
+                icon = new ThemedIcon (icon_name);
+            }
         }
 
-        public void get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) {
-            model.get_iter (out iter, path);
+        public class FolderItem : Granite.Widgets.SourceList.ExpandableItem {
+            public string filename { get; set; }
+            public string basename { get; set; }
+
+            public FolderItem (string filename, string basename) {
+                this.filename = filename;
+                name = basename;
+                icon = new ThemedIcon ("folder");
+            }
+        }
+
+        private File file;
+        private FolderItem project_root;
+
+        construct {
+            ellipsize_mode = Pango.EllipsizeMode.MIDDLE;
         }
 
         public void set_file (File file) {
+            root.clear ();
+
             this.file = file;
+            project_root = new FolderItem (file.get_path (), file.get_basename ());
+            project_root.expand_all (true, false);
+            root.add (project_root);
             update_file ();
         }
 
         private void update_file () {
-            store.clear ();
             process_directory (file, null);
         }
 
-        private void process_directory (File directory, Gtk.TreeIter? prev_iter) {
+        private void process_directory (File directory, Granite.Widgets.SourceList.ExpandableItem? prev_item) {
             try {
                 var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NONE, null);
 
@@ -69,11 +74,14 @@ namespace IDE {
 
                     var subfile = directory.resolve_relative_path (info.get_name ());
                     if (info.get_file_type () == FileType.DIRECTORY) {
-                        Gtk.TreeIter iter;
-                        store.append (out iter, prev_iter);
-                        store.set (iter, 0, subfile.get_path (), 1, "folder", 2, info.get_name ());
+                        var expandable_item = new FolderItem (subfile.get_path (), info.get_name ());
+                        if (prev_item != null) {
+                            prev_item.add (expandable_item);    
+                        } else {
+                            project_root.add (expandable_item);
+                        }
 
-                        process_directory (subfile, iter);
+                        process_directory (subfile, expandable_item);
                     } else {
                         string icon_name;
                         var icon = (ThemedIcon)info.get_icon ();
@@ -85,9 +93,12 @@ namespace IDE {
                             icon_name = "application-octet-stream";
                         }
 
-                        Gtk.TreeIter iter;
-                        store.append (out iter, prev_iter);
-                        store.set (iter, 0, subfile.get_path (), 1, icon_name, 2, info.get_name ());
+                        var item = new FileItem (subfile.get_path (), info.get_name (), icon_name);
+                        if (prev_item != null) {
+                            prev_item.add (item);    
+                        } else {
+                            project_root.add (item);
+                        }
                     }
                 }
             } catch (Error e) {
