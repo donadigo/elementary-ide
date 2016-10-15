@@ -57,12 +57,12 @@ make
 ```
 
 ### 3. Installing & running the project:
-  1. Once you've done step 2, without closing the terminal install elementary IDE by executing this command:
+  1. Once you've done step 2, without closing the terminal, install elementary IDE by executing this command:
   ```shell
   sudo make install
   ```
   
-  2. There is currently no .desktop launcher for it, but you can run it with this command:
+  2. There is currently no .desktop launcher for the IDE, but you can run it with this command:
   ```shell
   elementary-ide
   ```
