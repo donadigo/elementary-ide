@@ -22,13 +22,14 @@ namespace IDE {
         public signal void content_changed ();
 
         public EditorWindow editor_window;
+        public bool is_loaded { get; set; default = false; }
         private Gtk.SourceFile? source_file;
         private ThemedIcon unsaved_icon;
+        private bool is_saved = false;
         private Project? project = null;
 
         private FileMonitor? monitor = null;
         private ulong monitor_handle_id = 0U;
-        private bool is_saved = false;
         private bool saving = false;
 
         public int current_line {
@@ -121,7 +122,7 @@ namespace IDE {
         }
 
         private void stop_monitor () {
-            if (monitor != null && monitor_handle_id != 0U) {
+            if (monitor != null && monitor_handle_id > 0ULL) {
                 monitor.disconnect (monitor_handle_id);
             }
         }
@@ -161,40 +162,41 @@ namespace IDE {
                 return false;
             }
 
+            is_loaded = false;
             var loader = new Gtk.SourceFileLoader (editor_window.get_buffer (), source_file);
+
             try {
-                bool success = yield loader.load_async (Priority.DEFAULT, null, file_progress_cb);
+                is_loaded = yield loader.load_async (Priority.DEFAULT, null, file_progress_cb);
                 update_props ();
-                return success;
             } catch (Error e) {
                 warning (e.message);
             }
 
-            return false;
+            return is_loaded;
         }
 
-        public async bool save () {
+        public async bool save (bool use_save_as_fallback = true) {
             saving = true;
-            if (!get_can_write ()) {
+            if (use_save_as_fallback && !get_can_write ()) {
                 return yield save_as ();
             }
 
             ensure_file_exists ();
-            if (is_saved) {
+            if (yield get_is_saved ()) {
                 return true;
             }
 
+            is_saved = false;
             var saver = new Gtk.SourceFileSaver (editor_window.get_buffer (), source_file);
-            try {
-                bool success = yield saver.save_async (Priority.DEFAULT, null, file_progress_cb);
-                update_props ();
 
-                return success;
+            try {
+                is_saved = yield saver.save_async (Priority.DEFAULT, null, file_progress_cb);
+                update_props ();
             } catch (Error e) {
                 warning (e.message);
             }
 
-            return false;
+            return is_saved;
         }
 
         public async bool save_as () {
@@ -274,13 +276,7 @@ namespace IDE {
 
         public override void grab_focus () {
             editor_window.source_view.grab_focus ();
-        }
-
-        public string? get_current_text (Gtk.TextIter iter) {
-            Gtk.TextIter start;
-            editor_window.source_buffer.get_iter_at_line_offset (out start, iter.get_line (), 0);
-            return start.get_text (iter);
-        }        
+        }  
 
         public bool get_exists () {
             return Utils.get_file_exists (get_file_path ());

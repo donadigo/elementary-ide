@@ -28,7 +28,6 @@ namespace IDE {
             string definition = Utils.convert_symbol_to_definition (symbol);
             definition_view.buffer.text = definition + "\n\n\n";
             update_language ();
-            resize (1, 1);
         }
 
         public void show_at (int x, int y) {

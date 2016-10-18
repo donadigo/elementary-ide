@@ -79,7 +79,7 @@ namespace IDE.Utils {
 
             var params = method.get_parameters ();
             builder.append ("(");
-            if (params.size > 0) {
+            if (params != null && params.size > 0) {
                 int index = 0;
                 foreach (var param in method.get_parameters ()) {
                     if (param.ellipsis) {
@@ -107,7 +107,7 @@ namespace IDE.Utils {
 
             var params = sig.get_parameters ();
             builder.append ("(");
-            if (params.size > 0) {
+            if (params != null && params.size > 0) {
                 int index = 0;
                 foreach (var param in sig.get_parameters ()) {
                     if (param.ellipsis) {
@@ -134,7 +134,7 @@ namespace IDE.Utils {
 
             var params = delegate.return_type.get_parameters ();
             builder.append ("(");
-            if (params.size > 0) {
+            if (params != null && params.size > 0) {
                 int index = 0;
                 foreach (var param in delegate.return_type.get_parameters ()) {
                     if (param.ellipsis) {
@@ -200,7 +200,7 @@ namespace IDE.Utils {
 
             builder.append (klass.get_this_type ().to_string ());
             var base_types = klass.get_base_types ();
-            if (base_types.size > 0) {
+            if (base_types != null && base_types.size > 0) {
                 builder.append (" : ");
 
                 int index = 0;

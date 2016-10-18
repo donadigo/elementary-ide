@@ -18,26 +18,8 @@
  */
 
 namespace IDE {
-    public interface DocumentManager : Object {
-        public abstract Project? get_project ();
-        public virtual signal void add_document (Document document, bool focus = true) {
-
-        }
-
-        public virtual signal void remove_document (Document document) {
-
-        }
-
-        public virtual signal void current_document_changed () {
-
-        }
-
-        public virtual signal void queue_parse () {
-
-        }
-
-        public abstract ValaIndex? get_index ();
-        public abstract Document? get_current_document ();
-        public abstract Gee.Collection<Document> get_opened_documents ();
-    }
+	public interface CodeParser : Object {
+		public abstract void parse ();
+		public abstract void add_document (Document document);
+	}
 }

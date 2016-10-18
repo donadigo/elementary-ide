@@ -1,20 +1,19 @@
 namespace IDE {
-    public class ValaIndex : Object {
+    public class ValaIndex : CodeParser, Object {
         public signal void begin_parsing ();
         public signal void end_parsing (Report report);
 
-        private Vala.MemberBinding prev_binding;
-        private bool prev_access;
         public Vala.CodeContext context;
         public Vala.Parser parser;
-        public BlockLocator locator;
         public Report report;
 
-        public List<Document> documents;
         public bool parsing = false;
 
+        private Vala.MemberBinding prev_binding;
+        private bool prev_access;
+        private BlockLocator locator;
+
         construct {
-            documents = new List<Document> ();
             report = new Report ();
             locator = new BlockLocator ();
             context = new Vala.CodeContext ();
@@ -63,7 +62,6 @@ namespace IDE {
                 }
 
                 var source_file = new Vala.SourceFile (context, Vala.SourceFileType.SOURCE, document.get_file_path (), document.get_current_content ());
-                documents.append (document);
 
                 var unres = new Vala.UnresolvedSymbol (null, "GLib");
                 var udir = new Vala.UsingDirective (unres);
@@ -109,7 +107,7 @@ namespace IDE {
         }
         
         private Gee.Collection<Vala.Symbol> lookup_symbol (Vala.Symbol? symbol) {
-            var list = new Gee.ArrayList<Vala.Symbol>();
+            var list = new Gee.ArrayList<Vala.Symbol> ();
             if (symbol == null) {
                 return list;
             }
@@ -121,8 +119,10 @@ namespace IDE {
                     list.add_all (lookup_symbol_inherited (sym));
                 }
 
-                foreach (var ns in symbol.source_reference.file.current_using_directives) {
-                    list.add_all (lookup_symbol_inherited (ns.namespace_symbol));
+                if (symbol.source_reference != null) {
+                    foreach (var ns in symbol.source_reference.file.current_using_directives) {
+                        list.add_all (lookup_symbol_inherited (ns.namespace_symbol));
+                    }
                 }
             }
 
@@ -137,12 +137,12 @@ namespace IDE {
 
             var symbol_table = sym.scope.get_symbol_table ();
             if (symbol_table != null) {
-                foreach (string key in symbol_table.get_keys()) {
+                foreach (string key in symbol_table.get_keys ()) {
                     var child = symbol_table[key];
                     if ((prev_binding != Vala.MemberBinding.STATIC || sym is Vala.Namespace) && 
-                        (!prev_access || prev_access && (child.access & Vala.SymbolAccessibility.PRIVATE) == 0))
-                            list.add (child);
-                    else if (prev_binding == Vala.MemberBinding.STATIC) {
+                        (!prev_access || prev_access && (child.access & Vala.SymbolAccessibility.PRIVATE) == 0)) {
+                        list.add (child);
+                    } else if (prev_binding == Vala.MemberBinding.STATIC) {
                         if ((child is Vala.Property && (child as Vala.Property).binding == Vala.MemberBinding.STATIC ||
                             child is Vala.Method && (child as Vala.Method).binding == Vala.MemberBinding.STATIC ||
                             child is Vala.Field && (child as Vala.Field).binding == Vala.MemberBinding.STATIC) && 
@@ -155,32 +155,47 @@ namespace IDE {
 
             if (sym is Vala.Signal) {
                 var sig = sym as Vala.Signal;
-                foreach (var p in sig.get_parameters ()) {
-                    list.add (p);
+                var parameters = sig.get_parameters ();
+                if (parameters != null && parameters.size > 0) {
+                    foreach (var param in sig.get_parameters ()) {
+                        list.add (param);
+                    }
                 }
             }
 
             if (sym is Vala.Method) {
                 // add missing local variables.
-                foreach (var lv in (sym as Vala.Method).body.get_local_variables ()) {
-                    list.add (lv);
+                var method = (Vala.Method)sym;
+                var body = method.body;
+                if (body != null) {
+                    foreach (var lv in body.get_local_variables ()) {
+                        list.add (lv);
+                    }
                 }
             }
 
             if (sym is Vala.Class) {
-                var klass = sym as Vala.Class;
-                foreach (var bt in klass.get_base_types ()) {
-                    list.add_all (lookup_symbol_inherited (bt.data_type));
+                var klass = (Vala.Class)sym;
+                var base_types = klass.get_base_types ();
+                if (base_types != null && base_types.size > 0) {
+                    foreach (var bt in base_types) {
+                        list.add_all (lookup_symbol_inherited (bt.data_type));
+                    }
                 }
             }
+
             if (sym is Vala.Interface) {
-                var iface = sym as Vala.Interface;
-                foreach (var pre in iface.get_prerequisites()) {
-                    list.add_all (lookup_symbol_inherited (pre.data_type));
+                var iface = (Vala.Interface)sym;
+                var prerequisites = iface.get_prerequisites ();
+                if (prerequisites != null && prerequisites.size > 0) {
+                    foreach (var pre in prerequisites) {
+                        list.add_all (lookup_symbol_inherited (pre.data_type));
+                    }
                 }
             }
+
             if (sym is Vala.Method && !(sym.parent_symbol is Vala.Block) && prev_binding != Vala.MemberBinding.STATIC) {
-                prev_binding = (sym as Vala.Method).binding;
+                prev_binding = ((Vala.Method)sym).binding;
                 prev_access = true;
             } else if (!(sym is Vala.Block) || (sym is Vala.Block) && !(sym.parent_symbol is Vala.Method)) {
                 prev_access = true;
@@ -667,14 +682,7 @@ namespace IDE {
             }
         }
 
-        public void queue_parse () {
-            new Thread<bool> ("parse", () => {
-                parse ();
-                return true;
-            });
-        }
-
-        private void parse () {
+        public void parse () {
             begin_parsing ();
             parsing = true;
 

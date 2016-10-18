@@ -42,7 +42,7 @@ namespace IDE {
         private File file;
         private FolderItem project_root;
 
-        construct {
+        public SourceList () {
             ellipsize_mode = Pango.EllipsizeMode.MIDDLE;
         }
 

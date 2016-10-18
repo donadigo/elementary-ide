@@ -24,7 +24,7 @@ namespace IDE {
         private ValaIndex index;
 
         private Project project;
-        private List<Document> documents;
+        private Gee.ArrayList<Document> documents;
 
         private TerminalWidget terminal_widget;
 
@@ -57,7 +57,7 @@ namespace IDE {
             index = new ValaIndex ();
             provider = new ValaDocumentProvider (this);
 
-            documents = new List<Document> ();
+            documents = new Gee.ArrayList<Document> ();
 
             terminal_widget = new TerminalWidget ();
 
@@ -65,6 +65,7 @@ namespace IDE {
             no_documents_view.visible = true;
 
             notebook = new Granite.Widgets.DynamicNotebook ();
+            notebook.visible = true;
             notebook.expand = true;
             notebook.show_tabs = true;
             notebook.allow_drag = true;
@@ -74,7 +75,7 @@ namespace IDE {
             notebook.add_button_visible = true;
             notebook.new_tab_requested.connect (add_new_document);
             notebook.tab_switched.connect (on_tab_switched);
-            notebook.tab_removed.connect (tab_removed);
+            notebook.tab_removed.connect (on_tab_removed);
             notebook.add_button_tooltip = _("New empty document");
 
             notebook_stack = new Gtk.Stack ();
@@ -157,7 +158,7 @@ namespace IDE {
                 }
 
                 terminal_widget.spawn_default (project.root_path);
-                index.queue_parse ();
+                queue_parse ();
             }
         }
 
@@ -180,10 +181,6 @@ namespace IDE {
             update_report_widget (index.report);
             update_view_tags (index.report);
             return true;
-        }
-
-        private void update_notebook_stack () {
-            notebook_stack.visible_child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
         }
 
         private void on_drag_data_received (Gdk.DragContext ctx, int x, int y, Gtk.SelectionData sel,  uint info, uint time) {
@@ -225,19 +222,22 @@ namespace IDE {
 
         private void on_jump_to (string filename, int line, int column) {
             var document = open_focus_filename (filename);
-
-            var source_buffer = document.editor_window.source_buffer;
-
-            Gtk.TextIter iter;
-            source_buffer.get_iter_at_mark (out iter, source_buffer.get_insert ());
-
-            iter.set_line (line);
-
             document.grab_focus ();
-            document.editor_window.source_view.scroll_to_iter (iter, 0.4, true, 0, 0);
 
-            iter.set_line_offset (column);
-            document.editor_window.source_buffer.place_cursor (iter);
+            // TODO: figure out why this works on opening document
+            Timeout.add (100, () => {
+                var source_buffer = document.editor_window.source_buffer;
+
+                Gtk.TextIter iter;
+                source_buffer.get_iter_at_mark (out iter, source_buffer.get_insert ());
+
+                iter.set_line (line);
+                iter.set_line_offset (column);
+
+                document.editor_window.source_view.scroll_to_iter (iter, 0.4, true, 0, 0);
+                document.editor_window.source_buffer.place_cursor (iter);
+                return false;
+            });
         }
 
         private Document open_focus_filename (string filename) {
@@ -252,18 +252,20 @@ namespace IDE {
             return document;
         }
 
-        private void tab_removed (Granite.Widgets.Tab tab) {
-            remove_document ((Document)tab);
-            update_notebook_stack ();
+        private void on_tab_removed (Granite.Widgets.Tab tab) {
+            var document = (Document)tab;
+            remove_document (document);
         }
 
         private void on_tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab) {
             update_location_label ();
+            current_document_changed ();
         }
 
         public void remove_document (Document document) {
-            document.close ();
-            update_location_label ();
+            update_notebook_stack ();
+            update_location_label (); 
+            documents.remove (document);            
         }
 
         public void add_document (Document document, bool focus = true) {
@@ -281,8 +283,8 @@ namespace IDE {
             document.editor_window.close_info_window.connect (() => info_window.hide ());
             document.editor_window.show_info_window.connect ((iter, x, y) => on_show_info_window (document, iter, x, y));
 
-            documents.append (document);
-            notebook.insert_tab (document, notebook.n_tabs);
+            documents.add (document);
+            notebook.insert_tab (document, -1);
 
             if (focus) {
                 notebook.current = document;
@@ -290,6 +292,20 @@ namespace IDE {
 
             update_notebook_stack ();
             update_location_label ();
+        }
+
+        public Gee.Collection<Document> get_opened_documents () {
+            var list = new Gee.ArrayList<Document> ();
+            foreach (var tab in notebook.tabs) {
+                var document = (Document)tab;
+                if (document == null) {
+                    continue;
+                }
+
+                list.add (document);
+            }
+
+            return list;
         }
 
         public Document? get_current_document () {
@@ -305,12 +321,27 @@ namespace IDE {
         }
 
         public void queue_parse () {
-            index.queue_parse ();
+            new Thread<bool> ("parse", () => {
+                index.parse ();
+                return true;
+            });
         }
 
         private void document_content_changed (Document document) {
             index.update_document_content (document);
             document_recently_changed = true;
+        }
+
+
+        private void update_notebook_stack () {
+            string child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
+
+            // TODO: figure out why are there warnings about non existing children in stack
+            if (notebook_stack.get_child_by_name (child_name) == null) {
+                return;
+            }
+
+            notebook_stack.visible_child_name = child_name;    
         }
 
         private void update_location_label () {

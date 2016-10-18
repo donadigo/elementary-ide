@@ -67,10 +67,24 @@ namespace IDE {
             set_project (null);
 
             add (main_stack);
-            destroy.connect (on_destroy);
         }
 
-        private void set_project (Project? project) {
+        public void save_current_document () {
+            var document = editor_view.get_current_document ();
+            if (document == null) {
+                return;
+            }
+
+            document.save.begin ();
+        }
+
+        public void save_all_opened_documents () {
+            foreach (var document in editor_view.get_opened_documents ()) {
+                document.save.begin (false);
+            }
+        }
+
+        public void set_project (Project? project) {
             bool valid = project != null;
             title = valid ? project.name : Constants.APP_NAME;
             toolbar.show_editor_buttons = valid;
@@ -120,12 +134,6 @@ namespace IDE {
 
                 dialog.destroy ();
             }
-        }
-
-        private void on_destroy () {
-            // TODO: unsaved files
-
-            Gtk.main_quit ();
         }
     }
 }

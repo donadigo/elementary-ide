@@ -75,6 +75,8 @@ namespace IDE {
 			list_box.activate_on_single_click = true;
 			list_box.expand = true;
 			list_box.bind_model (store, create_widget_func);
+
+			// TODO: remove this: do not use liststore or manage it manually
 			list_box.set_filter_func (filter_func);
 			list_box.row_activated.connect (on_row_activated);
 
@@ -128,6 +130,10 @@ namespace IDE {
 		}
 
 		public void clear () {
+			if (store.get_n_items () == 0) {
+				return;
+			}
+
 			store.remove_all ();
 		}
 

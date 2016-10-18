@@ -83,7 +83,6 @@ namespace IDE {
             source_view.smart_backspace = true;
             source_view.smart_home_end = Gtk.SourceSmartHomeEndType.BEFORE;
             source_view.tab_width = 4;
-            source_view.background_pattern = Gtk.SourceBackgroundPatternType.GRID;
             source_view.completion.select_on_show = true;
             source_view.completion.show_icons = true;
             source_view.completion.remember_info_visibility = true;
@@ -212,6 +211,12 @@ namespace IDE {
 
             Gtk.TextIter start_iter;
             source_view.get_iter_at_location (out start_iter, x, y);
+
+            Gtk.TextIter start_buffer_iter;
+            source_buffer.get_start_iter (out start_buffer_iter);
+            if (start_buffer_iter.compare (start_iter) == 0) {
+                return false;
+            }
 
             Gtk.TextIter end_iter = Gtk.TextIter ();
             end_iter.assign (start_iter);

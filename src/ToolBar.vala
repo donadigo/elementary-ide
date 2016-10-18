@@ -23,12 +23,14 @@ namespace IDE {
             set {
                 Utils.set_widget_visible (open_button, value);
                 Utils.set_widget_visible (new_button, value);
+                Utils.set_widget_visible (save_button, value);
                 Utils.set_widget_visible (run_button, value);
             }
         }
 
     	private MenuButton open_button;
         private Gtk.Button new_button;
+        private MenuButton save_button;
         private MenuButton preferences_button;
         private MenuButton run_button;
 
@@ -43,12 +45,17 @@ namespace IDE {
             open_button = new MenuButton (_("Open"), "document-open");
             add (open_button);
 
+            save_button = new MenuButton (_("Save"), "document-save");
+            add (save_button);
+
             preferences_button = new MenuButton (_("Preferences"), "open-menu");
             pack_end (preferences_button);
 
             run_button = new MenuButton (_("Build & Run"), "media-playback-start");
             add (run_button);
 
+
+            // TODO: change sensitivity of menu items
             var menu_item = run_button.add_menu_item (_("Only build"));
             menu_item.activate.connect (build);
 
@@ -56,6 +63,12 @@ namespace IDE {
 
             menu_item = open_button.add_menu_item (_("Open project"));
             menu_item.activate.connect (show_open_project_dialog);
+
+            menu_item = save_button.add_menu_item (_("Save current document"));
+            menu_item.activate.connect (request_save_current);
+
+            menu_item = save_button.add_menu_item (_("Save all opened documents"));
+            menu_item.activate.connect (request_save_opened);
 
             menu_item = open_button.add_menu_item (_("Open files"));
         }
@@ -75,6 +88,14 @@ namespace IDE {
 
         private void build () {
 
+        }
+
+        private void request_save_current () {
+            IDEWindow.get_instance ().save_current_document ();
+        }
+
+        private void request_save_opened () {
+            IDEWindow.get_instance ().save_all_opened_documents ();
         }
 
         private void show_new_file_dialog () {

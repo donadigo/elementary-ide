@@ -63,13 +63,13 @@ namespace IDE {
 
         public override void activate () {
             var window = IDEWindow.get_instance ();
+            add_window (window);
             window.show_all ();
-            Gtk.main ();
+            
         }
     }
 
     public static int main (string[] args) {
-        Gtk.init (ref args);
         return IDEApplication.get_instance ().run (args);
     }
 }
