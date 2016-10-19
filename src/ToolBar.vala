@@ -54,7 +54,6 @@ namespace IDE {
             run_button = new MenuButton (_("Build & Run"), "media-playback-start");
             add (run_button);
 
-
             // TODO: change sensitivity of menu items
             var menu_item = run_button.add_menu_item (_("Only build"));
             menu_item.activate.connect (build);
@@ -62,28 +61,16 @@ namespace IDE {
             menu_item = run_button.add_menu_item (_("Build & run"));
 
             menu_item = open_button.add_menu_item (_("Open project"));
-            menu_item.activate.connect (show_open_project_dialog);
+            menu_item.activate.connect (request_open_project);
+
+            menu_item = open_button.add_menu_item (_("Open files"));
+            menu_item.activate.connect (request_open_files);
 
             menu_item = save_button.add_menu_item (_("Save current document"));
             menu_item.activate.connect (request_save_current);
 
             menu_item = save_button.add_menu_item (_("Save all opened documents"));
             menu_item.activate.connect (request_save_opened);
-
-            menu_item = open_button.add_menu_item (_("Open files"));
-        }
-
-        private void show_open_project_dialog (Gtk.MenuItem item) {
-            item.sensitive = false;
-            var open_project_dialog = new Gtk.FileChooserDialog (_("Open project…"),
-                                                                IDEWindow.get_instance (),
-                                                                Gtk.FileChooserAction.SELECT_FOLDER);
-            open_project_dialog.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
-            open_project_dialog.add_button (_("Open"), Gtk.ResponseType.ACCEPT);
-            open_project_dialog.set_default_response (Gtk.ResponseType.ACCEPT);
-            open_project_dialog.run ();
-            open_project_dialog.destroy ();
-            item.sensitive = true;
         }
 
         private void build () {
@@ -98,8 +85,17 @@ namespace IDE {
             IDEWindow.get_instance ().save_all_opened_documents ();
         }
 
+        private void request_open_project () {
+            IDEWindow.get_instance ().show_open_project_dialog ();
+        }
+
+        private void request_open_files () {
+            IDEWindow.get_instance ().show_open_files_dialog ();
+        }
+
         private void show_new_file_dialog () {
             new_button.sensitive = false;
+
             var new_file_dialog = new NewFileDialog ();
             new_file_dialog.show_all ();
             new_file_dialog.hide.connect (() => new_button.sensitive = true);

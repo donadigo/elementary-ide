@@ -36,7 +36,7 @@ namespace IDE {
 
         }
 
-        public abstract ValaIndex? get_index ();
+        public abstract CodeParser? get_code_parser ();
         public abstract Document? get_current_document ();
         public abstract Gee.Collection<Document> get_opened_documents ();
     }

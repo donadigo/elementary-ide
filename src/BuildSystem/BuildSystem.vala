@@ -18,11 +18,9 @@
  */
 
 namespace IDE {
-	public interface BuildSystem : Object {
-		public abstract void build () throws Error;
-		public abstract void clean () throws Error;
-		public abstract void run_binary () throws Error;
-		public abstract string[] get_external_packages ();
-		public abstract string[] get_source_packages ();
-	}
+    public interface BuildSystem : Object {
+        public abstract void build () throws Error;
+        public abstract void clean () throws Error;
+        public abstract void run_binary () throws Error;
+    }
 }

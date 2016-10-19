@@ -37,6 +37,7 @@ namespace IDE {
         public string root_path { get; set; }
         public string version { get; set; }
         public string exec_name { get; set; }
+        public string build_exec_name { get; set; }
         public string release_name { get; set; }
         public Gee.ArrayList<string> packages { public get; private set; }
         public Gee.ArrayList<string> sources { public get; private set; }

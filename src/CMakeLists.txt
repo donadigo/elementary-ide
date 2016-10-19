@@ -16,7 +16,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     CodeParser.vala
     Vala/ValaDocumentProvider.vala
     Vala/Locator.vala
-    Vala/ValaIndex.vala
+    Vala/ValaCodeParser.vala
     BuildSystem/BuildSystem.vala
     BuildSystem/CMakeBuildSystem.vala
     BuildSystem/CMakeParser.vala

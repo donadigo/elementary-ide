@@ -99,41 +99,49 @@ namespace IDE {
 
         private void on_activated (int idx) {
             if (idx == open_file_id) {
-                var dialog = new Gtk.FileChooserDialog (_("Open signle file…"), this, Gtk.FileChooserAction.OPEN,
-                                                        _("Cancel"),
-                                                        Gtk.ResponseType.CANCEL,
-                                                        _("Open"),
-                                                        Gtk.ResponseType.ACCEPT);
-                if (dialog.run () == Gtk.ResponseType.ACCEPT) {
-                    foreach (unowned string uri in dialog.get_uris ()) {
-                        var file = File.new_for_uri (uri);
-                        var document = new Document (file, null);
-                        editor_view.add_document (document, true);
-                    }
-
-                    main_stack.visible_child_name = Constants.EDITOR_VIEW_NAME;
-                    toolbar.show_editor_buttons = true;
-                }
-
-                dialog.destroy ();
+                show_open_files_dialog ();
             } else if (idx == open_id) {
-                var dialog = new Gtk.FileChooserDialog (_("Open project…"), this, Gtk.FileChooserAction.SELECT_FOLDER,
-                                                        _("Cancel"),
-                                                        Gtk.ResponseType.CANCEL,
-                                                        _("Open"),
-                                                        Gtk.ResponseType.ACCEPT);
-                if (dialog.run () == Gtk.ResponseType.ACCEPT) {
-                    string root_path = dialog.get_current_folder ();
-                    Project.load.begin (File.new_for_path (root_path), (obj, res) => {
-                        var project = Project.load.end (res);
-                        if (project != null) {
-                            set_project (project);                  
-                        }
-                    });
+                show_open_project_dialog ();
+            }
+        }
+
+        public void show_open_files_dialog () {
+            var dialog = new Gtk.FileChooserDialog (_("Open signle file…"), this, Gtk.FileChooserAction.OPEN,
+                                                    _("Cancel"),
+                                                    Gtk.ResponseType.CANCEL,
+                                                    _("Open"),
+                                                    Gtk.ResponseType.ACCEPT);
+            if (dialog.run () == Gtk.ResponseType.ACCEPT) {
+                foreach (unowned string uri in dialog.get_uris ()) {
+                    var file = File.new_for_uri (uri);
+                    var document = new Document (file, null);
+                    editor_view.add_document (document, true);
                 }
 
-                dialog.destroy ();
+                main_stack.visible_child_name = Constants.EDITOR_VIEW_NAME;
+                toolbar.show_editor_buttons = true;
             }
+
+            dialog.destroy ();            
+        }
+
+        public void show_open_project_dialog () {
+            var dialog = new Gtk.FileChooserDialog (_("Open project…"), this, Gtk.FileChooserAction.SELECT_FOLDER,
+                                                    _("Cancel"),
+                                                    Gtk.ResponseType.CANCEL,
+                                                    _("Open"),
+                                                    Gtk.ResponseType.ACCEPT);
+            if (dialog.run () == Gtk.ResponseType.ACCEPT) {
+                string root_path = dialog.get_current_folder ();
+                Project.load.begin (File.new_for_path (root_path), (obj, res) => {
+                    var project = Project.load.end (res);
+                    if (project != null) {
+                        set_project (project);                  
+                    }
+                });
+            }
+
+            dialog.destroy ();
         }
     }
 }

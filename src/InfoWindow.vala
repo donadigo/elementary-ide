@@ -24,10 +24,15 @@ namespace IDE {
             add (frame);
         }
 
-        public void set_current_symbol (Vala.Symbol symbol) {
-            string definition = Utils.convert_symbol_to_definition (symbol);
+        public bool set_current_symbol (Vala.Symbol symbol) {
+            string? definition = Utils.convert_symbol_to_definition (symbol);
+            if (definition == null) {
+                return false;
+            }
+
             definition_view.buffer.text = definition + "\n\n\n";
             update_language ();
+            return true;
         }
 
         public void show_at (int x, int y) {

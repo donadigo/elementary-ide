@@ -18,33 +18,25 @@
  */
 
 namespace IDE {
-	public class CMakeBuildSystem : Object, BuildSystem {
-		private const string TARGET = "CMakeLists.txt";
+    public class CMakeBuildSystem : Object, BuildSystem {
+        private const string TARGET = "CMakeLists.txt";
 
-		public Project project { get; set; }
+        public Project project { get; set; }
 
-		public CMakeBuildSystem (Project project) {
-			this.project = project;
-		}
+        public CMakeBuildSystem (Project project) {
+            this.project = project;
+        }
 
-		public void build () throws Error {
+        public void build () throws Error {
 
-		}
+        }
 
-		public void clean () throws Error {
-			
-		}		
+        public void clean () throws Error {
+            
+        }       
 
-		public void run_binary () throws Error {
-			
-		}		
-
-		public string[] get_external_packages () {
-			return {};
-		}
-
-		public string[] get_source_packages () {
-			return {};
-		}
-	}
+        public void run_binary () throws Error {
+            
+        }       
+    }
 }

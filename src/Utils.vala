@@ -49,6 +49,10 @@ namespace IDE.Utils {
     public static string? convert_symbol_to_definition (Vala.Symbol symbol) {
         var builder = new StringBuilder ();
 
+        if (symbol.get_full_name () == "this") {
+            return null;
+        }
+
         if (symbol is Vala.Namespace) {
             builder.append ("namespace ");
         } else {
@@ -174,10 +178,22 @@ namespace IDE.Utils {
 
                 builder.append (" }");
             }
+        } else if (symbol is Vala.Field) {
+            var field = (Vala.Field)symbol;
+            if (Vala.MemberBinding.STATIC in ((Vala.Field)symbol).binding) {
+                builder.append ("static ");
+            }
+
+            builder.append (field.variable_type.to_string () + " ");
+            builder.append (field.get_full_name ());
         } else if (symbol is Vala.Variable) {
             var variable = (Vala.Variable)symbol;
             builder.append (variable.variable_type.to_string () + " ");
-            builder.append (variable.name);
+            builder.append (variable.get_full_name ());
+        } else if (symbol is Vala.Enum) {
+            var enum = (Vala.Enum)symbol;
+            builder.append ("enum ");
+            builder.append (enum.get_full_name ());
         } else if (symbol is Vala.EnumValue) {
             var enum_val = (Vala.EnumValue)symbol;
             builder.append ("const int ");
@@ -186,6 +202,15 @@ namespace IDE.Utils {
                 builder.append (" = ");
                 builder.append (enum_val.value.to_string ());
             }
+        } else if (symbol is Vala.Constant) {
+            var constant = (Vala.Constant)symbol;
+            builder.append ("const ");
+            builder.append (constant.type_reference.to_string () + " ");
+            builder.append (constant.get_full_name ());
+            if (constant.@value != null) {
+                builder.append (" = ");
+                builder.append (constant.value.to_string ());
+            }            
         } else if (symbol is Vala.Class) {
             var klass = (Vala.Class)symbol;
             if (klass.is_abstract) {

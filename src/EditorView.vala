@@ -21,7 +21,7 @@ namespace IDE {
     public class EditorView : Gtk.Box, DocumentManager {
         private const Gtk.TargetEntry[] targets = {{ "text/uri-list", 0, 0 }};
 
-        private ValaIndex index;
+        private ValaCodeParser code_parser;
 
         private Project project;
         private Gee.ArrayList<Document> documents;
@@ -54,7 +54,7 @@ namespace IDE {
         construct {
             orientation = Gtk.Orientation.VERTICAL;
 
-            index = new ValaIndex ();
+            code_parser = new ValaCodeParser ();
             provider = new ValaDocumentProvider (this);
 
             documents = new Gee.ArrayList<Document> ();
@@ -149,12 +149,14 @@ namespace IDE {
             if (project != null) {
                 source_list.set_file (File.new_for_path (project.root_path));
 
+                code_parser = new ValaCodeParser ();
+
                 foreach (string package in project.packages) {
-                    index.add_package (package);
+                    code_parser.add_package (package);
                 }
 
                 foreach (string source in project.sources) {
-                    index.add_source (source);
+                    code_parser.add_source (source);
                 }
 
                 terminal_widget.spawn_default (project.root_path);
@@ -169,7 +171,7 @@ namespace IDE {
 
         private bool update_report_view () {
             clear_view_tags ();
-            if (index.parsing) {
+            if (code_parser.parsing) {
                 return true;
             }
 
@@ -178,8 +180,8 @@ namespace IDE {
                 return true;
             }
 
-            update_report_widget (index.report);
-            update_view_tags (index.report);
+            update_report_widget (code_parser.report);
+            update_view_tags (code_parser.report);
             return true;
         }
 
@@ -312,8 +314,8 @@ namespace IDE {
             return (Document)notebook.current;
         }
 
-        public ValaIndex? get_index () {
-            return index;
+        public CodeParser? get_code_parser () {
+            return code_parser;
         }
 
         public Project? get_project () {
@@ -321,17 +323,17 @@ namespace IDE {
         }
 
         public void queue_parse () {
-            new Thread<bool> ("parse", () => {
-                index.parse ();
-                return true;
+            new Thread<bool> ("code-parse", () => {
+                code_parser.parse ();
+                return false;
             });
         }
 
         private void document_content_changed (Document document) {
-            index.update_document_content (document);
+            code_parser.update_document_content (document);
+            queue_parse ();
             document_recently_changed = true;
         }
-
 
         private void update_notebook_stack () {
             string child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
@@ -390,13 +392,14 @@ namespace IDE {
         }
 
         private void on_show_info_window (Document document, Gtk.TextIter start_iter, int x, int y) {
-            var symbol = index.lookup_symbol_at (document.get_file_path (), start_iter.get_line () + 1, start_iter.get_line_offset ());
+            var symbol = code_parser.lookup_symbol_at (document.get_file_path (), start_iter.get_line () + 1, start_iter.get_line_offset ());
             if (symbol == null || symbol.name == null) {
                 return;
             }          
 
-            info_window.set_current_symbol (symbol);
-            info_window.show_at (x, y);
+            if (info_window.set_current_symbol (symbol)) {
+                info_window.show_at (x, y);    
+            }
         }
     }
 }
