@@ -5,6 +5,7 @@ namespace IDE {
 
         construct {
             type_hint = Gdk.WindowTypeHint.TOOLTIP;
+            skip_taskbar_hint = true;
             decorated = false;
 
             var main_grid = new Gtk.Grid ();

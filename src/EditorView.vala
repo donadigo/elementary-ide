@@ -35,7 +35,7 @@ namespace IDE {
         private Gtk.Label location_label;
 
         private ReportWidget report_widget;
-        private InfoWindow info_window;
+        public InfoWindow info_window;
 
         private ValaDocumentProvider provider;
 
@@ -142,26 +142,32 @@ namespace IDE {
             update_notebook_stack ();
         }
 
+        public void set_info_window_transient (Gtk.Window window) {
+            info_window.transient_for = window;
+        }
+
         public void set_project (Project? project) {
             this.project = project;
 
             // TODO: clear previous project
-            if (project != null) {
-                source_list.set_file (File.new_for_path (project.root_path));
-
-                code_parser = new ValaCodeParser ();
-
-                foreach (string package in project.packages) {
-                    code_parser.add_package (package);
-                }
-
-                foreach (string source in project.sources) {
-                    code_parser.add_source (source);
-                }
-
-                terminal_widget.spawn_default (project.root_path);
-                queue_parse ();
+            if (project == null) {
+                return;
             }
+
+            source_list.set_file (File.new_for_path (project.root_path));
+
+            code_parser = new ValaCodeParser ();
+
+            foreach (string package in project.packages) {
+                code_parser.add_package (package);
+            }
+
+            foreach (string source in project.sources) {
+                code_parser.add_source (source);
+            }
+
+            terminal_widget.spawn_default (project.root_path);
+            queue_parse ();            
         }
 
         public void add_new_document () {

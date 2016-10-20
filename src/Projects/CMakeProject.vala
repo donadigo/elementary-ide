@@ -22,19 +22,19 @@ namespace IDE {
         private CMakeParser parser;
 
         public new static async Project? load (File file) {
-            string root_source = Path.build_filename (file.get_path (), Constants.CMAKE_TARGET);
-            if (!FileUtils.test (root_source, FileTest.EXISTS)) {
+            string target = Path.build_filename (file.get_path (), Constants.CMAKE_TARGET);
+            if (!FileUtils.test (target, FileTest.EXISTS)) {
                 return null;
             }
 
-            var parser = new CMakeParser (root_source);
+            var parser = new CMakeParser (target);
             var project = new CMakeProject (parser);
             return project;
         }
 
         public CMakeProject (CMakeParser parser) {
-            this.root_path = Path.get_dirname (parser.root_source);
             this.parser = parser;
+            root_path = Path.get_dirname (parser.target);
 
             update ();
         }
@@ -42,13 +42,12 @@ namespace IDE {
         public override void update () {
             parser.parse ();
 
-            string? project_name = null;
             foreach (var command in parser.get_commands ()) {
                 switch (command.name) {
                     case Constants.PROJECT_CMD:
                         var arguments = command.get_arguments ();
-                        if (arguments.length == 1) {
-                            project_name = arguments[0];
+                        if (arguments.length > 0) {
+                            name = arguments[0];
                         }
 
                         break;
@@ -87,13 +86,6 @@ namespace IDE {
                     default:
                         break;
                 }
-            }
-
-            string basename = Path.get_basename (root_path);
-            if (project_name != null && project_name != basename) {
-                name = "%s (%s)".printf (project_name, basename);
-            } else {
-                name = basename;
             }
 
             var version_var = parser.find_variable_by_name ("VERSION");

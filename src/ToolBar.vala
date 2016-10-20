@@ -37,7 +37,7 @@ namespace IDE {
         construct {
             show_close_button = true;
 
-            new_button = new Gtk.Button.from_icon_name ("insert-object", Gtk.IconSize.LARGE_TOOLBAR);
+            new_button = new Gtk.Button.from_icon_name ("document-new", Gtk.IconSize.LARGE_TOOLBAR);
             new_button.tooltip_text = _("New class");
             new_button.clicked.connect (show_new_file_dialog);
             add (new_button);

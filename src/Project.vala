@@ -25,41 +25,27 @@ namespace IDE {
     }
 
     public class Project : Object {
-        private const string PROJECT_KEY = "elementary-ide-project";
-        private const string METADATA_EXTENSION = "eide";
-        private const string NAME_KEY = "name";
-        private const string DISPLAY_NAME_KEY = "display-name";
-        private const string TYPE_KEY = "type";
-        private const string ROOT_PATH_KEY = "root-path";
-
-        public string name { get; set; }
-        public string display_name { get; set; }
-        public string root_path { get; set; }
-        public string version { get; set; }
-        public string exec_name { get; set; }
-        public string build_exec_name { get; set; }
-        public string release_name { get; set; }
+        public string name { get; set; default = ""; }
+        public string root_path { get; set; default = ""; }
+        public string version { get; set; default = ""; }
+        public string exec_name { get; set; default = ""; }
+        public string build_exec_name { get; set; default = ""; }
+        public string release_name { get; set; default = ""; }
         public Gee.ArrayList<string> packages { public get; private set; }
         public Gee.ArrayList<string> sources { public get; private set; }
         public Gee.ArrayList<string> options { public get; private set; }
         public Gee.ArrayList<string> check_dependencies { public get; private set; }
-        public ProjectType project_type { get; set; }
+        public ProjectType project_type { get; set; default = ProjectType.UNKNOWN; }
+        public bool get_can_save { public get; protected set; default = false; }
 
         public static bool check (File file) {
             return true;
         }
 
-        public static bool get_is_metadata_file (File file) {
-            if (!file.query_exists ()) {
-                return false;
-            }
-
-            return Utils.get_extension (file) == METADATA_EXTENSION;
-        }
-
         public static async Project? load (File file) {
-            if (get_is_metadata_file (file)) {
-                return load_from_metadata (file);
+            var native_project = yield NativeProject.load (file);
+            if (native_project != null) {
+                return native_project;
             }
 
             var cmake_project = yield CMakeProject.load (file);
@@ -67,51 +53,7 @@ namespace IDE {
                 return cmake_project;
             }
 
-            return load_from_generic (file);
-        }
-
-        private static Project? load_from_metadata (File file) {
-            var key = new KeyFile ();
-            try {
-                if (!key.load_from_file (file.get_path (), KeyFileFlags.NONE)) {
-                    return null;
-                }
-
-                string name = key.get_string (PROJECT_KEY, NAME_KEY);
-                string display_name = key.get_string (PROJECT_KEY, DISPLAY_NAME_KEY);
-                int type = key.get_integer (PROJECT_KEY, TYPE_KEY);
-
-                string? root_path = key.get_string (PROJECT_KEY, ROOT_PATH_KEY);
-                if (root_path == null || root_path == "") {
-                    var parent = file.get_parent ();
-                    if (parent != null) {
-                        root_path = parent.get_path ();
-                    } else {
-                        root_path = "";
-                    }
-                }
-
-
-                return new Project.from_data ((ProjectType)type, name, display_name, root_path);
-            } catch (Error e) {
-                warning (e.message);
-            }
-
-            return null;
-        }
-
-        private static Project? load_from_generic (File file) {
-            string root_path = "";
-            string name = file.get_basename ();
-            var parent = file.get_parent ();
-
-            if (FileUtils.test (file.get_path (), FileTest.IS_REGULAR) && parent != null) {
-                root_path = parent.get_path ();
-            } else {
-                root_path = file.get_path ();
-            }
-
-            return new Project.from_data (ProjectType.UNKNOWN, name, "", root_path);
+            return yield GenericProject.load (file);
         }
 
         construct {
@@ -121,11 +63,17 @@ namespace IDE {
             check_dependencies = new Gee.ArrayList<string> ();
         }
 
-        public Project.from_data (ProjectType project_type, string name, string display_name, string root_path) {
-            this.project_type = project_type;
-            this.name = name;
-            this.display_name = display_name;
-            this.root_path = root_path;
+        public string get_title () {
+            string basename = Path.get_basename (root_path);
+            if (name != "" && name != basename) {
+                return "%s (%s)".printf (name, basename);
+            }
+
+            return basename;
+        }
+
+        public virtual void save () {
+
         }
 
         public virtual void update () {

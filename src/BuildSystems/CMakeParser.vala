@@ -19,7 +19,7 @@
 
 namespace IDE {
     public class CMakeParser : Object {
-        public string root_source { get; set; }
+        public string target { get; set; }
         
         private Gee.ArrayList<string> sources;
         private Gee.ArrayList<CMakeCommand> commands;
@@ -37,8 +37,8 @@ namespace IDE {
             variables = new Gee.ArrayList<CMakeVariable> ();
         }
 
-        public CMakeParser (string root_source) {
-            this.root_source = root_source;
+        public CMakeParser (string target) {
+            this.target = target;
         }
 
         public Gee.ArrayList<string> get_sources () {
@@ -69,7 +69,7 @@ namespace IDE {
             commands.clear ();
             comments.clear ();
 
-            parse_file (root_source);
+            parse_file (target);
         }
 
         public CMakeCommand? find_command_by_name (string name) {
@@ -146,7 +146,7 @@ namespace IDE {
                         } else if (current_command.name == Constants.ADD_SUBDIRECTORY_CMD) {
                             var arguments = current_command.get_arguments ();
                             if (arguments.length > 0) {
-                                string next_source = Path.build_filename (Path.get_dirname (root_source), arguments[0], Constants.CMAKE_TARGET);
+                                string next_source = Path.build_filename (Path.get_dirname (target), arguments[0], Constants.CMAKE_TARGET);
                                 if (FileUtils.test (next_source, FileTest.IS_REGULAR)) {
                                     parse_file (next_source);
                                 }

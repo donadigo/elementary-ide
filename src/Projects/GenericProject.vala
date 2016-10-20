@@ -18,26 +18,15 @@
  */
 
 namespace IDE {
-    public interface DocumentManager : Object {
-        public virtual signal void add_document (Document document, bool focus = true) {
-
+    public class GenericProject : Project {
+        public new static async Project? load (File file) {
+            var project = new GenericProject (file.get_path ());
+            return project;
         }
 
-        public virtual signal void remove_document (Document document) {
-
+        public GenericProject (string root_path) {
+            this.root_path = root_path;
+            name = Path.get_basename (root_path);
         }
-
-        public virtual signal void current_document_changed () {
-
-        }
-
-        public virtual signal void queue_parse () {
-
-        }
-
-        public abstract Project? get_project ();
-        public abstract CodeParser? get_code_parser ();
-        public abstract Document? get_current_document ();
-        public abstract Gee.Collection<Document> get_opened_documents ();
     }
 }

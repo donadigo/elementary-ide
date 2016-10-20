@@ -8,7 +8,9 @@ vala_precompile(VALA_C ${EXEC_NAME}
     MenuButton.vala
     Template.vala
     Project.vala
-    CMakeProject.vala
+    Projects/CMakeProject.vala
+    Projects/NativeProject.vala
+    Projects/GenericProject.vala
     Utils.vala
     TabWidget.vala
     Document.vala
@@ -17,18 +19,18 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Vala/ValaDocumentProvider.vala
     Vala/Locator.vala
     Vala/ValaCodeParser.vala
-    BuildSystem/BuildSystem.vala
-    BuildSystem/CMakeBuildSystem.vala
-    BuildSystem/CMakeParser.vala
-    BuildSystem/CMakeCommand.vala
-    BuildSystem/CMakeVariable.vala
+    BuildSystem.vala
+    BuildSystems/CMakeBuildSystem.vala
+    BuildSystems/CMakeParser.vala
+    BuildSystems/CMakeCommand.vala
+    BuildSystems/CMakeVariable.vala
     Report.vala
     ReportWidget.vala
     TerminalWidget.vala
     InfoWindow.vala
     SourceList.vala
+    BaseDialog.vala
     Dialogs/EditorPreferencesDialog.vala
-    Dialogs/BaseDialog.vala
     Dialogs/NewFileDialog.vala
     Dialogs/OpenProjectDialog.vala
 PACKAGES

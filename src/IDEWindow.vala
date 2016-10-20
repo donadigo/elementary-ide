@@ -59,6 +59,7 @@ namespace IDE {
             welcome.show_all ();
 
             editor_view = new EditorView ();
+            editor_view.set_info_window_transient (this);
 
             main_stack = new Gtk.Stack ();
             main_stack.add_named (welcome, Constants.WELCOME_VIEW_NAME);
@@ -86,7 +87,7 @@ namespace IDE {
 
         public void set_project (Project? project) {
             bool valid = project != null;
-            title = valid ? project.name : Constants.APP_NAME;
+            title = valid ? project.get_title () : Constants.APP_NAME;
             toolbar.show_editor_buttons = valid;
 
             editor_view.set_project (project);

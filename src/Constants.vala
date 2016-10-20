@@ -38,7 +38,20 @@ namespace IDE.Constants {
     public const string NO_DOCUMENTS_VIEW_NAME = "no-documents";
     public const string NOTEBOOK_VIEW_NAME = "notebook";
 
+    public const string NATIVE_TARGET = ".elementary-ide.proj";
     public const string CMAKE_TARGET = "CMakeLists.txt";
+
+    public const string NATIVE_PROJECT_GROUP = "elementary-ide-project";
+    public const string NATIVE_PROJECT_NAME = "name";
+    public const string NATIVE_PROJECT_VERSION = "version";
+    public const string NATIVE_PROJECT_EXEC_NAME = "exec-name";
+    public const string NATIVE_PROJECT_RELEASE_NAME = "release-name";
+    public const string NATIVE_PROJECT_PACKAGES = "packages";
+    public const string NATIVE_PROJECT_SOURCES = "sources";
+    public const string NATIVE_PROJECT_OPTIONS = "options";
+    public const string NATIVE_PROEJCT_CHECK_DEPS = "check-dependencies";
+    public const string NATIVE_PROJECT_PROJECT_TYPE = "project-type";
+
     public const string PROJECT_CMD = "project";
     public const string PKG_CHECK_MODULES_CMD = "pkg_check_modules";
     public const string VALA_PRECOMPILE_CMD = "vala_precompile";
