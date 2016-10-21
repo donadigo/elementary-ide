@@ -19,9 +19,6 @@
 
 namespace IDE {
     public class ValaCodeParser : CodeParser, Object {
-        public signal void begin_parsing ();
-        public signal void end_parsing (Report report);
-
         public Vala.CodeContext context;
         public Vala.Parser parser;
         public Report report;
@@ -711,9 +708,8 @@ namespace IDE {
             begin_parsing ();
             parsing = true;
 
+            report.clear ();
             lock (context) {
-                report.clear ();
-
                 Vala.CodeContext.push (context);
                 foreach (var file in context.get_source_files ()) {
                     if (file.get_nodes ().size == 0) {
@@ -726,9 +722,9 @@ namespace IDE {
                 Vala.CodeContext.pop ();
             }
 
+            parsing = false;
             Idle.add (() => {
-                end_parsing (report);
-                parsing = false;
+                end_parsing ();
                 return false;
             });
         }

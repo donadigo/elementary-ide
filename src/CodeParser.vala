@@ -18,9 +18,17 @@
  */
 
 namespace IDE {
-	public interface CodeParser : Object {
-		public abstract void parse ();
-		public abstract void add_document (Document document);
-		public abstract void remove_document (Document document);
-	}
+    public interface CodeParser : Object {
+        public abstract void parse ();
+        public abstract void add_document (Document document);
+        public abstract void remove_document (Document document);
+
+        public virtual signal void begin_parsing () {
+
+        }
+
+        public virtual signal void end_parsing () {
+            
+        }
+    }
 }

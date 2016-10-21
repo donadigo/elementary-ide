@@ -36,10 +36,35 @@ namespace IDE {
         public Gee.ArrayList<string> options { public get; private set; }
         public Gee.ArrayList<string> check_dependencies { public get; private set; }
         public ProjectType project_type { get; set; default = ProjectType.UNKNOWN; }
-        public bool get_can_save { public get; protected set; default = false; }
 
         public static bool check (File file) {
             return true;
+        }
+
+        public static void save_to_native_project (Project project) {
+            var key = new KeyFile ();
+
+            key.set_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_NAME, project.name);
+            key.set_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_VERSION, project.version);
+            key.set_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_EXEC_NAME, project.exec_name);
+            key.set_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_RELEASE_NAME, project.release_name);
+            key.set_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_PACKAGES, project.packages.to_array ());
+            key.set_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_SOURCES, project.sources.to_array ());
+            key.set_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_OPTIONS, project.options.to_array ());
+            key.set_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROEJCT_CHECK_DEPS, project.check_dependencies.to_array ());
+            key.set_integer (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_PROJECT_TYPE, project.project_type);
+
+            string target = Path.build_filename (project.root_path, Constants.NATIVE_TARGET);
+            try {
+                if (!FileUtils.test (target, FileTest.IS_REGULAR)) {
+                    var file = File.new_for_path (target);
+                    file.create (FileCreateFlags.NONE);
+                }
+                
+                key.save_to_file (target);
+            } catch (Error e) {
+                warning (e.message);
+            }
         }
 
         public static async Project? load (File file) {
@@ -73,7 +98,7 @@ namespace IDE {
         }
 
         public virtual void save () {
-
+            Project.save_to_native_project (this);
         }
 
         public virtual void update () {

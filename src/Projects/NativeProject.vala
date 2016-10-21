@@ -24,7 +24,7 @@ namespace IDE {
 
         public new static async Project? load (File file) {
             string target = Path.build_filename (file.get_path (), Constants.NATIVE_TARGET);
-            if (!FileUtils.test (target, FileTest.EXISTS)) {
+            if (!FileUtils.test (target, FileTest.IS_REGULAR)) {
                 return null;
             }
 
@@ -33,8 +33,6 @@ namespace IDE {
         }
 
         construct {
-            get_can_save = true;
-            
             key = new KeyFile ();
             key.set_list_separator (';');
         }
@@ -75,23 +73,17 @@ namespace IDE {
 
                 if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_SOURCES)) {
                     string[] sources_list = key.get_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_SOURCES);
-                    foreach (string source in sources_list) {
-                        sources.add (source);
-                    }
+                    sources.add_all_array (sources_list);
                 }
 
                 if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_OPTIONS)) {
                     string[] options_list = key.get_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_OPTIONS);
-                    foreach (string option in options_list) {
-                        options.add (option);
-                    }
+                    options.add_all_array (options_list);
                 }
 
                 if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROEJCT_CHECK_DEPS)) {
                     string[] check_dependencies_list = key.get_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROEJCT_CHECK_DEPS);
-                    foreach (string dependency in check_dependencies_list) {
-                        check_dependencies.add (dependency);
-                    }
+                    check_dependencies.add_all_array (check_dependencies_list);
                 }
 
                 if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_PROJECT_TYPE)) {

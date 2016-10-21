@@ -167,7 +167,8 @@ namespace IDE {
             }
 
             terminal_widget.spawn_default (project.root_path);
-            queue_parse ();            
+            project.save ();      
+            queue_parse ();     
         }
 
         public void add_new_document () {
@@ -232,8 +233,8 @@ namespace IDE {
             var document = open_focus_filename (filename);
             document.grab_focus ();
 
-            // TODO: figure out why this works on opening document
-            Timeout.add (100, () => {
+            // Wait for the textview to compute line heights
+            Idle.add (() => {
                 var source_buffer = document.editor_window.source_buffer;
 
                 Gtk.TextIter iter;
@@ -241,7 +242,7 @@ namespace IDE {
 
                 iter.set_line (line);
                 iter.set_line_offset (column);
-
+                
                 document.editor_window.source_view.scroll_to_iter (iter, 0.4, true, 0, 0);
                 document.editor_window.source_buffer.place_cursor (iter);
                 return false;
@@ -337,7 +338,10 @@ namespace IDE {
 
         private void document_content_changed (Document document) {
             code_parser.update_document_content (document);
-            queue_parse ();
+            if (!document_recently_changed) {
+                queue_parse ();
+            }
+
             document_recently_changed = true;
         }
 

@@ -19,6 +19,11 @@
 
 namespace IDE {
     public interface DocumentManager : Object {
+        public abstract Project? get_project ();
+        public abstract CodeParser? get_code_parser ();
+        public abstract Document? get_current_document ();
+        public abstract Gee.Collection<Document> get_opened_documents ();
+
         public virtual signal void add_document (Document document, bool focus = true) {
 
         }
@@ -34,10 +39,5 @@ namespace IDE {
         public virtual signal void queue_parse () {
 
         }
-
-        public abstract Project? get_project ();
-        public abstract CodeParser? get_code_parser ();
-        public abstract Document? get_current_document ();
-        public abstract Gee.Collection<Document> get_opened_documents ();
     }
 }

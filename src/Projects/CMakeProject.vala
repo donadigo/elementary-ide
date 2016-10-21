@@ -42,6 +42,7 @@ namespace IDE {
         public override void update () {
             parser.parse ();
 
+            bool has_vala_precompile = false;
             foreach (var command in parser.get_commands ()) {
                 switch (command.name) {
                     case Constants.PROJECT_CMD:
@@ -61,6 +62,10 @@ namespace IDE {
 
                         break;
                     case Constants.VALA_PRECOMPILE_CMD:
+                        if (!has_vala_precompile) {
+                            has_vala_precompile = true;
+                        }
+
                         string current_header = Constants.VALA_PRECOMPILE_HEADERS[0];
 
                         var arguments = command.get_arguments ();
@@ -103,14 +108,16 @@ namespace IDE {
                 release_name = release_name_var.get_first_value ();
             }
 
-            var library_command = parser.find_command_by_name (Constants.ADD_LIBRARY_CMD);
-            if (library_command != null) {
-                project_type |= ProjectType.VALA_LIBRARY;
-            }
+            if (has_vala_precompile) {
+                var library_command = parser.find_command_by_name (Constants.ADD_LIBRARY_CMD);
+                if (library_command != null) {
+                    project_type |= ProjectType.VALA_LIBRARY;
+                }
 
-            var executable_command = parser.find_command_by_name (Constants.ADD_EXECUTABLE_CMD);
-            if (executable_command != null) {
-                project_type |= ProjectType.VALA_APPLICATION;
+                var executable_command = parser.find_command_by_name (Constants.ADD_EXECUTABLE_CMD);
+                if (executable_command != null) {
+                    project_type |= ProjectType.VALA_APPLICATION;
+                }
             }
         }
     }
