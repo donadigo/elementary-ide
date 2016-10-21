@@ -14,7 +14,7 @@ An _unofficial_ elementary OS (Vala) oriented IDE.
 
 ## Compiling
 At this moment there is no repository for easy installation, you will need to compile this project on your own.
-Here 3 steps which will guide you through the compiling process:
+Here are 3 steps which will guide you through the compiling process:
 
 ### 1. Installing dependencies:
   These are the required dependencies in order to build elementary IDE:
