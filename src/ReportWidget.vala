@@ -114,8 +114,6 @@ namespace IDE {
         }
 
         public void set_report (Report report) {
-            clear ();
-
             foreach (var message in report.get_messages ()) {
                 add_message (message);
             }

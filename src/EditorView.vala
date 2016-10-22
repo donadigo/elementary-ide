@@ -339,7 +339,7 @@ namespace IDE {
             if (!document_recently_changed) {
                 code_parser.update_document_content (document);
             }
-            
+
             if (!code_parser.parsing) {
                queue_parse ();
             }
