@@ -57,7 +57,7 @@ namespace IDE {
 			return innermost;
 		}
 
-		bool update_location (Vala.Symbol symbol) {
+		private bool update_location (Vala.Symbol symbol) {
 			if (symbol == null ||
 				symbol.source_reference == null ||
 				symbol.source_reference.file.filename != filename ||

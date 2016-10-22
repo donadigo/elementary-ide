@@ -44,7 +44,7 @@ namespace IDE {
                     case ReportType.NOTE:
                         image.set_from_icon_name ("dialog-information", Gtk.IconSize.SMALL_TOOLBAR);
                         break;
-                    case ReportType.DEPRECATION:
+                    case ReportType.DEPRECATED:
                     case ReportType.WARNING:
                         image.set_from_icon_name ("dialog-warning", Gtk.IconSize.SMALL_TOOLBAR);
                         break;
@@ -114,7 +114,9 @@ namespace IDE {
         }
 
         public void set_report (Report report) {
-            foreach (var message in report.messages) {
+            clear ();
+
+            foreach (var message in report.get_messages ()) {
                 add_message (message);
             }
 

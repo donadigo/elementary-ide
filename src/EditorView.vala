@@ -35,7 +35,7 @@ namespace IDE {
         private Gtk.Label location_label;
 
         private ReportWidget report_widget;
-        public InfoWindow info_window;
+        private InfoWindow info_window;
 
         private ValaDocumentProvider provider;
 
@@ -149,7 +149,6 @@ namespace IDE {
         public void set_project (Project? project) {
             this.project = project;
 
-            // TODO: clear previous project
             if (project == null) {
                 return;
             }
@@ -337,9 +336,12 @@ namespace IDE {
         }
 
         private void document_content_changed (Document document) {
-            code_parser.update_document_content (document);
             if (!document_recently_changed) {
-                queue_parse ();
+                code_parser.update_document_content (document);
+            }
+            
+            if (!code_parser.parsing) {
+               queue_parse ();
             }
 
             document_recently_changed = true;
@@ -379,7 +381,7 @@ namespace IDE {
         }
 
         private void update_view_tags (Report report) {
-            foreach (var message in report.messages) {
+            foreach (var message in report.get_messages ()) {
                 if (message.source == null) {
                     continue;
                 }

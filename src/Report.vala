@@ -18,81 +18,113 @@
  */
 
 namespace IDE {
-	public enum ReportType {
-		NOTE = 0,
-		DEPRECATION,
-		WARNING,
-		ERROR
-	}
+    public enum ReportType {
+        NOTE = 0,
+        DEPRECATED,
+        WARNING,
+        ERROR
+    }
 
-	public class ReportMessage : Object {
-		public ReportType report_type;
-		public string message;
-		public Vala.SourceReference? source;
+    public class ReportMessage : Object {
+        public ReportType report_type;
+        public string message;
+        public Vala.SourceReference? source;
 
-		public ReportMessage (ReportType report_type, string message, Vala.SourceReference? source) {
-			this.report_type = report_type;
-			this.message = message;
-			this.source = source;
-		}
-	}
+        public ReportMessage (ReportType report_type, string message, Vala.SourceReference? source) {
+            this.report_type = report_type;
+            this.message = message;
+            this.source = source;
+        }
+    }
 
-	public class Report : Vala.Report {
-		public List<ReportMessage> messages;
+    public class Report : Vala.Report {
+        private Gee.ArrayList<ReportMessage> messages;
 
-		construct {
-			messages = new List<ReportMessage> ();
-		}
+        construct {
+            messages = new Gee.ArrayList<ReportMessage> ();
+        }
 
-		public void clear () {
-			messages = new List<ReportMessage> ();
+        public void clear () {
+            this.errors = 0;
+            this.warnings = 0;          
+        }
 
-			this.errors = 0;
-			this.warnings = 0;			
-		}
+        public void reset_file (Vala.SourceFile target) {
+            var removal_list = new Gee.ArrayList<ReportMessage> ();
+            foreach (var message in messages) {
+                if (message.source.file.filename == target.filename) {
+                    removal_list.add (message);
+                }
+            }
 
-		public void get_message_count (out int errors, out int warnings) {
-			errors = this.errors;
-			warnings = this.warnings;
-		}
+            if (removal_list.size > 0) {
+                messages.remove_all (removal_list);
+            }
+        }
 
-		public override void note (Vala.SourceReference? source, string message) {
-			if (source == null) {
-				return;
-			}
+        public void get_message_count (out int _errors, out int _warnings) {
+            _errors = 0;
+            _warnings = 0;
 
-			var report_message = new ReportMessage (ReportType.NOTE, message, source);
-			messages.append (report_message);
-		}
+            foreach (var message in messages) {
+                switch (message.report_type) {
+                    case ReportType.ERROR:
+                        _errors++;
+                        break;
+                    case ReportType.WARNING:
+                    case ReportType.DEPRECATED:
+                        _warnings++;
+                        break;                        
+                }
+            }
+        }
 
-		public override void depr (Vala.SourceReference? source, string message) {
-			warnings++;
-			if (source == null) {
-				return;
-			}
+        public Gee.Collection<ReportMessage> get_messages () {
+            var copy = new Gee.ArrayList<ReportMessage> ();
+            foreach (var message in messages) {
+                copy.add (message);
+            }
 
-			var report_message = new ReportMessage (ReportType.DEPRECATION, message, source);
-			messages.append (report_message);			
-		}
-		
-		public override void warn (Vala.SourceReference? source, string message) {
-			warnings++;
-			if (source == null) {
-				return;
-			}
+            return copy;
+        }
 
-			var report_message = new ReportMessage (ReportType.WARNING, message, source);
-			messages.append (report_message);				
-		}
-		
-		public override void err (Vala.SourceReference? source, string message) {
-			errors++;
-			if (source == null) {
-				return;
-			}
+        public override void note (Vala.SourceReference? source, string message) {
+            if (source == null) {
+                return;
+            }
 
-			var report_message = new ReportMessage (ReportType.ERROR, message, source);
-			messages.append (report_message);				
-		}		
-	}
-}
+            var report_message = new ReportMessage (ReportType.NOTE, message, source);
+            messages.add (report_message);
+        }
+
+        public override void depr (Vala.SourceReference? source, string message) {
+            warnings++;
+            if (source == null) {
+                return;
+            }
+
+            var report_message = new ReportMessage (ReportType.DEPRECATED, message, source);
+            messages.add (report_message);          
+        }
+        
+        public override void warn (Vala.SourceReference? source, string message) {
+            warnings++;
+            if (source == null) {
+                return;
+            }
+
+            var report_message = new ReportMessage (ReportType.WARNING, message, source);
+            messages.add (report_message);              
+        }
+        
+        public override void err (Vala.SourceReference? source, string message) {
+            errors++;
+            if (source == null) {
+                return;
+            }
+
+            var report_message = new ReportMessage (ReportType.ERROR, message, source);
+            messages.add (report_message);              
+        }       
+    }
+} 

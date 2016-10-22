@@ -31,7 +31,13 @@ namespace IDE {
                 return false;
             }
 
-            definition_view.buffer.text = definition + "\n\n\n";
+            string text = definition + "\n\n";
+            if (symbol.comment != null) {
+                text += symbol.comment.content;
+            }
+
+            definition_view.buffer.text = text;
+            
             update_language ();
             return true;
         }

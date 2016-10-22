@@ -158,7 +158,7 @@ namespace IDE {
 
             switch (message.report_type) {
                 case ReportType.WARNING:
-                case ReportType.DEPRECATION:
+                case ReportType.DEPRECATED:
                     source_buffer.apply_tag_by_name ("warning-tag", start_iter, end_iter);
                     break;
                 case ReportType.NOTE:

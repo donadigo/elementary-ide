@@ -34,10 +34,11 @@ namespace IDE {
             locator = new BlockLocator ();
             context = new Vala.CodeContext ();
             context.report = report;
+            context.compile_only = true;
             context.profile = Vala.Profile.GOBJECT;
             context.thread = true;
             context.save_temps = false;
-            context.mem_profiler = false;
+            context.mem_profiler = true;
             context.hide_internal = false;
 
             context.add_external_package ("glib-2.0");
@@ -71,10 +72,9 @@ namespace IDE {
         public void add_document (Document document) {
             lock (context) {
                 Vala.CodeContext.push (context);
-                foreach (var file in context.get_source_files ()) {
-                    if (file.filename == document.get_file_path ()) {
-                        return;
-                    }
+                if (get_source_file_for_document (document) != null) {
+                    Vala.CodeContext.pop ();
+                    return;
                 }
 
                 var source_file = new Vala.SourceFile (context, Vala.SourceFileType.SOURCE, document.get_file_path (), document.get_current_content ());
@@ -97,11 +97,9 @@ namespace IDE {
         public void add_source (string source) {
             lock (context) {
                 Vala.CodeContext.push (context);
-                foreach (var file in context.get_source_files ()) {
-                    if (file.filename == source) {
-                        Vala.CodeContext.pop ();
-                        return;
-                    }
+                if (get_source_file_for_filename (source) != null) {
+                    Vala.CodeContext.pop ();
+                    return;
                 }
 
                 context.add_source_filename (source);
@@ -110,20 +108,19 @@ namespace IDE {
         }
         
         public Vala.Symbol? lookup_symbol_at (string filename, int line, int column) {
-            Vala.SourceFile? source = null;
-            lock (context) {
-                foreach (var file in context.get_source_files ()) {
-                    if (file.filename == filename)  {
-                        source = file;
-                        break;
-                    }
-                }
-            }
-            if (source == null) {
+            var file = get_source_file_for_filename (filename);
+
+            if (file == null) {
                 return null;
             }
 
-            return locator.locate (source, line, column);
+            lock (context) {
+                Vala.CodeContext.push (context);
+                var symbol = locator.locate (file, line, column);
+                Vala.CodeContext.pop ();
+
+                return symbol;
+            }
         }
         
         private Gee.Collection<Vala.Symbol> lookup_symbol (Vala.Symbol? symbol) {
@@ -407,7 +404,7 @@ namespace IDE {
             return list;
         }
         
-        Gee.List<Vala.Symbol> get_symbols_for_namespace (Vala.Namespace ns, string name, bool match, Vala.MemberBinding binding) {
+        private Gee.List<Vala.Symbol> get_symbols_for_namespace (Vala.Namespace ns, string name, bool match, Vala.MemberBinding binding) {
             var list = new Gee.ArrayList<Vala.Symbol>();
             foreach (var cls in ns.get_classes ()) {
                 if ((match && name == cls.name) || cls.name.has_prefix (name)) {
@@ -669,38 +666,57 @@ namespace IDE {
             return list;
         }
 
+        private Vala.SourceFile? get_source_file_for_filename (string filename) {
+            foreach (var file in context.get_source_files ()) {
+                if (file.filename == filename) {
+                    return file;
+                }
+            }
+
+            return null;            
+        }
+
+        private Vala.SourceFile? get_source_file_for_document (Document document) {
+            return get_source_file_for_filename (document.get_file_path ());
+        }
+
         private void clear_source_file (Vala.SourceFile file) {
+            report.reset_file (file);
+
             var copy = new Vala.ArrayList<Vala.CodeNode> ();
             foreach (var node in file.get_nodes ()) {
                 copy.add (node);
             }
 
-            var entry_point = file.context.entry_point;
-            foreach (var node in copy) {
-                file.remove_node (node);
+            lock (context) {
+                Vala.CodeContext.push (context);
+                var entry_point = file.context.entry_point;
+                foreach (var node in copy) {
+                    file.remove_node (node);
 
-                if (node is Vala.Symbol) {
-                    var symbol = (Vala.Symbol)node;
-                    if (symbol.owner != null) {
-                        symbol.owner.remove (symbol.name);
-                    }
+                    if (node is Vala.Symbol) {
+                        var symbol = (Vala.Symbol)node;
+                        if (symbol.owner != null) {
+                            symbol.owner.remove (symbol.name);
+                        }
 
-                    symbol.name = null;
-                }               
-            }   
+                        symbol.name = null;
+                    }               
+                }   
 
-            if (entry_point != null) {
-                file.context.entry_point = null;
+                if (entry_point != null) {
+                    file.context.entry_point = null;
+                }
+
+                Vala.CodeContext.pop ();
             }
         }
 
         public void update_document_content (Document document) {
-            foreach (var file in context.get_source_files ()) {
-                if (file.filename == document.get_file_path ()) {
-                    file.content = document.get_current_content ();
-                    clear_source_file (file);
-                    break;
-                }
+            var file = get_source_file_for_document (document);
+            if (file != null) {
+                file.content = document.get_current_content ();
+                clear_source_file (file);
             }
         }
 
@@ -717,7 +733,7 @@ namespace IDE {
                     }
                 }
 
-                context.resolver.resolve (context);
+                context.check ();
                 context.analyzer.analyze (context);
                 Vala.CodeContext.pop ();
             }
