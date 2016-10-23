@@ -28,6 +28,7 @@ namespace IDE {
         private Vala.MemberBinding prev_binding;
         private bool prev_access;
         private BlockLocator locator;
+        private ValaDefinitionWriter definition_writer;
 
         construct {
             report = new Report ();
@@ -43,6 +44,8 @@ namespace IDE {
 
             context.add_external_package ("glib-2.0");
             context.add_external_package ("gobject-2.0");
+
+            definition_writer = new ValaDefinitionWriter (context);
 
             locator.resolve (context);
 
@@ -107,6 +110,17 @@ namespace IDE {
             }
         }
         
+        public string write_symbol_definition (Vala.Symbol symbol) {
+            lock (context) {
+                Vala.CodeContext.push (context);
+                var dw = new ValaDefinitionWriter (context);
+                string definition = dw.write_symbol_definition (symbol);
+                Vala.CodeContext.pop ();
+
+                return definition;
+            }   
+        }
+
         public Vala.Symbol? lookup_symbol_at (string filename, int line, int column) {
             var file = get_source_file_for_filename (filename);
 

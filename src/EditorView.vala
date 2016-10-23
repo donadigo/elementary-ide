@@ -37,7 +37,8 @@ namespace IDE {
         private ReportWidget report_widget;
         private InfoWindow info_window;
 
-        private ValaDocumentProvider provider;
+        private ValaDocumentProvider vala_provider;
+        private Gtk.SourceCompletionWords words_provider;
 
         private Granite.Widgets.ModeButton mode_button;
         private Granite.Widgets.AlertView no_documents_view;
@@ -55,7 +56,13 @@ namespace IDE {
             orientation = Gtk.Orientation.VERTICAL;
 
             code_parser = new ValaCodeParser ();
-            provider = new ValaDocumentProvider (this);
+            vala_provider = new ValaDocumentProvider (this);
+
+            words_provider = new Gtk.SourceCompletionWords (_("Word Completion"), null);
+            words_provider.activation = Gtk.SourceCompletionActivation.INTERACTIVE | Gtk.SourceCompletionActivation.USER_REQUESTED;
+            words_provider.interactive_delay = 100;
+            words_provider.minimum_word_size = 2;
+            words_provider.priority = 0;
 
             documents = new Gee.ArrayList<Document> ();
 
@@ -179,7 +186,7 @@ namespace IDE {
             clear_view_tags ();
             if (code_parser.parsing) {
                 return true;
-            }
+            } 
 
             if (document_recently_changed) {
                 document_recently_changed = false;
@@ -280,7 +287,8 @@ namespace IDE {
             document.load.begin ();
 
             try {
-                document.editor_window.source_view.completion.add_provider (provider);
+                document.editor_window.source_view.completion.add_provider (vala_provider);
+                document.editor_window.source_view.completion.add_provider (words_provider);
             } catch (Error e) {
                 warning (e.message);
             }
@@ -288,7 +296,7 @@ namespace IDE {
             document.content_changed.connect (() => document_content_changed (document));
 
             document.editor_window.source_buffer.notify["cursor-position"].connect (() => update_location_label ());
-            document.editor_window.close_info_window.connect (() => info_window.hide ());
+            document.editor_window.close_info_window.connect (on_close_info_window);
             document.editor_window.show_info_window.connect ((iter, x, y) => on_show_info_window (document, iter, x, y));
 
             documents.add (document);
@@ -336,14 +344,9 @@ namespace IDE {
         }
 
         private void document_content_changed (Document document) {
-            if (!document_recently_changed) {
-                code_parser.update_document_content (document);
-            }
+            code_parser.update_document_content (document);
 
-            if (!code_parser.parsing) {
-               queue_parse ();
-            }
-
+            queue_parse ();
             document_recently_changed = true;
         }
 
@@ -407,11 +410,17 @@ namespace IDE {
             var symbol = code_parser.lookup_symbol_at (document.get_file_path (), start_iter.get_line () + 1, start_iter.get_line_offset ());
             if (symbol == null || symbol.name == null) {
                 return;
-            }          
+            }        
 
-            if (info_window.set_current_symbol (symbol)) {
+            string definition = code_parser.write_symbol_definition (symbol);
+
+            if (info_window.set_content (definition)) {
                 info_window.show_at (x, y);    
             }
+        }
+
+        private void on_close_info_window () {
+            info_window.hide ();
         }
     }
 }

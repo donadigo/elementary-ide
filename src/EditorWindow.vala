@@ -86,7 +86,7 @@ namespace IDE {
             source_view.completion.select_on_show = true;
             source_view.completion.show_icons = true;
             source_view.completion.remember_info_visibility = true;
-            source_view.left_margin = 5;
+            source_view.left_margin = 6;
             source_view.motion_notify_event.connect (on_motion_notify_event);
 
             expand = true;
@@ -100,7 +100,7 @@ namespace IDE {
             view_scrolled = new Gtk.ScrolledWindow (null, null);
             view_scrolled.add (source_view);
 
-            var label = new Gtk.Label (_("Line 18, Column 56"));
+            var label = new Gtk.Label (null);
             label.opacity = 0.7;
             label.halign = Gtk.Align.END;
             label.valign = Gtk.Align.END;
@@ -177,15 +177,6 @@ namespace IDE {
         public Gtk.SourceBuffer get_buffer () {
             return (Gtk.SourceBuffer)source_view.get_buffer ();
         }
-
-        /*private void add_providers () {
-            var word_provider = new Gtk.SourceCompletionWords (_("Word Completion"), null);
-            word_provider.activation = Gtk.SourceCompletionActivation.INTERACTIVE;
-            word_provider.interactive_delay = 100;
-            word_provider.minimum_word_size = 3;
-            word_provider.register (source_buffer);
-            source_view.completion.add_provider (word_provider);
-        }*/
 
         private bool on_motion_notify_event (Gdk.EventMotion event) {
             if (show_info_timeout_id > 0) {

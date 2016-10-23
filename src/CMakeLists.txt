@@ -19,6 +19,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Vala/ValaDocumentProvider.vala
     Vala/Locator.vala
     Vala/ValaCodeParser.vala
+    Vala/ValaDefinitionWriter.vala
     BuildSystem.vala
     BuildSystems/CMakeBuildSystem.vala
     BuildSystems/CMakeParser.vala
@@ -35,7 +36,6 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Dialogs/OpenProjectDialog.vala
 PACKAGES
     granite
-    gtksourceview-3.0
     valadoc-1.0
     vte-2.91
     posix
@@ -44,6 +44,8 @@ PACKAGES
 OPTIONS
   --target-glib=2.32
   --thread
+CUSTOM_VAPIS
+    ../vapi/gtksourceview-3.0.vapi
 )
 
 add_executable (${EXEC_NAME} ${VALA_C})

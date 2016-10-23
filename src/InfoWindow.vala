@@ -1,5 +1,6 @@
 namespace IDE {
     public class InfoWindow : Gtk.Window {
+        public bool pointer_in_window = false;
         private Gtk.SourceView definition_view;
         private Gtk.SourceBuffer buffer;
 
@@ -7,6 +8,7 @@ namespace IDE {
             type_hint = Gdk.WindowTypeHint.TOOLTIP;
             skip_taskbar_hint = true;
             decorated = false;
+            focus_on_map = true;
 
             var main_grid = new Gtk.Grid ();
 
@@ -25,25 +27,16 @@ namespace IDE {
             add (frame);
         }
 
-        public bool set_current_symbol (Vala.Symbol symbol) {
-            string? definition = Utils.convert_symbol_to_definition (symbol);
-            if (definition == null) {
-                return false;
-            }
+        public bool set_content (string content) {
+            definition_view.buffer.text = content;
 
-            string text = definition + "\n\n";
-            if (symbol.comment != null) {
-                text += symbol.comment.content;
-            }
-
-            definition_view.buffer.text = text;
-            
             update_language ();
-            return true;
+            return content.strip () != "";
         }
 
         public void show_at (int x, int y) {
             move (x, y);
+            set_size_request (definition_view.get_allocated_width (), definition_view.get_allocated_height ());
             show_all ();
         }
 

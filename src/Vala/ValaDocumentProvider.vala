@@ -26,7 +26,7 @@ namespace IDE {
             public SymbolItem (Vala.Symbol symbol) {
                 GLib.Object (symbol: symbol);
 
-                info = Utils.convert_symbol_to_definition (symbol);
+                //info = Utils.convert_symbol_to_definition (symbol);
             }
                 
             public unowned GLib.Icon? get_gicon () {
