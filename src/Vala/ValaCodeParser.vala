@@ -113,8 +113,7 @@ namespace IDE {
         public string write_symbol_definition (Vala.Symbol symbol) {
             lock (context) {
                 Vala.CodeContext.push (context);
-                var dw = new ValaDefinitionWriter (context);
-                string definition = dw.write_symbol_definition (symbol);
+                string definition = definition_writer.write_symbol_definition (symbol);
                 Vala.CodeContext.pop ();
 
                 return definition;

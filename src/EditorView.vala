@@ -22,7 +22,6 @@ namespace IDE {
         private const Gtk.TargetEntry[] targets = {{ "text/uri-list", 0, 0 }};
 
         private ValaCodeParser code_parser;
-
         private Project project;
         private Gee.ArrayList<Document> documents;
 
@@ -32,7 +31,7 @@ namespace IDE {
         private SourceList source_list;
         private Gtk.Paned vertical_paned;
 
-        private Gtk.Label location_label;
+        private Gtk.SearchEntry search_entry;
 
         private ReportWidget report_widget;
         private InfoWindow info_window;
@@ -92,13 +91,24 @@ namespace IDE {
             Gtk.drag_dest_set (notebook_stack, Gtk.DestDefaults.ALL, targets, Gdk.DragAction.COPY);
             notebook_stack.drag_data_received.connect (on_drag_data_received);
 
-            location_label = new Gtk.Label (null);
-
-            var info_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-            info_box.add (location_label);
+            search_entry = new Gtk.SearchEntry ();
+            search_entry.halign = Gtk.Align.CENTER;
+            search_entry.margin = 6;
+            search_entry.placeholder_text = _("Search files…");
+            search_entry.search_changed.connect (on_search_entry_changed);
 
             source_list = new SourceList ();
+            source_list.set_filter_func (source_list_visible_func, true);
             source_list.item_selected.connect (on_item_selected);
+
+            var scrolled = new Gtk.ScrolledWindow (null, null);
+            scrolled.min_content_width = 200;
+            scrolled.add (source_list);
+
+            var sidebar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+            sidebar.add (search_entry);
+            sidebar.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+            sidebar.add (scrolled);
 
             info_window = new InfoWindow ();
 
@@ -129,16 +139,12 @@ namespace IDE {
             bottom_bar.attach (new Gtk.Separator (Gtk.Orientation.VERTICAL), 1, 0, 1, 1);
             bottom_bar.attach (bottom_stack, 2, 0, 1, 1);
 
-            var scrolled = new Gtk.ScrolledWindow (null, null);
-            scrolled.min_content_width = 200;
-            scrolled.add (source_list);
-
             vertical_paned = new Gtk.Paned (Gtk.Orientation.VERTICAL);
             vertical_paned.pack1 (notebook_stack, true, false);
             vertical_paned.pack2 (bottom_bar, false, false);
 
             var horizontal_paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
-            horizontal_paned.pack1 (scrolled, false, false);
+            horizontal_paned.pack1 (sidebar, false, false);
             horizontal_paned.pack2 (vertical_paned, true, true);
 
             update_report_view_timeout_id = Timeout.add (2000, update_report_view);
@@ -177,9 +183,27 @@ namespace IDE {
             queue_parse ();     
         }
 
+        public Project? get_project () {
+            return project;
+        }
+
         public void add_new_document () {
             var document = new Document.empty ();
             add_document (document, true);
+        }
+
+        private void on_search_entry_changed () {
+            // TODO: hide folders that do not contain any items
+            source_list.refilter ();
+            source_list.root.expand_all (true, false);
+        }
+
+        private bool source_list_visible_func (Granite.Widgets.SourceList.Item item) {
+            if (item is SourceList.FileItem) {
+                return item.name.down ().contains (search_entry.text.down ());
+            }
+
+            return true;
         }
 
         private bool update_report_view () {
@@ -330,10 +354,6 @@ namespace IDE {
 
         public CodeParser? get_code_parser () {
             return code_parser;
-        }
-
-        public Project? get_project () {
-            return project;
         }
 
         public void queue_parse () {
