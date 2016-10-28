@@ -28,7 +28,6 @@ namespace IDE {
         private Gtk.SourceMap source_map;
         private Gtk.ProgressBar progress_bar;
         private Gtk.ScrolledWindow view_scrolled;
-        private IDESettings settings;
 
         private uint show_info_timeout_id = 0;
 
@@ -77,7 +76,6 @@ namespace IDE {
             orientation = Gtk.Orientation.VERTICAL;
 
             source_buffer = new IDEBuffer (document);
-            settings = IDESettings.get_default ();
 
             // TODO: better colors here
             var red = Gdk.RGBA ();
@@ -107,7 +105,12 @@ namespace IDE {
             source_view.indent_on_tab = true;
             source_view.indent_width = 4;
             source_view.insert_spaces_instead_of_tabs = true;
+
+            var settings = IDESettings.get_default ();
+            settings.schema.bind ("show-line-numbers", source_view, "show-line-numbers", SettingsBindFlags.DEFAULT);
+
             source_view.show_line_numbers = settings.show_line_numbers;
+
             source_view.show_right_margin = false;
             source_view.smart_backspace = true;
             source_view.smart_home_end = Gtk.SourceSmartHomeEndType.BEFORE;
