@@ -26,3 +26,4 @@ ensure_vala_version ("0.30" MINIMUM)
 include (ValaPrecompile)
 
 add_subdirectory (src)
+add_subdirectory (schemas)

@@ -36,6 +36,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/NewFileDialog.vala
     Dialogs/OpenProjectDialog.vala
+    Services/IDESettings.vala
 PACKAGES
     granite
     valadoc-1.0
