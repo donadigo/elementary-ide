@@ -23,11 +23,11 @@ namespace IDE {
             program_name = Constants.APP_NAME;
             exec_name = Constants.EXEC_NAME;
 
-            /*build_data_dir = Constants.DATADIR;
-            build_pkg_data_dir = Constants.PKGDATADIR;
-            build_release_name = Constants.RELEASE_NAME;
-            build_version = Constants.VERSION;
-            build_version_info = Constants.VERSION_INFO;*/
+            build_data_dir = Build.DATADIR;
+            build_pkg_data_dir = Build.PKGDATADIR;
+            build_release_name = Build.RELEASE_NAME;
+            build_version = Build.VERSION;
+            build_version_info = Build.VERSION_INFO;
 
             Intl.setlocale (LocaleCategory.ALL, "");
 

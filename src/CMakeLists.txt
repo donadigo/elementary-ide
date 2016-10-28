@@ -1,3 +1,5 @@
+configure_file (${CMAKE_SOURCE_DIR}/src/config.vala.cmake ${CMAKE_SOURCE_DIR}/src/config.vala)
+
 vala_precompile(VALA_C ${EXEC_NAME}
     Constants.vala
     IDEApplication.vala
@@ -37,6 +39,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Dialogs/NewFileDialog.vala
     Dialogs/OpenProjectDialog.vala
     Services/IDESettings.vala
+    config.vala
 PACKAGES
     granite
     valadoc-1.0

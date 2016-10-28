@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=elementary IDE
+Comment=Develop applications for elementary OS
+Exec=elementary-ide
+Icon=applications-development
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;System;Development;

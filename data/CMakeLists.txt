@@ -1,0 +1,1 @@
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/com.github.donadigo.elementary-ide.desktop DESTINATION share/applications)

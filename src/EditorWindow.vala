@@ -74,6 +74,7 @@ namespace IDE {
 
         construct {
             orientation = Gtk.Orientation.VERTICAL;
+            expand = true;
 
             source_buffer = new IDEBuffer (document);
 
@@ -120,8 +121,6 @@ namespace IDE {
             source_view.completion.remember_info_visibility = true;
             source_view.left_margin = 6;
             source_view.motion_notify_event.connect (on_motion_notify_event);
-
-            expand = true;
 
             progress_bar = new Gtk.ProgressBar ();
             progress_bar.show_text = false;  
