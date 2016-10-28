@@ -6,7 +6,7 @@
 
     <key name='dark-theme' type='b'>
         <default>false</default>
-        <summary>Apply black theme to the interface</summary>
+        <summary>Apply dark theme to the interface</summary>
     </key>
     
 	<key name="show-line-numbers" type="b">

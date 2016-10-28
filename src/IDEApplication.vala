@@ -72,7 +72,6 @@ namespace IDE {
             if (settings.dark_theme) {
                 Gtk.Settings.get_default ().set ("gtk-application-prefer-dark-theme", true);
             }
-            add_window (window);
             window.show_all ();
         }
     }
