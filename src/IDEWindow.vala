@@ -29,7 +29,7 @@ namespace IDE {
         private int open_id = -1;
         private int open_file_id = -1;
 
-        public static IDEWindow? instance = null;
+        private static IDEWindow? instance = null;
         public static unowned IDEWindow get_default () {
             if (instance == null) {
                 instance = new IDEWindow ();
