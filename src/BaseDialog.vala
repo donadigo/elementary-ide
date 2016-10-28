@@ -23,7 +23,7 @@ namespace IDE {
             deletable = false;
             margin = 24;
 
-            set_transient_for (IDEWindow.get_instance ());
+            set_transient_for (IDEWindow.get_default ());
             var action_area = (Gtk.Box)get_action_area ();
 
             var close_button = new Gtk.Button.with_label (_("Close"));

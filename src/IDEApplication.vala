@@ -55,7 +55,7 @@ namespace IDE {
         }
 
         private static IDEApplication? instance = null;
-        public static unowned IDEApplication get_instance () {
+        public new static unowned IDEApplication get_default () {
             if (instance == null) {
                 instance = new IDEApplication ();
             }
@@ -68,17 +68,17 @@ namespace IDE {
         }
 
         public override void activate () {
-            var window = IDEWindow.get_instance ();
+            var window = IDEWindow.get_default ();
+            window.set_application (this);
             if (settings.dark_theme) {
                 Gtk.Settings.get_default().set("gtk-application-prefer-dark-theme", true);
             }
             add_window (window);
             window.show_all ();
-            
         }
     }
 
     public static int main (string[] args) {
-        return IDEApplication.get_instance ().run (args);
+        return IDEApplication.get_default ().run (args);
     }
 }

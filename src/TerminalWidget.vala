@@ -18,52 +18,62 @@
  */
 
 namespace IDE {
-	public class TerminalWidget : Gtk.Box {
-		private Vte.Terminal terminal;
-		private Vte.Pty pty;
+    public class TerminalWidget : Gtk.Box, BottomWidget {
+        public Gtk.Widget? toolbar_widget {
+            get {
+                return null;
+            }
+        }
 
-		construct {
-			terminal = new Vte.Terminal ();
-			terminal.expand = true;
+        private Gtk.Grid toolbar_grid;
 
-			try {
-				pty = new Vte.Pty.sync (Vte.PtyFlags.DEFAULT);
-				terminal.set_pty (pty);
-			} catch (Error e) {
-				warning (e.message);
-			}
+        private Vte.Terminal terminal;
+        private Vte.Pty pty;
 
-			add (terminal);
-		}
+        construct {
+            terminal = new Vte.Terminal ();
+            terminal.expand = true;
 
-		public Vte.Terminal get_terminal () {
-			return terminal;
-		}
+            try {
+                pty = new Vte.Pty.sync (Vte.PtyFlags.DEFAULT);
+                terminal.set_pty (pty);
+            } catch (Error e) {
+                warning (e.message);
+            }
 
-		public void spawn_default (string? working_directory = null) {
-			string[] argv = { Environment.get_variable ("SHELL") };
-			spawn_command (argv, working_directory);
-		}
+            toolbar_grid = new Gtk.Grid ();
 
-		public void spawn_command (string[] argv, string? working_directory = null) {
-			string[] _argv = {};
-			foreach (string arg in argv) {
-				_argv += arg;
-			}
+            add (terminal);
+        }
 
-			string[] envv = Environ.get ();
+        public Vte.Terminal get_terminal () {
+            return terminal;
+        }
 
-			Idle.add (() => {
-				try {
-					Pid child_pid;
-					terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
-                                	envv, SpawnFlags.SEARCH_PATH, null, out child_pid, null);	
-				} catch (Error e) {
-					warning (e.message);
-				}
-				
-				return false;
-			});
-		}
-	}
+        public void spawn_default (string? working_directory = null) {
+            string[] argv = { Environment.get_variable ("SHELL") };
+            spawn_command (argv, working_directory);
+        }
+
+        public void spawn_command (string[] argv, string? working_directory = null) {
+            string[] _argv = {};
+            foreach (string arg in argv) {
+                _argv += arg;
+            }
+
+            string[] envv = Environ.get ();
+
+            Idle.add (() => {
+                try {
+                    Pid child_pid;
+                    terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
+                                    envv, SpawnFlags.SEARCH_PATH, null, out child_pid, null);   
+                } catch (Error e) {
+                    warning (e.message);
+                }
+                
+                return false;
+            });
+        }
+    }
 }

@@ -46,13 +46,10 @@ namespace IDE {
 
         Scope current_scope;
 
-        CodeWriterType type;
-
         string? override_header = null;
         string? header_to_override = null;
 
         public ValaDefinitionWriter (Vala.CodeContext context) {
-            this.type = CodeWriterType.DUMP;
             this.context = context;
         }
 
@@ -75,26 +72,24 @@ namespace IDE {
         }
 
         public override void visit_using_directive (UsingDirective ns) {
-            if (type == CodeWriterType.FAST) {
-                write_string ("using ");
+            write_string ("using ");
 
-                var symbols = new GLib.List<UnresolvedSymbol> ();
-                var sym = (UnresolvedSymbol) ns.namespace_symbol;
+            var symbols = new GLib.List<UnresolvedSymbol> ();
+            var sym = (UnresolvedSymbol) ns.namespace_symbol;
+            symbols.prepend (sym);
+
+            while ((sym = sym.inner) != null) {
                 symbols.prepend (sym);
-
-                while ((sym = sym.inner) != null) {
-                    symbols.prepend (sym);
-                }
-
-                write_string (symbols.nth_data (0).name);
-
-                for (int i = 1; i < symbols.length (); i++) {
-                    write_string (".");
-                    write_string (symbols.nth_data (i).name);
-                }
-
-                write_string (";\n");
             }
+
+            write_string (symbols.nth_data (0).name);
+
+            for (int i = 1; i < symbols.length (); i++) {
+                write_string (".");
+                write_string (symbols.nth_data (i).name);
+            }
+
+            write_string (";\n");
         }
 
         public override void visit_namespace (Namespace ns) {
@@ -123,12 +118,11 @@ namespace IDE {
             write_indent ();
             write_string ("namespace ");
             write_identifier (ns.name);
-            write_newline ();
         }
 
         private string get_cheaders (Symbol sym) {
             string cheaders = "";
-            if (type != CodeWriterType.FAST && !sym.external_package) {
+            if (!sym.external_package) {
                 cheaders = sym.get_attribute_string ("CCode", "cheader_filename") ?? "";
                 if (cheaders == "" && sym.parent_symbol != null && sym.parent_symbol != context.root) {
                     cheaders = get_cheaders (sym.parent_symbol);
@@ -178,7 +172,6 @@ namespace IDE {
             write_begin_block ();
 
             write_end_block ();
-            write_newline ();
         }
 
         public override void visit_struct (Struct st) {
@@ -211,7 +204,6 @@ namespace IDE {
             current_scope = current_scope.parent_scope;
 
             write_end_block ();
-            write_newline ();
         }
 
         public override void visit_interface (Interface iface) {
@@ -245,7 +237,6 @@ namespace IDE {
             write_begin_block ();
 
             write_end_block ();
-            write_newline ();
         }
 
         public override void visit_enum (Enum en) {
@@ -279,7 +270,7 @@ namespace IDE {
                 write_indent ();
                 write_identifier (ev.name);
 
-                if (type == CodeWriterType.FAST && ev.value != null) {
+                if (ev.value != null) {
                     write_string(" = ");
                     ev.value.accept (this);
                 }
@@ -302,7 +293,6 @@ namespace IDE {
             current_scope = current_scope.parent_scope;
 
             write_end_block ();
-            write_newline ();
         }
 
         public override void visit_error_domain (ErrorDomain edomain) {
@@ -351,7 +341,6 @@ namespace IDE {
             current_scope = current_scope.parent_scope;
 
             write_end_block ();
-            write_newline ();
         }
 
         public override void visit_constant (Constant c) {
@@ -370,12 +359,11 @@ namespace IDE {
             write_string (" ");
             write_identifier (c.name);
             write_type_suffix (c.type_reference);
-            if (type == CodeWriterType.FAST && c.value != null) {
+            if (c.value != null) {
                 write_string(" = ");
                 c.value.accept (this);
             }
             write_string (";");
-            write_newline ();
         }
 
         public override void visit_field (Field f) {
@@ -404,7 +392,6 @@ namespace IDE {
             write_identifier (f.name);
             write_type_suffix (f.variable_type);
             write_string (";");
-            write_newline ();
         }
         
         private void write_error_domains (Vala.List<DataType> error_domains) {
@@ -502,8 +489,6 @@ namespace IDE {
             write_error_domains (cb.get_error_types ());
 
             write_string (";");
-
-            write_newline ();
         }
 
         public override void visit_constructor (Constructor c) {
@@ -513,7 +498,6 @@ namespace IDE {
 
             write_indent ();
             write_string ("construct");
-            write_newline ();
         }
 
         public override void visit_method (Method m) {
@@ -572,8 +556,6 @@ namespace IDE {
             write_params (m.get_parameters ());
 
             write_error_domains (m.get_error_types ());
-
-            write_newline ();
         }
 
         public override void visit_creation_method (CreationMethod m) {
@@ -633,7 +615,6 @@ namespace IDE {
                 }
             }
             write_string (" }");
-            write_newline ();
         }
 
         public override void visit_signal (Vala.Signal sig) {
@@ -662,8 +643,6 @@ namespace IDE {
             write_params (sig.get_parameters ());
 
             write_string (";");
-
-            write_newline ();
         }
 
         public override void visit_block (Block b) {
@@ -683,7 +662,6 @@ namespace IDE {
             write_indent ();
             stmt.declaration.accept (this);
             write_string (";");
-            write_newline ();
         }
 
         public override void visit_local_variable (LocalVariable local) {
@@ -720,7 +698,6 @@ namespace IDE {
             write_indent ();
             stmt.expression.accept (this);
             write_string (";");
-            write_newline ();
         }
 
         public override void visit_if_statement (IfStatement stmt) {
@@ -733,7 +710,6 @@ namespace IDE {
                 write_string (" else");
                 stmt.false_statement.accept (this);
             }
-            write_newline ();
         }
 
         public override void visit_switch_statement (SwitchStatement stmt) {
@@ -749,7 +725,6 @@ namespace IDE {
 
             write_indent ();
             write_string ("}");
-            write_newline ();
         }
 
         public override void visit_switch_section (SwitchSection section) {
@@ -778,7 +753,6 @@ namespace IDE {
             write_indent ();
             write_string ("loop");
             stmt.body.accept (this);
-            write_newline ();
         }
 
         public override void visit_while_statement (WhileStatement stmt) {
@@ -787,7 +761,6 @@ namespace IDE {
             stmt.condition.accept (this);
             write_string (")");
             stmt.body.accept (this);
-            write_newline ();
         }
 
         public override void visit_do_statement (DoStatement stmt) {
@@ -797,7 +770,6 @@ namespace IDE {
             write_string ("while (");
             stmt.condition.accept (this);
             write_string (");");
-            write_newline ();
         }
 
         public override void visit_for_statement (ForStatement stmt) {
@@ -828,7 +800,6 @@ namespace IDE {
 
             write_string (")");
             stmt.body.accept (this);
-            write_newline ();
         }
 
         public override void visit_foreach_statement (ForeachStatement stmt) {
@@ -837,13 +808,11 @@ namespace IDE {
         public override void visit_break_statement (BreakStatement stmt) {
             write_indent ();
             write_string ("break;");
-            write_newline ();
         }
 
         public override void visit_continue_statement (ContinueStatement stmt) {
             write_indent ();
             write_string ("continue;");
-            write_newline ();
         }
 
         public override void visit_return_statement (ReturnStatement stmt) {
@@ -854,7 +823,6 @@ namespace IDE {
                 stmt.return_expression.accept (this);
             }
             write_string (";");
-            write_newline ();
         }
 
         public override void visit_yield_statement (YieldStatement y) {
@@ -865,7 +833,6 @@ namespace IDE {
                 y.yield_expression.accept (this);
             }
             write_string (";");
-            write_newline ();
         }
 
         public override void visit_throw_statement (ThrowStatement stmt) {
@@ -876,7 +843,6 @@ namespace IDE {
                 stmt.error_expression.accept (this);
             }
             write_string (";");
-            write_newline ();
         }
 
         public override void visit_try_statement (TryStatement stmt) {
@@ -890,7 +856,6 @@ namespace IDE {
                 write_string (" finally");
                 stmt.finally_body.accept (this);
             }
-            write_newline ();
         }
 
         public override void visit_catch_clause (CatchClause clause) {
@@ -910,7 +875,6 @@ namespace IDE {
             } else {
                 stmt.body.accept (this);
             }
-            write_newline ();
         }
 
         public override void visit_delete_statement (DeleteStatement stmt) {
@@ -918,7 +882,6 @@ namespace IDE {
             write_string ("delete ");
             stmt.expression.accept (this);
             write_string (";");
-            write_newline ();
         }
 
         public override void visit_array_creation_expression (ArrayCreationExpression expr) {
@@ -1368,7 +1331,7 @@ namespace IDE {
         private void write_attributes (CodeNode node) {
             var sym = node as Symbol;
 
-            var need_cheaders = type != CodeWriterType.FAST && sym != null && !(sym is Namespace) && sym.parent_symbol is Namespace;
+            var need_cheaders = sym != null && !(sym is Namespace) && sym.parent_symbol is Namespace;
 
             var attributes = new GLib.Sequence<Attribute> ();
             foreach (var attr in node.attributes) {
@@ -1432,8 +1395,6 @@ namespace IDE {
                 builder.append_printf ("]");
                 if (node is Vala.Parameter || node is PropertyAccessor) {
                     write_string (" ");
-                } else {
-                    write_newline ();
                 }
             }
         }
@@ -1449,7 +1410,7 @@ namespace IDE {
                 write_string ("private ");
             }
 
-            if (type != CodeWriterType.EXTERNAL && sym.external && !sym.external_package) {
+            if (sym.external && !sym.external_package) {
                 write_string ("extern ");
             }
         }

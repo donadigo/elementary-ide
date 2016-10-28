@@ -18,14 +18,6 @@
  */
 
 namespace IDE.Constants {
-    public const string CUSTOM_STLYESHEET = """
-.button.ide-bottom-view {
-    border-radius: 0%;
-    border-color: transparent;
-}
-""";
-
-
     // TODO: fetch this from CMake
     public const string APP_NAME = "elementary IDE";
     public const string EXEC_NAME = "elementary-ide";

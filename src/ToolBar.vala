@@ -78,19 +78,19 @@ namespace IDE {
         }
 
         private void request_save_current () {
-            IDEWindow.get_instance ().save_current_document ();
+            IDEWindow.get_default ().save_current_document ();
         }
 
         private void request_save_opened () {
-            IDEWindow.get_instance ().save_all_opened_documents ();
+            IDEWindow.get_default ().save_all_opened_documents ();
         }
 
         private void request_open_project () {
-            IDEWindow.get_instance ().show_open_project_dialog ();
+            IDEWindow.get_default ().show_open_project_dialog ();
         }
 
         private void request_open_files () {
-            IDEWindow.get_instance ().show_open_files_dialog ();
+            IDEWindow.get_default ().show_open_files_dialog ();
         }
 
         private void show_new_file_dialog () {

@@ -35,6 +35,22 @@ namespace IDE {
             this.message = message;
             this.source = source;
         }
+
+        public unowned string? to_icon_name () {
+            switch (report_type) {
+                case ReportType.WARNING:
+                case ReportType.DEPRECATED:
+                    return "dialog-warning";
+                case ReportType.ERROR:
+                    return "dialog-error";
+                case ReportType.NOTE:
+                    return "dialog-information";
+                default:
+                    break;
+            }
+
+            return null;
+        }
     }
 
     public class Report : Vala.Report {
@@ -79,13 +95,8 @@ namespace IDE {
             }
         }
 
-        public Gee.Collection<ReportMessage> get_messages () {
-            var copy = new Gee.ArrayList<ReportMessage> ();
-            foreach (var message in messages) {
-                copy.add (message);
-            }
-
-            return copy;
+        public unowned Gee.Collection<ReportMessage> get_messages () {
+            return messages;
         }
 
         public override void note (Vala.SourceReference? source, string message) {

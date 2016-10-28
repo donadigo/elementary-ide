@@ -1,52 +1,34 @@
 namespace IDE {
     public class InfoWindow : Gtk.Window {
-        public bool pointer_in_window = false;
-        private Gtk.SourceView definition_view;
-        private Gtk.SourceBuffer buffer;
+        private Gtk.Label tooltip_label;
 
         construct {
+            type = Gtk.WindowType.POPUP;
             type_hint = Gdk.WindowTypeHint.TOOLTIP;
             skip_taskbar_hint = true;
             decorated = false;
             focus_on_map = true;
+            resizable = false;
 
-            var main_grid = new Gtk.Grid ();
+            get_style_context ().add_class (Gtk.STYLE_CLASS_TOOLTIP);
+            set_accessible_role (Atk.Role.TOOL_TIP);
 
-            var frame = new Gtk.Frame (null);
-            frame.add (main_grid);
-
-            buffer = new Gtk.SourceBuffer (null);
-
-            definition_view = new Gtk.SourceView.with_buffer (buffer);
-            definition_view.expand = true;
-            definition_view.editable = false;
-            definition_view.show_right_margin = false;
-            definition_view.cursor_visible = false;
-
-            main_grid.add (definition_view);
-            add (frame);
+            var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+            tooltip_label = new Gtk.Label (null);
+            tooltip_label.max_width_chars = 120;
+            tooltip_label.wrap = true;
+            tooltip_label.margin = 6;
+            box.add (tooltip_label);
+            add (box);
         }
 
-        public bool set_content (string content) {
-            definition_view.buffer.text = content;
-
-            update_language ();
-            return content.strip () != "";
+        public void set_label (string label) {
+            tooltip_label.label = label;
         }
 
         public void show_at (int x, int y) {
             move (x, y);
-            set_size_request (definition_view.get_allocated_width (), definition_view.get_allocated_height ());
             show_all ();
-        }
-
-        private void update_language () {
-            var document = IDEWindow.get_instance ().editor_view.get_current_document ();
-            if (document == null) {
-                return;
-            }
-
-            buffer.set_language (document.editor_window.get_language ());       
         }
     }
 }

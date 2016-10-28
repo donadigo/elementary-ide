@@ -15,7 +15,9 @@ vala_precompile(VALA_C ${EXEC_NAME}
     TabWidget.vala
     Document.vala
     DocumentManager.vala
+    BottomWidget.vala
     CodeParser.vala
+    IDEBuffer.vala
     Vala/ValaDocumentProvider.vala
     Vala/Locator.vala
     Vala/ValaCodeParser.vala
