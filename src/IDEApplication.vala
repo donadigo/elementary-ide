@@ -34,8 +34,7 @@ namespace IDE {
 
             Intl.setlocale (LocaleCategory.ALL, "");
             
-            settings = new IDESettings ();
-            
+            settings = IDESettings.get_default ();
 
             app_years = "2011-2016";
             app_icon = "applications-development";

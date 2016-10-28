@@ -7,7 +7,7 @@ namespace IDE {
         public bool dark_theme { get; set; }
         public bool show_line_numbers { get; set; }
         
-        public IDESettings () {
+        private IDESettings () {
             base ("com.github.donadigo.elementary-ide");
         }
         
