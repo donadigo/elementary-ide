@@ -2,7 +2,7 @@
 
 <schemalist>
 
-  <schema path="/com/github/donadigo/elementary-ide" id="com.github.donadigo.elementary-ide">
+  <schema path="/com/github/donadigo/elementary-ide/" id="com.github.donadigo.elementary-ide">
 
     <key name='dark-theme' type='b'>
         <default>false</default>

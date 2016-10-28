@@ -20,7 +20,7 @@
 namespace IDE {
     public class IDEApplication : Granite.Application {
     
-        Settings settings;
+        private IDESettings settings;
     
         construct {
             program_name = Constants.APP_NAME;
@@ -34,7 +34,7 @@ namespace IDE {
 
             Intl.setlocale (LocaleCategory.ALL, "");
             
-            settings = new Settings ();
+            settings = new IDESettings ();
             
 
             app_years = "2011-2016";
@@ -71,7 +71,7 @@ namespace IDE {
             var window = IDEWindow.get_default ();
             window.set_application (this);
             if (settings.dark_theme) {
-                Gtk.Settings.get_default().set("gtk-application-prefer-dark-theme", true);
+                Gtk.Settings.get_default ().set ("gtk-application-prefer-dark-theme", true);
             }
             add_window (window);
             window.show_all ();
