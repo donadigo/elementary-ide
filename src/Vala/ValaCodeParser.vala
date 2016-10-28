@@ -18,7 +18,7 @@
  */
 
 namespace IDE {
-    public class ValaCodeParser : CodeParser, Object {
+    public class ValaCodeParser : CodeParser {
         public Vala.CodeContext context;
         public Vala.Parser parser;
         public Report report;
@@ -72,7 +72,7 @@ namespace IDE {
             }
         }
         
-        public void add_document (Document document) {
+        public override void add_document (Document document) {
             lock (context) {
                 Vala.CodeContext.push (context);
                 if (get_source_file_for_document (document) != null) {
@@ -93,7 +93,7 @@ namespace IDE {
             }
         }
         
-        public void remove_document (Document document) {
+        public override void remove_document (Document document) {
             // TODO
         }
 
@@ -110,6 +110,20 @@ namespace IDE {
             }
         }
         
+        public override ReportMessage? get_report_message_at (string? filename, int line) {
+            if (filename == null) {
+                return null;
+            }
+
+            foreach (var message in report.get_messages ()) {
+                if (message.source.file.filename == filename && message.source.begin.line == line) {
+                    return message;
+                }
+            }
+
+            return null;            
+        }
+
         public string write_symbol_definition (Vala.Symbol symbol) {
             lock (context) {
                 Vala.CodeContext.push (context);
@@ -267,7 +281,7 @@ namespace IDE {
         }
 
         private uint symbol_hash (Vala.Symbol? symbol) {
-            if (symbol == null) {
+            if (symbol == null || symbol.name == null) {
                 return 0;
             }
 
@@ -275,11 +289,7 @@ namespace IDE {
         }
         
         private bool symbol_equal (Vala.Symbol? symbol, Vala.Symbol? other) {
-            if (symbol == null && other == null) {
-                return true;
-            }
-
-            if (symbol == null || other == null) {
+            if (symbol == null || other == null || symbol.name == null || other.name == null) {
                 return false;
             }
 
@@ -733,7 +743,7 @@ namespace IDE {
             }
         }
 
-        public void parse () {
+        public override void parse () {
             begin_parsing ();
             parsing = true;
 

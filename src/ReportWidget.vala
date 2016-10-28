@@ -18,7 +18,7 @@
  */
 
 namespace IDE {
-    public class ReportWidget : Gtk.Box {
+    public class ReportWidget : Gtk.ScrolledWindow, BottomWidget {
         public signal void jump_to (string filename, int line, int column);
 
         private class ReportRow : Gtk.ListBoxRow {
@@ -40,34 +40,23 @@ namespace IDE {
             public ReportRow (ReportMessage report_message) {
                 this.report_message = report_message;
 
-                switch (report_message.report_type) {
-                    case ReportType.NOTE:
-                        image.set_from_icon_name ("dialog-information", Gtk.IconSize.SMALL_TOOLBAR);
-                        break;
-                    case ReportType.DEPRECATED:
-                    case ReportType.WARNING:
-                        image.set_from_icon_name ("dialog-warning", Gtk.IconSize.SMALL_TOOLBAR);
-                        break;
-                    case ReportType.ERROR:
-                        image.set_from_icon_name ("dialog-error", Gtk.IconSize.SMALL_TOOLBAR);
-                        break;
-                }
-
+                image.set_from_icon_name (report_message.to_icon_name (), Gtk.IconSize.SMALL_TOOLBAR);
                 label.label = "%s (%s)".printf (report_message.message, report_message.source.to_string ());
+            }
+        }
+
+        public Gtk.Widget? toolbar_widget {
+            get {
+                return type_combo;
             }
         }
 
         private ListStore store;
         private Gtk.ListBox list_box;
         private Gtk.ComboBoxText type_combo;
-        private Gtk.ScrolledWindow scrolled;
-
-        private Gtk.Label errors_label;
-        private Gtk.Label warnings_label;
-        public Gtk.Label location_label;
 
         construct {
-            orientation = Gtk.Orientation.VERTICAL;
+            min_content_height = 30;
 
             store = new ListStore (typeof (ReportMessage));
             list_box = new Gtk.ListBox ();
@@ -79,10 +68,6 @@ namespace IDE {
             // TODO: remove this: do not use liststore or manage it manually
             list_box.set_filter_func (filter_func);
             list_box.row_activated.connect (on_row_activated);
-
-            errors_label = new Gtk.Label (null);
-            warnings_label = new Gtk.Label (null);
-            location_label = new Gtk.Label (null);
 
             int all = -1;
             string all_str = all.to_string ();
@@ -97,32 +82,13 @@ namespace IDE {
                 list_box.invalidate_filter ();
             });
 
-            var top_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-            top_box.margin = 6;
-            top_box.add (type_combo);
-            top_box.add (errors_label);
-            top_box.add (warnings_label);
-            top_box.add (location_label);
-
-            scrolled = new Gtk.ScrolledWindow (null, null);
-            scrolled.min_content_height = 30;
-            scrolled.add (list_box);
-
-            add (top_box);
-            add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            add (scrolled);
+            add (list_box);
         }
 
         public void set_report (Report report) {
             foreach (var message in report.get_messages ()) {
                 add_message (message);
             }
-
-            int errors, warnings;
-            report.get_message_count (out errors, out warnings);
-
-            errors_label.label = _("Errors: %i".printf (errors));
-            warnings_label.label = _("Warnings: %i".printf (warnings));
         }
 
         public void add_message (ReportMessage report_message) {

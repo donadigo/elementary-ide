@@ -22,6 +22,7 @@ namespace IDE {
         private const Gtk.TargetEntry[] targets = {{ "text/uri-list", 0, 0 }};
 
         private ValaCodeParser code_parser;
+
         private Project project;
         private Gee.ArrayList<Document> documents;
 
@@ -43,6 +44,10 @@ namespace IDE {
         private Granite.Widgets.AlertView no_documents_view;
         private Gtk.Stack notebook_stack;
         private Gtk.Stack bottom_stack;
+        private Gtk.Stack toolbar_stack;
+
+        private Gtk.Label report_label;
+        private Gtk.Label location_label;
 
         private bool document_recently_changed = false;
         private uint update_report_view_timeout_id = 0;
@@ -61,7 +66,7 @@ namespace IDE {
             words_provider.activation = Gtk.SourceCompletionActivation.INTERACTIVE | Gtk.SourceCompletionActivation.USER_REQUESTED;
             words_provider.interactive_delay = 100;
             words_provider.minimum_word_size = 2;
-            words_provider.priority = 0;
+            words_provider.priority = 1;
 
             documents = new Gee.ArrayList<Document> ();
 
@@ -116,28 +121,43 @@ namespace IDE {
             report_widget.jump_to.connect (on_jump_to);
 
             var bottom_bar = new Gtk.Grid ();
+            bottom_bar.orientation = Gtk.Orientation.HORIZONTAL;
+
+            toolbar_stack = new Gtk.Stack ();
+            toolbar_stack.add (report_widget.toolbar_widget);
 
             bottom_stack = new Gtk.Stack ();
-            bottom_stack.transition_type = Gtk.StackTransitionType.OVER_RIGHT_LEFT;
+            bottom_stack.transition_type = Gtk.StackTransitionType.SLIDE_RIGHT;
             bottom_stack.add_named (report_widget, Constants.REPORT_VIEW_NAME);
             bottom_stack.add_named (terminal_widget, Constants.TERMINAL_VIEW_NAME);
 
+            bottom_stack.visible_child_name = Constants.REPORT_VIEW_NAME;
+
+            report_label = new Gtk.Label (null);
+            location_label = new Gtk.Label (null);
+
             mode_button = new Granite.Widgets.ModeButton ();
             mode_button.mode_changed.connect (on_mode_changed);
-            mode_button.orientation = Gtk.Orientation.VERTICAL;
-            mode_button.valign = Gtk.Align.START;
+            mode_button.halign = Gtk.Align.END;
 
             report_widget_id = mode_button.append_icon ("dialog-information-symbolic", Gtk.IconSize.MENU);
             terminal_widget_id = mode_button.append_icon ("utilities-terminal-symbolic", Gtk.IconSize.MENU);
             build_output_widget_id = mode_button.append_icon ("open-menu-symbolic", Gtk.IconSize.MENU);
 
-            style_mode_button_children ();
+            var toolbar_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+            toolbar_box.margin = 6;
+            toolbar_box.add (toolbar_stack);
+            toolbar_box.add (report_label);
+            toolbar_box.add (location_label);
+            toolbar_box.pack_end (mode_button);
 
-            mode_button.selected = report_widget_id;
+            var size_group = new Gtk.SizeGroup (Gtk.SizeGroupMode.VERTICAL);
+            size_group.add_widget (toolbar_stack);
+            size_group.add_widget (mode_button);
 
-            bottom_bar.attach (mode_button, 0, 0, 1, 1);
-            bottom_bar.attach (new Gtk.Separator (Gtk.Orientation.VERTICAL), 1, 0, 1, 1);
-            bottom_bar.attach (bottom_stack, 2, 0, 1, 1);
+            bottom_bar.attach (toolbar_box, 0, 0, 1, 1);
+            bottom_bar.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 1, 1, 1);
+            bottom_bar.attach (bottom_stack, 0, 2, 1, 1);
 
             vertical_paned = new Gtk.Paned (Gtk.Orientation.VERTICAL);
             vertical_paned.pack1 (notebook_stack, true, false);
@@ -152,14 +172,11 @@ namespace IDE {
             add (horizontal_paned);
             show_all ();
 
+            mode_button.selected = report_widget_id;
             update_notebook_stack ();
         }
 
-        public void set_info_window_transient (Gtk.Window window) {
-            info_window.transient_for = window;
-        }
-
-        public void set_project (Project? project) {
+        public void load_project (Project? project) {
             this.project = project;
 
             if (project == null) {
@@ -180,7 +197,7 @@ namespace IDE {
 
             terminal_widget.spawn_default (project.root_path);
             project.save ();      
-            queue_parse ();     
+            code_parser.queue_parse ();     
         }
 
         public Project? get_project () {
@@ -210,13 +227,14 @@ namespace IDE {
             clear_view_tags ();
             if (code_parser.parsing) {
                 return true;
-            } 
+            }
 
             if (document_recently_changed) {
                 document_recently_changed = false;
                 return true;
             }
 
+            code_parser.queue_parse ();
             update_report_widget (code_parser.report);
             update_view_tags (code_parser.report);
             return true;
@@ -240,13 +258,13 @@ namespace IDE {
             } else if (mode_button.selected == terminal_widget_id) {
                 bottom_stack.visible_child_name = Constants.TERMINAL_VIEW_NAME;
             }
-        }
 
-        private void style_mode_button_children () {
-            foreach (var child in mode_button.get_children ()) {
-                if (child is Gtk.ToggleButton) {
-                    child.get_style_context ().add_class ("ide-bottom-view");
-                }
+            var selected_widget = (BottomWidget)bottom_stack.get_child_by_name (bottom_stack.visible_child_name);
+            if (selected_widget.toolbar_widget != null) {
+                toolbar_stack.visible_child = selected_widget.toolbar_widget;
+                Utils.set_widget_visible (toolbar_stack, true);
+            } else {
+                Utils.set_widget_visible (toolbar_stack, false);
             }
         }
 
@@ -282,7 +300,7 @@ namespace IDE {
         private Document open_focus_filename (string filename) {
             var document = get_document_by_filename (filename);
             if (document == null) {
-                document = new Document (File.new_for_path (filename), null);
+                document = new Document (File.new_for_path (filename), project);
                 add_document (document, true);
             } else {
                 notebook.current = document;
@@ -293,7 +311,7 @@ namespace IDE {
 
         private void on_tab_removed (Granite.Widgets.Tab tab) {
             var document = (Document)tab;
-            remove_document (document);
+            remove_document_internal (document);
         }
 
         private void on_tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab) {
@@ -301,22 +319,14 @@ namespace IDE {
             current_document_changed ();
         }
 
-        public void remove_document (Document document) {
-            update_notebook_stack ();
-            update_location_label (); 
-            documents.remove (document);            
-        }
-
         public void add_document (Document document, bool focus = true) {
             document.load.begin ();
 
-            try {
-                document.editor_window.source_view.completion.add_provider (vala_provider);
-                document.editor_window.source_view.completion.add_provider (words_provider);
-            } catch (Error e) {
-                warning (e.message);
-            }
-            
+            words_provider.register (document.editor_window.source_buffer);
+
+            document.add_provider (vala_provider);
+            document.add_provider (words_provider);
+
             document.content_changed.connect (() => document_content_changed (document));
 
             document.editor_window.source_buffer.notify["cursor-position"].connect (() => update_location_label ());
@@ -332,6 +342,19 @@ namespace IDE {
 
             update_notebook_stack ();
             update_location_label ();
+        }
+
+        public void remove_document (Document document) {
+            notebook.remove_tab (document);
+            remove_document_internal (document);
+        }
+
+        private void remove_document_internal (Document document) {
+            documents.remove (document);
+
+            words_provider.unregister (document.editor_window.source_buffer);
+            update_notebook_stack ();
+            update_location_label ();             
         }
 
         public Gee.Collection<Document> get_opened_documents () {
@@ -352,47 +375,36 @@ namespace IDE {
             return (Document)notebook.current;
         }
 
-        public CodeParser? get_code_parser () {
+        public CodeParser get_code_parser () {
             return code_parser;
-        }
-
-        public void queue_parse () {
-            new Thread<bool> ("code-parse", () => {
-                code_parser.parse ();
-                return false;
-            });
         }
 
         private void document_content_changed (Document document) {
             code_parser.update_document_content (document);
-
-            queue_parse ();
             document_recently_changed = true;
         }
 
         private void update_notebook_stack () {
-            string child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
-
-            // TODO: figure out why are there warnings about non existing children in stack
-            if (notebook_stack.get_child_by_name (child_name) == null) {
-                return;
-            }
-
-            notebook_stack.visible_child_name = child_name;    
+            notebook_stack.visible_child_name = notebook.n_tabs > 0 ? Constants.NOTEBOOK_VIEW_NAME : Constants.NO_DOCUMENTS_VIEW_NAME;
         }
 
         private void update_location_label () {
             var current = get_current_document ();
             if (current == null) {
-                Utils.set_widget_visible (report_widget.location_label, false);
+                Utils.set_widget_visible (location_label, false);
                 return;
             }
 
-            report_widget.location_label.label = _("Line %i, Column %i".printf (current.current_line + 1, current.current_column));
-            Utils.set_widget_visible (report_widget.location_label, true);
+            location_label.label = _("Line %i, Column %i".printf (current.current_line + 1, current.current_column));
+            Utils.set_widget_visible (location_label, true);
         }
 
         private void update_report_widget (Report report) {
+            int errors, warnings;
+            report.get_message_count (out errors, out warnings);
+
+            report_label.label = _("Errors: %i, Warnings: %i".printf (errors, warnings));
+
             report_widget.clear ();
             report_widget.set_report (report);
         }
@@ -432,9 +444,10 @@ namespace IDE {
                 return;
             }        
 
-            string definition = code_parser.write_symbol_definition (symbol);
+            string definition = code_parser.write_symbol_definition (symbol).strip ();
 
-            if (info_window.set_content (definition)) {
+            if (definition != "") {
+                info_window.set_label (definition);
                 info_window.show_at (x, y);    
             }
         }

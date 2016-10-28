@@ -18,7 +18,15 @@
  */
 
 namespace IDE {
-	public class TerminalWidget : Gtk.Box {
+	public class TerminalWidget : Gtk.Box, BottomWidget {
+        public Gtk.Widget? toolbar_widget {
+            get {
+                return null;
+            }
+        }
+
+        private Gtk.Grid toolbar_grid;
+
 		private Vte.Terminal terminal;
 		private Vte.Pty pty;
 
@@ -32,6 +40,8 @@ namespace IDE {
 			} catch (Error e) {
 				warning (e.message);
 			}
+
+			toolbar_grid = new Gtk.Grid ();
 
 			add (terminal);
 		}

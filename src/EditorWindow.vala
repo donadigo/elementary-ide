@@ -22,8 +22,9 @@ namespace IDE {
         public signal void show_info_window (Gtk.TextIter start_iter, int x, int y);
         public signal void close_info_window ();
 
+        public Document document { get; construct; }
         public Gtk.SourceView source_view { get; private set; }
-        public Gtk.SourceBuffer source_buffer { get; private set; }
+        public IDEBuffer source_buffer { get; private set; }
         private Gtk.SourceMap source_map;
         private Gtk.ProgressBar progress_bar;
         private Gtk.ScrolledWindow view_scrolled;
@@ -45,10 +46,36 @@ namespace IDE {
             }
         }
 
+        private class GutterReportMessageRenderer : Gtk.SourceGutterRendererPixbuf {
+            construct {
+                size = 16;
+                xpad = 4;
+                visible = true;
+            }
+
+            public override void query_data (Gtk.TextIter start, Gtk.TextIter end, Gtk.SourceGutterRendererState state) {
+                var buffer = (IDEBuffer)start.get_buffer ();
+                if (buffer == null) {
+                    return;
+                }
+
+                var document_manager = IDEWindow.get_default ().document_manager;
+                var code_parser = document_manager.get_code_parser ();
+
+                var message = code_parser.get_report_message_at (buffer.document.get_file_path (), start.get_line () + 1);
+                if (message == null) {
+                    set ("pixbuf", null, null);
+                    return;
+                }
+
+                icon_name = "%s-symbolic".printf (message.to_icon_name ());
+            }
+        }
+
         construct {
             orientation = Gtk.Orientation.VERTICAL;
 
-            source_buffer = new Gtk.SourceBuffer (null);
+            source_buffer = new IDEBuffer (document);
 
             // TODO: better colors here
             var red = Gdk.RGBA ();
@@ -116,7 +143,16 @@ namespace IDE {
             editor_container.pack_start (overlay, true, true, 0);
             editor_container.pack_start (source_map, false, true, 0);
 
+            var report_message_renderer = new GutterReportMessageRenderer ();
+
+            var gutter = source_view.get_gutter (Gtk.TextWindowType.LEFT);
+            gutter.insert (report_message_renderer, -100);
+
             pack_start (editor_container, true, true, 0);
+        }
+
+        public EditorWindow (Document document) {
+            Object (document: document);
         }
 
         public void set_language (Gtk.SourceLanguage lang) {

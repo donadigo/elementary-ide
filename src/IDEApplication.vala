@@ -49,7 +49,7 @@ namespace IDE {
         }
 
         private static IDEApplication? instance = null;
-        public static unowned IDEApplication get_instance () {
+        public new static unowned IDEApplication get_default () {
             if (instance == null) {
                 instance = new IDEApplication ();
             }
@@ -62,14 +62,13 @@ namespace IDE {
         }
 
         public override void activate () {
-            var window = IDEWindow.get_instance ();
-            add_window (window);
+            var window = IDEWindow.get_default ();
+            window.set_application (this);
             window.show_all ();
-            
         }
     }
 
     public static int main (string[] args) {
-        return IDEApplication.get_instance ().run (args);
+        return IDEApplication.get_default ().run (args);
     }
 }

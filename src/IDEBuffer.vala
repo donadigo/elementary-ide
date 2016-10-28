@@ -18,28 +18,15 @@
  */
 
 namespace IDE {
-    public interface DocumentManager : Object {
-        public abstract Project? get_project ();
-        public abstract CodeParser get_code_parser ();
-        public abstract Document? get_current_document ();
-        public abstract Gee.Collection<Document> get_opened_documents ();
-        public abstract void load_project (Project? project);
 
+	/* The buffer class which is holding document reference,
+	 * in future, it will have more functions / members
+	 */
+	public class IDEBuffer : Gtk.SourceBuffer {
+		public Document document;
 
-        public virtual signal void add_document (Document document, bool focus = true) {
-
-        }
-
-        public virtual signal void remove_document (Document document) {
-
-        }
-
-        public virtual signal void current_document_changed () {
-
-        }
-
-        public virtual signal void queue_parse () {
-
-        }
-    }
+		public IDEBuffer (Document document) {
+			this.document = document;
+		}
+	}
 }

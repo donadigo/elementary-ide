@@ -130,14 +130,16 @@ namespace IDE {
 				warning (e.message);
 			}
 
-			var editor_view = IDEWindow.get_instance ().editor_view;
+			var document_manager = IDEWindow.get_default ().document_manager;
 			var document = new Document (file, null);
-			editor_view.add_document (document, true);
+			document_manager.add_document (document, true);
 
 			hide ();
 		}
 
 		private string generate_current_template () {
+			// TODO: use Vala.CodeWriter
+
 			int ident = 4;
 			string ident_str = string.nfill (ident, ' ');
 			bool is_class = type_combo.get_active_id () == CLASS_ID;

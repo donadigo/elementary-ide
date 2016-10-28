@@ -48,7 +48,7 @@ namespace IDE {
             source_file = new Gtk.SourceFile ();
             unsaved_icon = new ThemedIcon ("radio-symbolic");
 
-            editor_window = new EditorWindow ();
+            editor_window = new EditorWindow (this);
             editor_window.get_buffer ().modified_changed.connect (update_saved_state);         
             editor_window.source_buffer.changed.connect (on_source_buffer_changed);
         }
@@ -144,6 +144,14 @@ namespace IDE {
             editor_window.source_buffer.text = content;
         }
 
+        public void add_provider (Gtk.SourceCompletionProvider provider) {
+            try {
+                editor_window.source_view.completion.add_provider (provider);
+            } catch (Error e) {
+                warning (e.message);
+            }            
+        }
+
         public new void close () {
             stop_monitor ();
         }
@@ -201,7 +209,7 @@ namespace IDE {
 
         public async bool save_as () {
             Gtk.FileChooserDialog chooser = new Gtk.FileChooserDialog (
-                _("Select save destination"), IDEWindow.get_instance (), Gtk.FileChooserAction.SAVE,
+                _("Select save destination"), IDEWindow.get_default (), Gtk.FileChooserAction.SAVE,
                 "_Cancel",
                 Gtk.ResponseType.CANCEL,
                 "_Save",
@@ -221,7 +229,6 @@ namespace IDE {
             }
 
             chooser.close ();
-
             return false;
         }
 

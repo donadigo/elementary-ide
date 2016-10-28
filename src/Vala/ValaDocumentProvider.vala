@@ -103,8 +103,8 @@ namespace IDE {
                 cancellable.cancel ();
             });
 
-            var index = (ValaCodeParser)manager.get_code_parser ();
-            if (index == null) {
+            var code_parser = (ValaCodeParser)manager.get_code_parser ();
+            if (code_parser == null) {
                 context.add_proposals (this, null, true);
                 return;
             }
@@ -129,68 +129,82 @@ namespace IDE {
             string prefix = match_info.fetch (2);
             string[] names = member_access_split.split (match_info.fetch (1));
 
-            var symbols = index.lookup_visible_symbols_at (document.get_file_path (), document.current_line + 1, document.current_column);
-            foreach (var symbol in symbols) {
-                if (symbol != null && symbol.name.has_prefix (prefix)) {
-                    list.append (new SymbolItem (symbol));
-                }
-            }
+            new Thread<bool> ("completion", () => {
+                code_parser.parse ();
 
-            string[] ns = new string[0];
-            foreach (var name in names) {
-                if (name[0] != '(') {
-                    ns += name;
-                }
-            }
-
-            names = new string[0];
-            foreach (var name in ns) {
-                names += name;
-            }
-
-            if (names.length > 0) {
-                names[names.length - 1] = prefix;
-                list = new List<Gtk.SourceCompletionProposal>();
+                var symbols = code_parser.lookup_visible_symbols_at (document.get_file_path (), document.current_line + 1, document.current_column);
                 foreach (var symbol in symbols) {
-                    if (symbol != null && symbol.name == names[0]) {
+                    if (symbol != null && symbol.name != null && symbol.name.has_prefix (prefix)) {
                         list.append (new SymbolItem (symbol));
                     }
                 }
 
-                for (var i = 1; i < names.length; i++) {
-                    Vala.Symbol? current = null;
-                    list.foreach (prop => {
-                        if (current != null) {
-                            return;
-                        }
+                string[] ns = new string[0];
+                foreach (var name in names) {
+                    if (name[0] != '(') {
+                        ns += name;
+                    }
+                }
 
-                        var sym = (prop as SymbolItem).symbol;
-                        if (sym.name == names[i - 1]) {
-                            current = sym;
-                        }
-                    });
+                names = new string[0];
+                foreach (var name in ns) {
+                    names += name;
+                }
 
-                    if (current == null) {
-                        break;
+                if (names.length > 0) {
+                    names[names.length - 1] = prefix;
+                    list = new List<Gtk.SourceCompletionProposal> ();
+                    foreach (var symbol in symbols) {
+                        if (symbol != null && symbol.name == names[0]) {
+                            list.append (new SymbolItem (symbol));
+                        }
                     }
 
-                    list = new List<Gtk.SourceCompletionProposal> ();
-                    index.get_symbols_for_name (current, names[i], false).foreach (sym => {
-                        list.append (new SymbolItem (sym));
-                        return true;
-                    });
-                }
-            }                
+                    for (var i = 1; i < names.length; i++) {
+                        Vala.Symbol? current = null;
+                        list.foreach (prop => {
+                            if (current != null) {
+                                return;
+                            }
 
-            list.sort ((a, b) => {
-                var sym_a = ((SymbolItem)a).symbol;
-                var sym_b = ((SymbolItem)b).symbol;
-                return strcmp (sym_a.name, sym_b.name);
+                            var sym = (prop as SymbolItem).symbol;
+                            if (sym.name == names[i - 1]) {
+                                current = sym;
+                            }
+                        });
+
+                        if (current == null) {
+                            break;
+                        }
+
+                        list = new List<Gtk.SourceCompletionProposal> ();
+                        code_parser.get_symbols_for_name (current, names[i], false).foreach (sym => {
+                            list.append (new SymbolItem (sym));
+                            return true;
+                        });
+                    }
+                }                
+
+                list.sort ((a, b) => {
+                    var sym_a = ((SymbolItem)a).symbol;
+                    var sym_b = ((SymbolItem)b).symbol;
+                    if (sym_a.name == null || sym_b == null) {
+                        return 0;
+                    }
+
+                    return strcmp (sym_a.name, sym_b.name);
+                });
+
+                Idle.add (() => {
+                    if (!cancellable.is_cancelled ()) {
+                        context.add_proposals (this, list, true);
+                    }
+
+                    return false;
+                });
+
+                return false;
             });
-
-            if (!cancellable.is_cancelled ()) {
-                context.add_proposals (this, list, true);
-            }
         }    
 
         public unowned Gtk.Widget? get_info_widget (Gtk.SourceCompletionProposal proposal) {
@@ -211,7 +225,7 @@ namespace IDE {
         }
 
         public int get_priority () {
-            return 1;
+            return 2;
         }
 
         public Gtk.SourceCompletionActivation get_activation () {

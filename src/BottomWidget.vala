@@ -18,28 +18,7 @@
  */
 
 namespace IDE {
-    public interface DocumentManager : Object {
-        public abstract Project? get_project ();
-        public abstract CodeParser get_code_parser ();
-        public abstract Document? get_current_document ();
-        public abstract Gee.Collection<Document> get_opened_documents ();
-        public abstract void load_project (Project? project);
-
-
-        public virtual signal void add_document (Document document, bool focus = true) {
-
-        }
-
-        public virtual signal void remove_document (Document document) {
-
-        }
-
-        public virtual signal void current_document_changed () {
-
-        }
-
-        public virtual signal void queue_parse () {
-
-        }
-    }
+	public interface BottomWidget : Gtk.Widget {
+		public abstract Gtk.Widget? toolbar_widget { get; }
+	}
 }
