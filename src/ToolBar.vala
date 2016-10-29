@@ -71,6 +71,9 @@ namespace IDE {
 
             menu_item = save_button.add_menu_item (_("Save all opened documents"));
             menu_item.activate.connect (request_save_opened);
+            
+            menu_item = preferences_button.add_menu_item (_("Preferences"));
+            menu_item.activate.connect (show_preferences);
         }
 
         private void build () {
@@ -99,6 +102,10 @@ namespace IDE {
             var new_file_dialog = new NewFileDialog ();
             new_file_dialog.show_all ();
             new_file_dialog.hide.connect (() => new_button.sensitive = true);
+        }
+        
+        private void show_preferences () {
+            PreferencesDialog.get_default ().show_all ();
         }
     }
 }

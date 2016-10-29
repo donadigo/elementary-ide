@@ -38,6 +38,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/NewFileDialog.vala
     Dialogs/OpenProjectDialog.vala
+    Dialogs/PreferencesDialog.vala
     Services/IDESettings.vala
     config.vala
 PACKAGES
