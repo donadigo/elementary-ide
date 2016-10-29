@@ -105,7 +105,8 @@ namespace IDE {
         }
         
         private void show_preferences () {
-            PreferencesDialog.get_default ().show_all ();
+            var preferences_dialog = new PreferencesDialog ();
+            preferences_dialog.show_all ();
         }
     }
 }

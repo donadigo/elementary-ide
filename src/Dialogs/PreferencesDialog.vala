@@ -1,24 +1,10 @@
 namespace IDE {
     public class PreferencesDialog : BaseDialog {
-    
-        private static PreferencesDialog instance;
         
         construct {
         
             resizable = false;
-
-            get_content_area ().add (get_general_box ());
             
-        }
-        
-        public static PreferencesDialog get_default () {
-            if (instance == null) {
-                instance = new PreferencesDialog ();
-            }
-            return instance;
-        }
-        
-        private Gtk.Widget get_general_box () {
             var general_grid = new Gtk.Grid ();
             general_grid.row_spacing = 6;
             general_grid.column_spacing = 12;
@@ -31,10 +17,11 @@ namespace IDE {
             general_grid.attach (general_header, 0, 0, 2, 1);
             general_grid.attach (new SettingsLabel (_("Dark theme:")), 0, 1, 1, 1);
             general_grid.attach (dark_mode_switch, 1, 1, 1, 1);
-                   
-            return general_grid;
+
+            get_content_area ().add (general_grid);
+            
         }
-        
+
         private class SettingsSwitch : Gtk.Switch {
             public SettingsSwitch (string setting) {
                 halign = Gtk.Align.START;
