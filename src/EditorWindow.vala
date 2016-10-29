@@ -109,9 +109,7 @@ namespace IDE {
 
             var settings = IDESettings.get_default ();
             settings.schema.bind ("show-line-numbers", source_view, "show-line-numbers", SettingsBindFlags.DEFAULT);
-
-            source_view.show_line_numbers = settings.show_line_numbers;
-
+            
             source_view.show_right_margin = false;
             source_view.smart_backspace = true;
             source_view.smart_home_end = Gtk.SourceSmartHomeEndType.BEFORE;
