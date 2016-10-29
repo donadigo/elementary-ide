@@ -69,8 +69,6 @@ namespace IDE {
             var settings = IDESettings.get_default ();
             settings.schema.bind ("dark-theme", gtk_settings, "gtk-application-prefer-dark-theme", SettingsBindFlags.DEFAULT);
 
-            gtk_settings.gtk_application_prefer_dark_theme = settings.dark_theme;
-
             window.show_all ();
         }
     }
