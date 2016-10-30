@@ -78,9 +78,7 @@ namespace IDE {
             type_combo.append (((int)ReportType.WARNING).to_string (), _("Warnings"));
             type_combo.append (((int)ReportType.ERROR).to_string (), _("Errors"));
             type_combo.active_id = all_str;
-            type_combo.changed.connect (() => {
-                list_box.invalidate_filter ();
-            });
+            type_combo.changed.connect (() => list_box.invalidate_filter ());
 
             add (list_box);
         }

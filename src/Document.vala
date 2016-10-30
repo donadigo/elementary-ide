@@ -32,6 +32,16 @@ namespace IDE {
         private ulong monitor_handle_id = 0U;
         private bool saving = false;
 
+        public bool recently_changed {
+            get {
+                return editor_window.source_buffer.recently_changed;
+            }
+
+            set {
+                editor_window.source_buffer.recently_changed = value;
+            }
+        }
+
         public int current_line {
             get {
                 return editor_window.current_line;
@@ -85,6 +95,7 @@ namespace IDE {
                 return;
             }
 
+            recently_changed = true;
             content_changed ();
             update_saved_state ();
         }

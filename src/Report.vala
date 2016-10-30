@@ -73,9 +73,7 @@ namespace IDE {
                 }
             }
 
-            if (removal_list.size > 0) {
-                messages.remove_all (removal_list);
-            }
+            messages.remove_all (removal_list);
         }
 
         public void get_message_count (out int _errors, out int _warnings) {
@@ -95,7 +93,7 @@ namespace IDE {
             }
         }
 
-        public unowned Gee.Collection<ReportMessage> get_messages () {
+        public unowned Gee.ArrayList<ReportMessage> get_messages () {
             return messages;
         }
 
@@ -124,6 +122,7 @@ namespace IDE {
                 return;
             }
 
+            print ("warn: %s\n", message);
             var report_message = new ReportMessage (ReportType.WARNING, message, source);
             messages.add (report_message);              
         }
@@ -134,6 +133,7 @@ namespace IDE {
                 return;
             }
 
+            print ("err: %s\n", message);
             var report_message = new ReportMessage (ReportType.ERROR, message, source);
             messages.add (report_message);              
         }       

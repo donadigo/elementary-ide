@@ -23,10 +23,11 @@ namespace IDE {
 	 * in future, it will have more functions / members
 	 */
 	public class IDEBuffer : Gtk.SourceBuffer {
-		public Document document;
+		public Document document { get; construct; }
+		public bool recently_changed { get; set; }
 
 		public IDEBuffer (Document document) {
-			this.document = document;
+			Object (document: document);
 		}
 	}
 }

@@ -49,7 +49,6 @@ namespace IDE {
         private Gtk.Label report_label;
         private Gtk.Label location_label;
 
-        private bool document_recently_changed = false;
         private uint update_report_view_timeout_id = 0;
 
         private int report_widget_id = -1;
@@ -229,8 +228,9 @@ namespace IDE {
                 return true;
             }
 
-            if (document_recently_changed) {
-                document_recently_changed = false;
+            var document = get_current_document ();
+            if (document != null && document.recently_changed) {
+                document.recently_changed = false;
                 return true;
             }
 
@@ -357,7 +357,7 @@ namespace IDE {
             update_location_label ();             
         }
 
-        public Gee.Collection<Document> get_opened_documents () {
+        public Gee.List<Document> get_opened_documents () {
             var list = new Gee.ArrayList<Document> ();
             foreach (var tab in notebook.tabs) {
                 var document = (Document)tab;
@@ -381,7 +381,6 @@ namespace IDE {
 
         private void document_content_changed (Document document) {
             code_parser.update_document_content (document);
-            document_recently_changed = true;
         }
 
         private void update_notebook_stack () {

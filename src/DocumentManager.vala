@@ -22,7 +22,7 @@ namespace IDE {
         public abstract Project? get_project ();
         public abstract CodeParser get_code_parser ();
         public abstract Document? get_current_document ();
-        public abstract Gee.Collection<Document> get_opened_documents ();
+        public abstract Gee.List<Document> get_opened_documents ();
         public abstract void load_project (Project? project);
 
 

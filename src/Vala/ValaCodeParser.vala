@@ -94,7 +94,17 @@ namespace IDE {
         }
         
         public override void remove_document (Document document) {
-            // TODO
+            lock (context) {
+                Vala.CodeContext.push (context);
+                var file = get_source_file_for_document (document);
+                if (file == null) {
+                    Vala.CodeContext.pop ();
+                    return;
+                }        
+
+                context.get_source_files ().remove (file);
+                Vala.CodeContext.pop ();
+            }
         }
 
         public void add_source (string source) {
@@ -150,7 +160,7 @@ namespace IDE {
             }
         }
         
-        private Gee.Collection<Vala.Symbol> lookup_symbol (Vala.Symbol? symbol) {
+        private Gee.List<Vala.Symbol> lookup_symbol (Vala.Symbol? symbol) {
             var list = new Gee.ArrayList<Vala.Symbol> ();
             if (symbol == null) {
                 return list;
@@ -173,7 +183,7 @@ namespace IDE {
             return list;
         }   
         
-        private Gee.Collection<Vala.Symbol> lookup_symbol_inherited (Vala.Symbol? sym) {
+        private Gee.List<Vala.Symbol> lookup_symbol_inherited (Vala.Symbol? sym) {
             var list = new Gee.ArrayList<Vala.Symbol>();
             if (sym == null) {
                 return list;
@@ -248,7 +258,7 @@ namespace IDE {
             return list;
         }
         
-        public Gee.Collection<Vala.Symbol?> lookup_visible_symbols_at (string filename, int line, int column) {
+        public Gee.Set<Vala.Symbol?> lookup_visible_symbols_at (string filename, int line, int column) {
             var symbol = lookup_symbol_at (filename, line, column);
             if (symbol == null) {
                 symbol = lookup_symbol_at (filename, line - 1, column);
@@ -296,7 +306,7 @@ namespace IDE {
             return str_equal (symbol.name, other.name);
         }
         
-        public Gee.Collection<Vala.Symbol> get_symbols_for_name (Vala.Symbol? symbol, string name, bool match, Vala.MemberBinding binding = Vala.MemberBinding.CLASS) {
+        public Gee.Set<Vala.Symbol> get_symbols_for_name (Vala.Symbol? symbol, string name, bool match, Vala.MemberBinding binding = Vala.MemberBinding.CLASS) {
             var hashset = new Gee.HashSet<Vala.Symbol?>(symbol_hash, symbol_equal);
             if (symbol != null) {
                 foreach (var sym in gsfm (symbol, name, match, binding)) {
@@ -307,7 +317,7 @@ namespace IDE {
             return hashset;
         }
         
-        private Gee.Collection<Vala.Symbol> gsfm (Vala.Symbol? symbol, string name, bool match, Vala.MemberBinding binding = Vala.MemberBinding.CLASS) {
+        private Gee.List<Vala.Symbol> gsfm (Vala.Symbol? symbol, string name, bool match, Vala.MemberBinding binding = Vala.MemberBinding.CLASS) {
             if (symbol == null) {
                 return new Gee.ArrayList<Vala.Symbol>();
             }
@@ -706,15 +716,17 @@ namespace IDE {
         private void clear_source_file (Vala.SourceFile file) {
             report.reset_file (file);
 
-            var copy = new Vala.ArrayList<Vala.CodeNode> ();
+            var nodes = new Vala.ArrayList<Vala.CodeNode> ();
             foreach (var node in file.get_nodes ()) {
-                copy.add (node);
+                nodes.add (node);
             }
 
+
+            // TODO: this segfaults when trying to declare a symbol without an owner in the editor
             lock (context) {
                 Vala.CodeContext.push (context);
                 var entry_point = file.context.entry_point;
-                foreach (var node in copy) {
+                foreach (var node in nodes) {
                     file.remove_node (node);
 
                     if (node is Vala.Symbol) {
@@ -730,7 +742,7 @@ namespace IDE {
                 if (entry_point != null) {
                     file.context.entry_point = null;
                 }
-
+                
                 Vala.CodeContext.pop ();
             }
         }

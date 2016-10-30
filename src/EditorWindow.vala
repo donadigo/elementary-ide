@@ -22,9 +22,9 @@ namespace IDE {
         public signal void show_info_window (Gtk.TextIter start_iter, int x, int y);
         public signal void close_info_window ();
 
-        public Document document { get; construct; }
-        public Gtk.SourceView source_view { get; private set; }
-        public IDEBuffer source_buffer { get; private set; }
+        public Document document { public get; construct; }
+        public Gtk.SourceView source_view { public get; private set; }
+        public IDEBuffer source_buffer { public get; private set; }
         private Gtk.SourceMap source_map;
         private Gtk.ProgressBar progress_bar;
         private Gtk.ScrolledWindow view_scrolled;
@@ -55,7 +55,7 @@ namespace IDE {
 
             public override void query_data (Gtk.TextIter start, Gtk.TextIter end, Gtk.SourceGutterRendererState state) {
                 var buffer = (IDEBuffer)start.get_buffer ();
-                if (buffer == null) {
+                if (buffer == null || buffer.recently_changed) {
                     return;
                 }
 
@@ -78,26 +78,31 @@ namespace IDE {
 
             source_buffer = new IDEBuffer (document);
 
-            // TODO: better colors here
-            var red = Gdk.RGBA ();
-            red.red = 1;
-            red.green = 0.1;
-            red.alpha = 0.5;
+            var red = Gdk.RGBA () {
+                red = 1,
+                green = 0.2,
+                blue = 0.4,
+                alpha = 1
+            };
 
-            var yellow = Gdk.RGBA ();
-            yellow.red = 1;
-            yellow.green = 1;
-            yellow.blue = 0.1;
-            yellow.alpha = 0.5;
+            var yellow = Gdk.RGBA () {
+                red = 1,
+                green = 0.9,
+                blue = 0.2,
+                alpha = 1
+            };
 
-            var blue = Gdk.RGBA ();
-            blue.green = 0.1;
-            blue.blue = 1;
-            blue.alpha = 0.5;
+            var blue = Gdk.RGBA () {
+                red = 0.5,
+                green = 0.8,
+                blue = 1,
+                alpha = 1
+            };
 
-            source_buffer.create_tag ("error-tag", "background-rgba", red);
-            source_buffer.create_tag ("warning-tag", "background-rgba", yellow);
-            source_buffer.create_tag ("info-tag", "background-rgba", blue);
+            source_buffer.create_tag ("error-tag", "underline", Pango.Underline.ERROR, "underline-rgba", red);
+            source_buffer.create_tag ("warning-tag", "underline", Pango.Underline.ERROR, "underline-rgba", yellow);
+            source_buffer.create_tag ("info-tag", "underline", Pango.Underline.LOW, "underline-rgba", blue);
+
             source_buffer.highlight_syntax = true;
 
             source_view = new Gtk.SourceView.with_buffer (source_buffer);
@@ -109,7 +114,7 @@ namespace IDE {
 
             var settings = IDESettings.get_default ();
             settings.schema.bind ("show-line-numbers", source_view, "show-line-numbers", SettingsBindFlags.DEFAULT);
-            
+
             source_view.show_right_margin = false;
             source_view.smart_backspace = true;
             source_view.smart_home_end = Gtk.SourceSmartHomeEndType.BEFORE;
