@@ -19,30 +19,26 @@
 
 namespace IDE {
     public enum ReportType {
-        NOTE = 0,
-        DEPRECATED,
+        ERROR = 0,
         WARNING,
-        ERROR
+        NOTE
     }
 
     public class ReportMessage : Object {
-        public ReportType report_type;
-        public string message;
-        public Vala.SourceReference? source;
+        public ReportType report_type { public get; construct; }
+        public string message { public get; construct; }
+        public Vala.SourceReference? source { public get; construct; }
 
         public ReportMessage (ReportType report_type, string message, Vala.SourceReference? source) {
-            this.report_type = report_type;
-            this.message = message;
-            this.source = source;
+            Object (report_type: report_type, message: message, source: source);
         }
 
         public unowned string? to_icon_name () {
             switch (report_type) {
-                case ReportType.WARNING:
-                case ReportType.DEPRECATED:
-                    return "dialog-warning";
                 case ReportType.ERROR:
                     return "dialog-error";
+                case ReportType.WARNING:
+                    return "dialog-warning";
                 case ReportType.NOTE:
                     return "dialog-information";
                 default:
@@ -86,14 +82,13 @@ namespace IDE {
                         _errors++;
                         break;
                     case ReportType.WARNING:
-                    case ReportType.DEPRECATED:
                         _warnings++;
                         break;                        
                 }
             }
         }
 
-        public unowned Gee.List<ReportMessage> get_messages () {
+        public unowned Gee.ArrayList<ReportMessage> get_messages () {
             return messages;
         }
 
@@ -112,7 +107,7 @@ namespace IDE {
                 return;
             }
 
-            var report_message = new ReportMessage (ReportType.DEPRECATED, message, source);
+            var report_message = new ReportMessage (ReportType.WARNING, message, source);
             messages.add (report_message);          
         }
         

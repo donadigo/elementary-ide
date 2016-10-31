@@ -41,6 +41,7 @@ namespace IDE {
             context.save_temps = false;
             context.mem_profiler = true;
             context.hide_internal = false;
+            context.checking = false;
 
             context.add_external_package ("glib-2.0");
             context.add_external_package ("gobject-2.0");
@@ -721,7 +722,6 @@ namespace IDE {
                 nodes.add (node);
             }
 
-
             // TODO: this segfaults when trying to declare a symbol without an owner in the editor
             lock (context) {
                 Vala.CodeContext.push (context);
@@ -762,14 +762,19 @@ namespace IDE {
             report.clear ();
             lock (context) {
                 Vala.CodeContext.push (context);
+                int visisted = 0;
                 foreach (var file in context.get_source_files ()) {
                     if (file.get_nodes ().size == 0) {
                         parser.visit_source_file (file);
+                        visisted++;
                     }
                 }
 
-                context.check ();
-                context.analyzer.analyze (context);
+                if (visisted > 0) {
+                    context.check ();
+                    context.analyzer.analyze (context);
+                }
+                
                 Vala.CodeContext.pop ();
             }
 

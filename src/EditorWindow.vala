@@ -200,15 +200,14 @@ namespace IDE {
             end_iter.set_line_offset (message.source.end.column);
 
             switch (message.report_type) {
+                case ReportType.ERROR:
+                    source_buffer.apply_tag_by_name ("error-tag", start_iter, end_iter);
+                    break;
                 case ReportType.WARNING:
-                case ReportType.DEPRECATED:
                     source_buffer.apply_tag_by_name ("warning-tag", start_iter, end_iter);
                     break;
                 case ReportType.NOTE:
                     source_buffer.apply_tag_by_name ("info-tag", start_iter, end_iter);
-                    break;
-                case ReportType.ERROR:
-                    source_buffer.apply_tag_by_name ("error-tag", start_iter, end_iter);
                     break;
             }
         }

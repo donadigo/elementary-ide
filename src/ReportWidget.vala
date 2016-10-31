@@ -51,22 +51,19 @@ namespace IDE {
             }
         }
 
-        private ListStore store;
         private Gtk.ListBox list_box;
         private Gtk.ComboBoxText type_combo;
 
         construct {
             min_content_height = 30;
 
-            store = new ListStore (typeof (ReportMessage));
             list_box = new Gtk.ListBox ();
             list_box.selection_mode = Gtk.SelectionMode.SINGLE;
             list_box.activate_on_single_click = true;
             list_box.expand = true;
-            list_box.bind_model (store, create_widget_func);
 
-            // TODO: remove this: do not use liststore or manage it manually
             list_box.set_filter_func (filter_func);
+            list_box.set_sort_func (sort_func);
             list_box.row_activated.connect (on_row_activated);
 
             int all = -1;
@@ -90,15 +87,15 @@ namespace IDE {
         }
 
         public void add_message (ReportMessage report_message) {
-            store.append ((Object)report_message);
+            var row = new ReportRow (report_message);
+            list_box.add (row);
+            show_all ();
         }
 
         public void clear () {
-            if (store.get_n_items () == 0) {
-                return;
+            foreach (var child in list_box.get_children ()) {
+                child.destroy ();
             }
-
-            store.remove_all ();
         }
 
         private bool filter_func (Gtk.ListBoxRow row) {
@@ -112,15 +109,25 @@ namespace IDE {
                 return true;
             }
 
-            int row_type = (int)((ReportRow)row).report_message.report_type;
-
+            int row_type = ((ReportRow)row).report_message.report_type;
             return type == row_type;
         }
 
-        private Gtk.Widget create_widget_func (Object item) {
-            var row = new ReportRow ((ReportMessage)item);
-            row.show_all ();
-            return row;
+        private int sort_func (Gtk.ListBoxRow row1, Gtk.ListBoxRow row2) {
+            if (!(row1 is ReportRow) || !(row2 is ReportRow)) {
+                return 0;
+            }
+
+            int type1 = ((ReportRow)row1).report_message.report_type;
+            int type2 = ((ReportRow)row2).report_message.report_type;
+
+            if (type1 > type2) {
+                return 1;
+            } else if (type1 < type2) {
+                return -1;
+            }
+
+            return 0;
         }
 
         private void on_row_activated (Gtk.ListBoxRow row) {

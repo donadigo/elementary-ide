@@ -25,7 +25,6 @@ namespace IDE {
         public abstract Gee.List<Document> get_opened_documents ();
         public abstract void load_project (Project? project);
 
-
         public virtual signal void add_document (Document document, bool focus = true) {
 
         }
