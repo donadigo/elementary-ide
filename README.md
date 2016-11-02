@@ -1,7 +1,7 @@
 # elementary IDE
 An _unofficial_ elementary OS (Vala) oriented IDE.
 
-![Alt text](http://i.imgur.com/A4gkLmw.png "Screenshot")
+![Alt text](http://i.imgur.com/i1t4nm5.png "Screenshot")
 
 ## Planned features
 1. Complete Vala support (highlighting, symbol previewing, live error reporting)
