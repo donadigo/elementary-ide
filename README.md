@@ -22,13 +22,14 @@ Here are 3 steps which will guide you through the compiling process:
   * `libgtksourceview-3.0-dev`
   * `libvala-0.34-dev`
   * `libvte-2.91-dev`
+  * `libjson-glib-dev`
   * `libgee-0.8-dev`
   * `libvaladoc-dev`
   
   
   #### If you are on elementary OS (Loki) you can install them all with this command:
   ```shell
-sudo apt install libgranite-dev libgtksourceview-3.0-dev libvala-0.34-dev libvte-2.91-dev libgee-0.8-dev libvaladoc-dev
+sudo apt install libgranite-dev libgtksourceview-3.0-dev libvala-0.34-dev libvte-2.91-dev libjson-glib-dev libgee-0.8-dev libvaladoc-dev
 ```
 
 
@@ -39,10 +40,7 @@ sudo add-apt-repository ppa:elementary-os/os-patches
 sudo apt update
 ```
 
-  And then install the dependencies:
-  ```shell
-sudo apt install libgranite-dev libgtksourceview-3.0-dev libvala-0.34-dev libvte-2.91-dev libgee-0.8-dev libvaladoc-dev
-```
+  And then follow the previous elementary OS (Loki) instructions.
 
 ### 2. The actual compiling:
   1. Clone this repository or download and unpack it.
@@ -62,9 +60,5 @@ make
   sudo make install
   ```
   
-  2. There is currently no .desktop launcher for the IDE, but you can run it with this command:
-  ```shell
-  elementary-ide
-  ```
-  
+  2. The application entry should appear in the applications menu, if you want to debug the app the executable name is `elementary-ide`.
   3. The end!
