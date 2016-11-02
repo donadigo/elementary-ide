@@ -56,7 +56,7 @@ namespace IDE {
                         var arguments = command.get_arguments ();
                         if (arguments.length > 2) {
                             for (int i = 3; i < arguments.length; i++) {
-                                check_dependencies.add (arguments[i]);
+                                dependencies.add (arguments[i]);
                             }
                         }
 
@@ -82,7 +82,7 @@ namespace IDE {
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[1]) {
                                     packages.add (argument);
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[2]) {
-                                    options.add (argument);
+                                    vala_options.add (argument);
                                 }
                             }
                         }
@@ -100,7 +100,7 @@ namespace IDE {
 
             var exec_name_var = parser.find_variable_by_name ("EXEC_NAME");
             if (exec_name_var != null) {
-                exec_name = exec_name_var.get_first_value ();
+                executable_path = exec_name_var.get_first_value ();
             }
 
             var release_name_var = parser.find_variable_by_name ("RELEASE_NAME");

@@ -88,7 +88,7 @@ namespace IDE {
             }
         }
 
-        public unowned Gee.ArrayList<ReportMessage> get_messages () {
+        public unowned Gee.List<ReportMessage> get_messages () {
             return messages;
         }
 

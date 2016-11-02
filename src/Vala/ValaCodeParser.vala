@@ -736,7 +736,7 @@ namespace IDE {
                         }
 
                         symbol.name = null;
-                    }               
+                    }            
                 }   
 
                 if (entry_point != null) {

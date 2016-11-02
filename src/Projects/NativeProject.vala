@@ -46,51 +46,98 @@ namespace IDE {
 
         public override void update () {
             try {
-                key.load_from_file (target, KeyFileFlags.NONE);
+                var parser = new Json.Parser ();
+                parser.load_from_file (target);
 
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_NAME)) {
-                    name = key.get_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_NAME);
-                }
+                var root = parser.get_root ();
+                var obj = root.get_object ();
+                foreach (unowned string member in obj.get_members ()) {
+                    switch (member) {
+                        case Constants.NATIVE_PROJECT_NAME:
+                            name = obj.get_string_member (member);
+                            break;
+                        case Constants.NATIVE_PROJECT_PROJECT_DIRECTORY:
+                            root_path = obj.get_string_member (member);
+                            break;
+                        case Constants.NATIVE_PROJECT_PROJECT_TYPE:
+                            project_type = (ProjectType)obj.get_int_member (member);
+                            break;
+                        case Constants.NATIVE_PROJECT_VERSION:
+                            version = obj.get_string_member (member);
+                            break;
+                        case Constants.NATIVE_PROJECT_EXECUTABLE_PATH:
+                            executable_path = obj.get_string_member (member);
+                            break;
+                        case Constants.NATIVE_PROJECT_PACKAGES:
+                            var array = obj.get_array_member (member);
+                            foreach (unowned Json.Node node in array.get_elements ()) {
+                                packages.add (node.get_string ());
+                            }
 
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_VERSION)) {
-                    version = key.get_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_VERSION);
-                }
+                            break;
+                        case Constants.NATIVE_PROJECT_SOURCES:
+                            var array = obj.get_array_member (member);
+                            foreach (unowned Json.Node node in array.get_elements ()) {
+                                sources.add (node.get_string ());
+                            }
 
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_EXEC_NAME)) {
-                    exec_name = key.get_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_EXEC_NAME);
-                }
+                            break;
+                        case Constants.NATIVE_PROEJCT_DEPENDENCIES:
+                            var array = obj.get_array_member (member);
+                            foreach (unowned Json.Node node in array.get_elements ()) {
+                                dependencies.add (node.get_string ());
+                            }
 
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_RELEASE_NAME)) {
-                    release_name = key.get_string (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_RELEASE_NAME);
-                }
+                            break;
+                        case Constants.NATIVE_PROJECT_VALA_OPTIONS:
+                            var array = obj.get_array_member (member);
+                            foreach (unowned Json.Node node in array.get_elements ()) {
+                                vala_options.add (node.get_string ());
+                            }
 
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_PACKAGES)) {
-                    string[] packages_list = key.get_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_PACKAGES);
-                    foreach (string package in packages_list) {
-                        packages.add (package);
+                            break;
+                        case Constants.NATIVE_PROJECT_BUILD_SYSTEM:
+                            var build_obj = obj.get_object_member (member);
+                            read_build_system_object (build_obj);
+                            break;
+                        case Constants.NATIVE_PROJECT_DEBUG_SYSTEM:
+                            var debug_obj = obj.get_object_member (member);
+                            read_debug_system_object (debug_obj);
+
+                            break;
                     }
-                }
-
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_SOURCES)) {
-                    string[] sources_list = key.get_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_SOURCES);
-                    sources.add_all_array (sources_list);
-                }
-
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_OPTIONS)) {
-                    string[] options_list = key.get_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_OPTIONS);
-                    options.add_all_array (options_list);
-                }
-
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROEJCT_CHECK_DEPS)) {
-                    string[] check_dependencies_list = key.get_string_list (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROEJCT_CHECK_DEPS);
-                    check_dependencies.add_all_array (check_dependencies_list);
-                }
-
-                if (key.has_key (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_PROJECT_TYPE)) {
-                    project_type = (ProjectType)key.get_integer (Constants.NATIVE_PROJECT_GROUP, Constants.NATIVE_PROJECT_PROJECT_TYPE);
                 }
             } catch (Error e) {
                 warning (e.message);
+            }
+        }
+
+
+        private void read_build_system_object (Json.Object build_obj) {                            
+            build_system.clean_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_CLEAN_CMD);
+            build_system.prebuild_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_PREBUILD_CMD);
+            build_system.build_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_BUILD_CMD);
+            build_system.postbuild_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_POSTBUILD_CMD);
+            build_system.run_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_RUN_CMD);            
+        }
+
+        private void read_debug_system_object (Json.Object debug_obj) {
+            foreach (unowned string template_name in debug_obj.get_members ()) {
+                var template = new DebugSystem.Template (template_name);
+                var template_obj = debug_obj.get_object_member (template_name);
+
+                var ev_obj = template_obj.get_object_member (Constants.NATIVE_PROJECT_DS_TEMPLATE_ENVIRONMENT_VARIABLES);
+                foreach (unowned string ev_member in ev_obj.get_members ()) {
+                    var ev = new DebugSystem.EnvironmentVariable (ev_member, ev_obj.get_string_member (ev_member));
+                    template.environment_variables.add (ev);
+                }
+
+                var array = template_obj.get_array_member (Constants.NATIVE_PROJECT_DS_TEMPLATE_RUN_ARGUMENTS);
+                foreach (unowned Json.Node node in array.get_elements ()) {
+                    template.run_arguments.add (node.get_string ());
+                }
+
+                debug_system.templates.add (template);
             }
         }
     }

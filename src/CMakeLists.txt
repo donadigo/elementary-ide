@@ -8,7 +8,6 @@ vala_precompile(VALA_C ${EXEC_NAME}
     EditorWindow.vala
     ToolBar.vala
     MenuButton.vala
-    Template.vala
     Project.vala
     Projects/CMakeProject.vala
     Projects/NativeProject.vala
@@ -25,10 +24,10 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Vala/ValaCodeParser.vala
     Vala/ValaDefinitionWriter.vala
     BuildSystem.vala
-    BuildSystems/CMakeBuildSystem.vala
     BuildSystems/CMakeParser.vala
     BuildSystems/CMakeCommand.vala
     BuildSystems/CMakeVariable.vala
+    DebugSystem.vala
     Report.vala
     ReportWidget.vala
     TerminalWidget.vala
@@ -44,6 +43,7 @@ PACKAGES
     granite
     valadoc-1.0
     vte-2.91
+    json-glib-1.0
     posix
     gee-0.8
     libvala-0.34

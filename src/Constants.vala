@@ -18,32 +18,47 @@
  */
 
 namespace IDE.Constants {
-    // TODO: fetch this from CMake
+    // Application constants
     public const string APP_NAME = "elementary IDE";
     public const string EXEC_NAME = "elementary-ide";
 
+    // ID constants
     public const string WELCOME_VIEW_NAME = "welcome";
     public const string EDITOR_VIEW_NAME = "editor-view";
     public const string REPORT_VIEW_NAME = "report-view";
     public const string TERMINAL_VIEW_NAME = "terminal-view";
-
     public const string NO_DOCUMENTS_VIEW_NAME = "no-documents";
     public const string NOTEBOOK_VIEW_NAME = "notebook";
 
+    // Project targets constants
     public const string NATIVE_TARGET = ".elementary-ide.proj";
     public const string CMAKE_TARGET = "CMakeLists.txt";
 
-    public const string NATIVE_PROJECT_GROUP = "elementary-ide-project";
+    // Native project constants
     public const string NATIVE_PROJECT_NAME = "name";
+    public const string NATIVE_PROJECT_PROJECT_DIRECTORY = "projectDirectory";
+    public const string NATIVE_PROJECT_PROJECT_TYPE = "projectType";
     public const string NATIVE_PROJECT_VERSION = "version";
-    public const string NATIVE_PROJECT_EXEC_NAME = "exec-name";
-    public const string NATIVE_PROJECT_RELEASE_NAME = "release-name";
+    public const string NATIVE_PROJECT_EXECUTABLE_PATH = "executablePath";
     public const string NATIVE_PROJECT_PACKAGES = "packages";
     public const string NATIVE_PROJECT_SOURCES = "sources";
-    public const string NATIVE_PROJECT_OPTIONS = "options";
-    public const string NATIVE_PROEJCT_CHECK_DEPS = "check-dependencies";
-    public const string NATIVE_PROJECT_PROJECT_TYPE = "project-type";
+    public const string NATIVE_PROEJCT_DEPENDENCIES = "dependencies";
+    public const string NATIVE_PROJECT_VALA_OPTIONS = "valaOptions";
 
+    // Native project build system constants
+    public const string NATIVE_PROJECT_BUILD_SYSTEM = "buildSystem";
+    public const string NATIVE_PROJECT_BS_CLEAN_CMD = "cleanCmd";
+    public const string NATIVE_PROJECT_BS_PREBUILD_CMD = "prebuildCmd";
+    public const string NATIVE_PROJECT_BS_BUILD_CMD = "buildCmd";
+    public const string NATIVE_PROJECT_BS_POSTBUILD_CMD = "postbuildCmd";
+    public const string NATIVE_PROJECT_BS_RUN_CMD = "runCmd";
+
+    // Native project debug system constants
+    public const string NATIVE_PROJECT_DEBUG_SYSTEM = "debugSystem";
+    public const string NATIVE_PROJECT_DS_TEMPLATE_ENVIRONMENT_VARIABLES = "environmentVariables";
+    public const string NATIVE_PROJECT_DS_TEMPLATE_RUN_ARGUMENTS = "runArguments";
+
+    // CMake commands constants
     public const string PROJECT_CMD = "project";
     public const string PKG_CHECK_MODULES_CMD = "pkg_check_modules";
     public const string VALA_PRECOMPILE_CMD = "vala_precompile";

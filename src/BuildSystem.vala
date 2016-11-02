@@ -18,9 +18,23 @@
  */
 
 namespace IDE {
-    public interface BuildSystem : Object {
-        public abstract void build () throws Error;
-        public abstract void clean () throws Error;
-        public abstract void run_binary () throws Error;
+    public class BuildSystem : Object {
+    	public string clean_command { get; set; default = ""; }
+    	public string prebuild_command { get; set; default = ""; }
+    	public string build_command { get; set; default = ""; }
+    	public string postbuild_command { get; set; default = ""; }
+    	public string run_command { get; set; default = ""; }
+
+		public void clean () throws Error {
+
+        }
+
+        public void build () throws Error {
+
+        }
+
+        public void run () throws Error {
+
+        }
     }
 }
