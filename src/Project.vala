@@ -168,8 +168,8 @@ namespace IDE {
             builder.set_member_name (Constants.NATIVE_PROJECT_BS_BUILD_CMD);
             builder.add_string_value (build_system.build_command);
 
-            builder.set_member_name (Constants.NATIVE_PROJECT_BS_POSTBUILD_CMD);
-            builder.add_string_value (build_system.postbuild_command);
+            builder.set_member_name (Constants.NATIVE_PROJECT_BS_INTALL_CMD);
+            builder.add_string_value (build_system.install_command);
 
             builder.set_member_name (Constants.NATIVE_PROJECT_BS_RUN_CMD);
             builder.add_string_value (build_system.run_command);

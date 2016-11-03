@@ -18,27 +18,24 @@
  */
 
 namespace IDE {
-    public class BuildSystem : Object {
-        public string clean_command { get; set; default = ""; }
-        public string prebuild_command { get; set; default = ""; }
-        public string build_command { get; set; default = ""; }
-        public string install_command { get; set; default = ""; }
-        public string run_command { get; set; default = ""; }
+    public class MenuButton : Gtk.MenuButton {
+        private Gtk.Menu menu;
 
-        public void clean () throws Error {
-
+        construct {
+            menu = new Gtk.Menu ();
+            set_popup (menu);
         }
 
-        public void build () throws Error {
-
+        public MenuButton (string tooltip, string icon_name, Gtk.IconSize size = Gtk.IconSize.LARGE_TOOLBAR) {
+            image = new Gtk.Image.from_icon_name (icon_name, size);
+            tooltip_text = tooltip;
         }
 
-        public void install () throws Error {
-            
-        }
-
-        public void run () throws Error {
-
+        public Gtk.MenuItem add_menu_item (string label) {
+            var menu_item = new Gtk.MenuItem.with_label (label);
+            menu.add (menu_item);
+            menu.show_all ();
+            return menu_item;
         }
     }
 }

@@ -14,7 +14,7 @@ add_definitions (-DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}")
 add_definitions (-w)
 
 find_package (PkgConfig)
-pkg_check_modules (DEPS REQUIRED granite gtksourceview-3.0 libvala-0.34 vte-2.91 gee-0.8 valadoc-1.0)
+pkg_check_modules (DEPS REQUIRED granite gtksourceview-3.0 libvala-0.34 vte-2.91 gee-0.8 valadoc-1.0 json-glib-1.0)
 
 add_definitions (${DEPS_CFLAGS})
 link_directories (${DEPS_LIBRARY_DIRS})
@@ -27,3 +27,4 @@ include (ValaPrecompile)
 
 add_subdirectory (src)
 add_subdirectory (schemas)
+add_subdirectory (data)

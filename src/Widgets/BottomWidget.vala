@@ -18,27 +18,7 @@
  */
 
 namespace IDE {
-    public class BuildSystem : Object {
-        public string clean_command { get; set; default = ""; }
-        public string prebuild_command { get; set; default = ""; }
-        public string build_command { get; set; default = ""; }
-        public string install_command { get; set; default = ""; }
-        public string run_command { get; set; default = ""; }
-
-        public void clean () throws Error {
-
-        }
-
-        public void build () throws Error {
-
-        }
-
-        public void install () throws Error {
-            
-        }
-
-        public void run () throws Error {
-
-        }
-    }
+	public interface BottomWidget : Gtk.Widget {
+		public abstract Gtk.Widget? toolbar_widget { get; }
+	}
 }

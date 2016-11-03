@@ -39,6 +39,12 @@ namespace IDE.Utils {
 
     }
 
+    public static string get_basename_relative_path (string root_filename, string filename) {
+        string path = Path.get_dirname (filename).substring (root_filename.length);
+        string skipped = Path.skip_root (path);
+        return skipped;
+    }
+
     public static string get_extension (File file) {
         string basename = file.get_basename ();
         int idx = basename.last_index_of (".");

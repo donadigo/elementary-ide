@@ -1,3 +1,4 @@
+
 /*-
  * Copyright (c) 2015-2016 Adam Bieńkowski
  *
@@ -18,27 +19,26 @@
  */
 
 namespace IDE {
-    public class BuildSystem : Object {
-        public string clean_command { get; set; default = ""; }
-        public string prebuild_command { get; set; default = ""; }
-        public string build_command { get; set; default = ""; }
-        public string install_command { get; set; default = ""; }
-        public string run_command { get; set; default = ""; }
+    public class CMakeCommand : Object {
+        public string filename { get; set; }
+        public string name { get; set; }
+        private Gee.ArrayList<string> arguments;
 
-        public void clean () throws Error {
-
+        construct {
+            arguments = new Gee.ArrayList<string> ();
         }
 
-        public void build () throws Error {
-
+        public CMakeCommand (string filename, string name) {
+            this.filename = filename;
+            this.name = name;
         }
 
-        public void install () throws Error {
-            
+        public void add_argument (string argument) {
+            arguments.add (argument);
         }
 
-        public void run () throws Error {
-
+        public string[] get_arguments () {
+            return arguments.to_array ();
         }
     }
 }

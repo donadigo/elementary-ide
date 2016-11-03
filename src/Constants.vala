@@ -29,6 +29,10 @@ namespace IDE.Constants {
     public const string TERMINAL_VIEW_NAME = "terminal-view";
     public const string NO_DOCUMENTS_VIEW_NAME = "no-documents";
     public const string NOTEBOOK_VIEW_NAME = "notebook";
+    public const string FILE_SIDEBAR_VIEW_NAME = "file-sidebar";
+    public const string FILE_SEARCH_VIEW_NAME = "file-search-view";
+    public const string FILE_SEARCH_VIEW_SPINNER_NAME = "file-search-view-spinner";
+    public const string FILE_SEARCH_NO_RESULTS_VIEW_NAME = "file-search-view-no-results";
 
     // Project targets constants
     public const string NATIVE_TARGET = ".elementary-ide.proj";
@@ -50,7 +54,7 @@ namespace IDE.Constants {
     public const string NATIVE_PROJECT_BS_CLEAN_CMD = "cleanCmd";
     public const string NATIVE_PROJECT_BS_PREBUILD_CMD = "prebuildCmd";
     public const string NATIVE_PROJECT_BS_BUILD_CMD = "buildCmd";
-    public const string NATIVE_PROJECT_BS_POSTBUILD_CMD = "postbuildCmd";
+    public const string NATIVE_PROJECT_BS_INTALL_CMD = "installCmd";
     public const string NATIVE_PROJECT_BS_RUN_CMD = "runCmd";
 
     // Native project debug system constants

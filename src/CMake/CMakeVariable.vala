@@ -18,27 +18,32 @@
  */
 
 namespace IDE {
-    public class BuildSystem : Object {
-        public string clean_command { get; set; default = ""; }
-        public string prebuild_command { get; set; default = ""; }
-        public string build_command { get; set; default = ""; }
-        public string install_command { get; set; default = ""; }
-        public string run_command { get; set; default = ""; }
+    public class CMakeVariable : Object {
+        public string name { get; set; }
+        private Gee.ArrayList<string> values;
 
-        public void clean () throws Error {
-
+        construct {
+            values = new Gee.ArrayList<string> ();
         }
 
-        public void build () throws Error {
-
+        public CMakeVariable (string name) {
+            this.name = name;
         }
 
-        public void install () throws Error {
-            
+        public void add_value (string value) {
+            values.add (value);
         }
 
-        public void run () throws Error {
+        public string get_first_value () {
+            if (values.size <= 0) {
+                return "";
+            }
 
+            return values[0];
         }
+
+        public string[] get_values () {
+            return values.to_array ();
+        }       
     }
 }

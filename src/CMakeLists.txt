@@ -4,36 +4,38 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Constants.vala
     IDEApplication.vala
     IDEWindow.vala
-    EditorView.vala
-    EditorWindow.vala
-    ToolBar.vala
-    MenuButton.vala
     Project.vala
-    Projects/CMakeProject.vala
-    Projects/NativeProject.vala
-    Projects/GenericProject.vala
     Utils.vala
-    TabWidget.vala
-    Document.vala
     DocumentManager.vala
-    BottomWidget.vala
     CodeParser.vala
     IDEBuffer.vala
+    BuildSystem.vala
+    DebugSystem.vala
+    BaseDialog.vala
+    FileSearchEngine.vala
+    Report.vala
+    CMake/CMakeParser.vala
+    CMake/CMakeCommand.vala
+    CMake/CMakeVariable.vala
     Vala/ValaDocumentProvider.vala
     Vala/Locator.vala
     Vala/ValaCodeParser.vala
     Vala/ValaDefinitionWriter.vala
-    BuildSystem.vala
-    BuildSystems/CMakeParser.vala
-    BuildSystems/CMakeCommand.vala
-    BuildSystems/CMakeVariable.vala
-    DebugSystem.vala
-    Report.vala
-    ReportWidget.vala
-    TerminalWidget.vala
-    InfoWindow.vala
-    SourceList.vala
-    BaseDialog.vala
+    Projects/CMakeProject.vala
+    Projects/NativeProject.vala
+    Projects/GenericProject.vala
+    Widgets/ReportWidget.vala
+    Widgets/TerminalWidget.vala
+    Widgets/InfoWindow.vala
+    Widgets/SourceList.vala
+    Widgets/EditorView.vala
+    Widgets/EditorWindow.vala
+    Widgets/ToolBar.vala
+    Widgets/MenuButton.vala  
+    Widgets/TabWidget.vala
+    Widgets/Document.vala   
+    Widgets/BottomWidget.vala   
+    Widgets/FileSearchView.vala
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/NewFileDialog.vala
     Dialogs/OpenProjectDialog.vala
