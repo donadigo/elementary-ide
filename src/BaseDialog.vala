@@ -23,12 +23,21 @@ namespace IDE {
             deletable = false;
             margin = 24;
 
-            set_transient_for (IDEWindow.get_default ());
+            if (IDEApplication.get_main_window () != null) {
+                print (IDEApplication.get_main_window ().get_title () + "\n");
+            }
+
+            set_transient_for (IDEApplication.get_main_window ());
             var action_area = (Gtk.Box)get_action_area ();
 
             var close_button = new Gtk.Button.with_label (_("Close"));
             close_button.clicked.connect (() => hide ());
             action_area.pack_end (close_button, false, false, 0);
         }
+
+        public override bool delete_event (Gdk.EventAny event) {
+            hide ();
+            return true;
+        }        
     }
 }

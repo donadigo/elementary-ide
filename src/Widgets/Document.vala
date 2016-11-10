@@ -220,7 +220,7 @@ namespace IDE {
 
         public async bool save_as () {
             Gtk.FileChooserDialog chooser = new Gtk.FileChooserDialog (
-                _("Select save destination"), IDEWindow.get_default (), Gtk.FileChooserAction.SAVE,
+                _("Select save destination"), IDEApplication.get_main_window (), Gtk.FileChooserAction.SAVE,
                 "_Cancel",
                 Gtk.ResponseType.CANCEL,
                 "_Save",

@@ -153,7 +153,7 @@ namespace IDE {
 
             report_widget_id = mode_button.append_icon ("dialog-information-symbolic", Gtk.IconSize.MENU);
             terminal_widget_id = mode_button.append_icon ("utilities-terminal-symbolic", Gtk.IconSize.MENU);
-            build_output_widget_id = mode_button.append_icon ("open-menu-symbolic", Gtk.IconSize.MENU);
+            build_output_widget_id = mode_button.append_icon ("system-run-symbolic", Gtk.IconSize.MENU);
 
             var toolbar_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
             toolbar_box.margin = 6;

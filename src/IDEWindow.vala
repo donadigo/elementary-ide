@@ -18,7 +18,7 @@
  */
 
 namespace IDE {
-    public class IDEWindow : Gtk.Window {
+    public class IDEWindow : Gtk.ApplicationWindow {
         public DocumentManager document_manager { public get; private set; }
         
         private ToolBar toolbar;
@@ -28,15 +28,6 @@ namespace IDE {
         private int new_id = -1;
         private int open_id = -1;
         private int open_file_id = -1;
-
-        private static IDEWindow? instance = null;
-        public static unowned IDEWindow get_default () {
-            if (instance == null) {
-                instance = new IDEWindow ();
-            }
-
-            return instance;
-        }
 
         construct {
             set_default_size (1200, 800);
@@ -63,7 +54,11 @@ namespace IDE {
 
             load_project (null);
 
-            add (main_stack);
+            add (main_stack);    
+        }
+
+        public IDEWindow (Gtk.Application application) {
+            Object (application: application);        
         }
 
         public override bool delete_event (Gdk.EventAny event) {

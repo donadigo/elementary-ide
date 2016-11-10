@@ -130,7 +130,7 @@ namespace IDE {
 				warning (e.message);
 			}
 
-			var document_manager = IDEWindow.get_default ().document_manager;
+			var document_manager = IDEApplication.get_main_window ().document_manager;
 			var document = new Document (file, null);
 			document_manager.add_document (document, true);
 

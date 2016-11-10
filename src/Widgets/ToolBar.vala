@@ -28,11 +28,14 @@ namespace IDE {
             }
         }
 
-    	private MenuButton open_button;
         private Gtk.Button new_button;
+        private Gtk.Button preferences_button;
+
+    	private MenuButton open_button;
         private MenuButton save_button;
-        private MenuButton preferences_button;
         private MenuButton run_button;
+
+        private EditorPreferencesDialog ep_dialog;
 
         construct {
             show_close_button = true;
@@ -48,7 +51,10 @@ namespace IDE {
             save_button = new MenuButton (_("Save"), "document-save");
             add (save_button);
 
-            preferences_button = new MenuButton (_("Preferences"), "open-menu");
+            ep_dialog = new EditorPreferencesDialog ();
+
+            preferences_button = new Gtk.Button.from_icon_name ("open-menu", Gtk.IconSize.LARGE_TOOLBAR);
+            preferences_button.clicked.connect (() => ep_dialog.show_all ());
             pack_end (preferences_button);
 
             run_button = new MenuButton (_("Build & Run"), "media-playback-start");
@@ -78,19 +84,19 @@ namespace IDE {
         }
 
         private void request_save_current () {
-            IDEWindow.get_default ().save_current_document ();
+            IDEApplication.get_main_window ().save_current_document ();
         }
 
         private void request_save_opened () {
-            IDEWindow.get_default ().save_all_opened_documents ();
+            IDEApplication.get_main_window ().save_all_opened_documents ();
         }
 
         private void request_open_project () {
-            IDEWindow.get_default ().show_open_project_dialog ();
+            IDEApplication.get_main_window ().show_open_project_dialog ();
         }
 
         private void request_open_files () {
-            IDEWindow.get_default ().show_open_files_dialog ();
+            IDEApplication.get_main_window ().show_open_files_dialog ();
         }
 
         private void show_new_file_dialog () {

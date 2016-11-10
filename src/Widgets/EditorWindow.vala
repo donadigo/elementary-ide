@@ -38,6 +38,7 @@ namespace IDE {
                 return iter.get_line ();
             }
         }
+
         public int current_column { 
             get {
                 Gtk.TextIter iter;
@@ -59,7 +60,7 @@ namespace IDE {
                     return;
                 }
 
-                var document_manager = IDEWindow.get_default ().document_manager;
+                var document_manager = IDEApplication.get_main_window ().document_manager;
                 var code_parser = document_manager.get_code_parser ();
 
                 var message = code_parser.get_report_message_at (buffer.document.get_file_path (), start.get_line () + 1);
@@ -76,7 +77,7 @@ namespace IDE {
             orientation = Gtk.Orientation.VERTICAL;
             expand = true;
 
-            source_buffer = new IDEBuffer (document);
+            source_buffer = new IDEBuffer (document, null);
 
             var red = Gdk.RGBA () {
                 red = 1,
@@ -105,15 +106,20 @@ namespace IDE {
 
             source_buffer.highlight_syntax = true;
 
-            source_view = new Gtk.SourceView.with_buffer (source_buffer);
-            source_view.auto_indent = true;
-            source_view.highlight_current_line = true;
-            source_view.indent_on_tab = true;
-            source_view.indent_width = 4;
-            source_view.insert_spaces_instead_of_tabs = true;
-
             var settings = IDESettings.get_default ();
+
+            source_view = new Gtk.SourceView.with_buffer (source_buffer);
+            source_view.add_events (Gdk.EventMask.FOCUS_CHANGE_MASK);
+            source_view.override_font (Pango.FontDescription.from_string (settings.font_desc));
+
             settings.schema.bind ("show-line-numbers", source_view, "show-line-numbers", SettingsBindFlags.DEFAULT);
+            settings.schema.bind ("highlight-current-line", source_view, "highlight-current-line", SettingsBindFlags.DEFAULT);
+            settings.schema.bind ("highlight-syntax", source_buffer, "highlight-syntax", SettingsBindFlags.DEFAULT);
+            settings.schema.bind ("highlight-matching-brackets", source_buffer, "highlight-matching-brackets", SettingsBindFlags.DEFAULT);
+            settings.schema.bind ("tabs-to-spaces", source_view, "insert-spaces-instead-of-tabs", SettingsBindFlags.DEFAULT);
+            settings.notify["font-desc"].connect (() => {
+                source_view.override_font (Pango.FontDescription.from_string (settings.font_desc));
+            });
 
             source_view.show_right_margin = false;
             source_view.smart_backspace = true;
@@ -154,7 +160,7 @@ namespace IDE {
 
             var gutter = source_view.get_gutter (Gtk.TextWindowType.LEFT);
             gutter.insert (report_message_renderer, -100);
-
+ 
             pack_start (editor_container, true, true, 0);
         }
 

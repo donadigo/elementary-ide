@@ -48,6 +48,10 @@ namespace IDE {
             flags |= GLib.ApplicationFlags.HANDLES_OPEN;
         }
 
+        public static unowned IDEWindow? get_main_window () {
+            return (IDEWindow)((Gtk.Application)Application.get_default ()).get_active_window ();
+        }
+
         private static IDEApplication? instance = null;
         public new static unowned IDEApplication get_default () {
             if (instance == null) {
@@ -62,8 +66,7 @@ namespace IDE {
         }
 
         public override void activate () {
-            var window = IDEWindow.get_default ();
-            window.set_application (this);
+            var window = new IDEWindow (this);
 
             var gtk_settings = Gtk.Settings.get_default ();
             var settings = IDESettings.get_default ();

@@ -5,6 +5,7 @@ namespace IDE {
         construct {
             type = Gtk.WindowType.POPUP;
             type_hint = Gdk.WindowTypeHint.TOOLTIP;
+            name = "gtk-tooltip";
             skip_taskbar_hint = true;
             decorated = false;
             focus_on_map = true;

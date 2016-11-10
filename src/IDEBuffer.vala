@@ -26,8 +26,8 @@ namespace IDE {
 		public Document document { get; construct; }
 		public bool recently_changed { get; set; }
 
-		public IDEBuffer (Document document) {
-			Object (document: document);
+		public IDEBuffer (Document document, Gtk.TextTagTable? tag_table) {
+			Object (document: document, tag_table: tag_table);
 		}
 	}
 }

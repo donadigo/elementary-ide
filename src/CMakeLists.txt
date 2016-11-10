@@ -29,6 +29,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/InfoWindow.vala
     Widgets/SourceList.vala
     Widgets/EditorView.vala
+    Widgets/CategoryView.vala
     Widgets/EditorWindow.vala
     Widgets/ToolBar.vala
     Widgets/MenuButton.vala  
@@ -39,6 +40,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/NewFileDialog.vala
     Dialogs/OpenProjectDialog.vala
+    Dialogs/EditorPreferencesPage.vala
     Services/IDESettings.vala
     config.vala
 PACKAGES
