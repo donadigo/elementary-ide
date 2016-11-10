@@ -23,10 +23,6 @@ namespace IDE {
             deletable = false;
             margin = 24;
 
-            if (IDEApplication.get_main_window () != null) {
-                print (IDEApplication.get_main_window ().get_title () + "\n");
-            }
-
             set_transient_for (IDEApplication.get_main_window ());
             var action_area = (Gtk.Box)get_action_area ();
 
