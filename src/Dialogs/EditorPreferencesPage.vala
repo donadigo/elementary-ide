@@ -18,12 +18,15 @@
  */
 
 namespace IDE {
-    public class EditorPreferencesPage : Gtk.Grid {
+    public class EditorPreferencesPage : Gtk.ScrolledWindow {
         construct {
-            column_spacing = 6;
+            var grid = new Gtk.Grid ();
+            grid.margin = 12;
 
             var list_box = new Gtk.ListBox ();
-            list_box.expand = true;
+
+            var frame = new Gtk.Frame (null);
+            frame.add (list_box);
 
             var font_button = new Gtk.FontButton ();
             font_button.use_font = true;
@@ -31,6 +34,14 @@ namespace IDE {
             font_button.font_set.connect (() => {
                 IDESettings.get_default ().font_desc = font_button.get_font_desc ().to_string ();
             });
+
+            var appearence_label = new Gtk.Label (_("General"));
+            appearence_label.margin_top = appearence_label.margin_bottom = 12;
+            appearence_label.halign = Gtk.Align.START;
+            appearence_label.get_style_context ().add_class ("h4");
+
+            grid.attach (appearence_label, 0, 0, 1, 1);
+            grid.attach (frame, 0, 1, 1, 1);
 
             var font_box = new EmptyBox (_("Font"), false);
             font_box.grid.add (font_button);
@@ -56,7 +67,7 @@ namespace IDE {
             tts_box.grid.add (new SettingsSwitch ("tabs-to-spaces"));
             list_box.add (tts_box);
 
-            add (list_box);
+            add (grid);
         }
     }
 }

@@ -25,9 +25,9 @@ namespace IDE {
             }
         }
 
-        private Gtk.Grid toolbar_grid;
+        public Vte.Terminal terminal { get; construct; }
 
-        private Vte.Terminal terminal;
+        private Gtk.Grid toolbar_grid;
         private Vte.Pty pty;
 
         construct {
@@ -46,8 +46,8 @@ namespace IDE {
             add (terminal);
         }
 
-        public Vte.Terminal get_terminal () {
-            return terminal;
+        public void clear () {
+            terminal.reset (true, true);
         }
 
         public void spawn_default (string? working_directory = null) {

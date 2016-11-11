@@ -24,6 +24,7 @@ namespace IDE {
         public abstract Document? get_current_document ();
         public abstract Gee.List<Document> get_opened_documents ();
         public abstract void load_project (Project? project);
+        public abstract void toggle_search ();
 
         public virtual signal void add_document (Document document, bool focus = true) {
 

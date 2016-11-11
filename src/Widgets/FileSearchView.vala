@@ -97,11 +97,15 @@ namespace IDE {
             search_engine = new FileSearchEngine ();
         }
 
-        public void set_search_directory (string filename) {
+        public void set_search_directory (string? filename) {
             search_engine.root_filename = filename;
         }
 
         public async void search (string query, bool include_hidden) {
+            if (search_engine.root_filename == null) {
+                return;
+            }
+
             spinner.start ();
             stack_placeholder.visible_child_name = Constants.FILE_SEARCH_VIEW_SPINNER_NAME;
             clear ();

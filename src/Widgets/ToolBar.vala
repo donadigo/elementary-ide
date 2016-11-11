@@ -25,11 +25,19 @@ namespace IDE {
                 Utils.set_widget_visible (new_button, value);
                 Utils.set_widget_visible (save_button, value);
                 Utils.set_widget_visible (run_button, value);
+                Utils.set_widget_visible (search_button, value);
             }
         }
 
+        public signal void open_project ();
+        public signal void open_files ();
+        public signal void save_current_document ();
+        public signal void save_opened_documents ();
+        public signal void toggle_search ();
+
         private Gtk.Button new_button;
         private Gtk.Button preferences_button;
+        private Gtk.ToggleButton search_button;
 
     	private MenuButton open_button;
         private MenuButton save_button;
@@ -60,6 +68,14 @@ namespace IDE {
             run_button = new MenuButton (_("Build & Run"), "media-playback-start");
             add (run_button);
 
+            var image = new Gtk.Image.from_icon_name ("edit-find", Gtk.IconSize.LARGE_TOOLBAR);
+
+            search_button = new Gtk.ToggleButton ();
+            search_button.toggled.connect (() => toggle_search ());
+            search_button.image = image;
+
+            pack_end (search_button);
+
             // TODO: change sensitivity of menu items
             var menu_item = run_button.add_menu_item (_("Only build"));
             menu_item.activate.connect (build);
@@ -67,36 +83,20 @@ namespace IDE {
             menu_item = run_button.add_menu_item (_("Build & run"));
 
             menu_item = open_button.add_menu_item (_("Open project"));
-            menu_item.activate.connect (request_open_project);
+            menu_item.activate.connect (() => open_project ());
 
             menu_item = open_button.add_menu_item (_("Open files"));
-            menu_item.activate.connect (request_open_files);
+            menu_item.activate.connect (() => open_files ());
 
             menu_item = save_button.add_menu_item (_("Save current document"));
-            menu_item.activate.connect (request_save_current);
+            menu_item.activate.connect (() => save_current_document ());
 
             menu_item = save_button.add_menu_item (_("Save all opened documents"));
-            menu_item.activate.connect (request_save_opened);
+            menu_item.activate.connect (() => save_opened_documents ());
         }
 
         private void build () {
 
-        }
-
-        private void request_save_current () {
-            IDEApplication.get_main_window ().save_current_document ();
-        }
-
-        private void request_save_opened () {
-            IDEApplication.get_main_window ().save_all_opened_documents ();
-        }
-
-        private void request_open_project () {
-            IDEApplication.get_main_window ().show_open_project_dialog ();
-        }
-
-        private void request_open_files () {
-            IDEApplication.get_main_window ().show_open_files_dialog ();
         }
 
         private void show_new_file_dialog () {

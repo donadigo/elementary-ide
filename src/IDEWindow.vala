@@ -33,7 +33,14 @@ namespace IDE {
             set_default_size (1200, 800);
             window_position = Gtk.WindowPosition.CENTER;
 
+            document_manager = new ProjectView ();
+
             toolbar = new ToolBar ();
+            toolbar.open_project.connect (show_open_project_dialog);
+            toolbar.open_files.connect (show_open_files_dialog);
+            toolbar.save_current_document.connect (save_current_document);
+            toolbar.save_opened_documents.connect (save_opened_documents);
+            toolbar.toggle_search.connect (document_manager.toggle_search);
             set_titlebar (toolbar);
 
             welcome = new Granite.Widgets.Welcome (_("Start coding"), _("Open or create a new project to start"));
@@ -44,13 +51,11 @@ namespace IDE {
             open_id = welcome.append ("document-open", "Open Project", "Open existing project");
 
             // TODO: better icon here
-            open_file_id = welcome.append ("document-open", "Open Single File", "Open a single file");
-
-            document_manager = new EditorView ();
+            open_file_id = welcome.append ("document-open", "Open Files", "Open a single or multiple files");
 
             main_stack = new Gtk.Stack ();
             main_stack.add_named (welcome, Constants.WELCOME_VIEW_NAME);
-            main_stack.add_named ((EditorView)document_manager, Constants.EDITOR_VIEW_NAME);
+            main_stack.add_named ((ProjectView)document_manager, Constants.EDITOR_VIEW_NAME);
 
             load_project (null);
 
@@ -79,7 +84,7 @@ namespace IDE {
             document.save.begin ();
         }
 
-        public void save_all_opened_documents () {
+        public void save_opened_documents () {
             foreach (var document in document_manager.get_opened_documents ()) {
                 document.save.begin (false);
             }
@@ -112,6 +117,7 @@ namespace IDE {
                                                     Gtk.ResponseType.CANCEL,
                                                     _("Open"),
                                                     Gtk.ResponseType.ACCEPT);
+            dialog.select_multiple = true;
             if (dialog.run () == Gtk.ResponseType.ACCEPT) {
                 foreach (unowned string uri in dialog.get_uris ()) {
                     var file = File.new_for_uri (uri);
@@ -123,7 +129,7 @@ namespace IDE {
                 toolbar.show_editor_buttons = true;
             }
 
-            dialog.destroy ();            
+            dialog.destroy ();
         }
 
         public void show_open_project_dialog () {

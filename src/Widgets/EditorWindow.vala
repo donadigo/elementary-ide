@@ -109,7 +109,7 @@ namespace IDE {
             var settings = IDESettings.get_default ();
 
             source_view = new Gtk.SourceView.with_buffer (source_buffer);
-            source_view.add_events (Gdk.EventMask.FOCUS_CHANGE_MASK);
+            source_view.add_events (Gdk.EventMask.STRUCTURE_MASK);
             source_view.override_font (Pango.FontDescription.from_string (settings.font_desc));
 
             settings.schema.bind ("show-line-numbers", source_view, "show-line-numbers", SettingsBindFlags.DEFAULT);

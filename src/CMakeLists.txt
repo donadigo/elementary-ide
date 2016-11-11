@@ -28,6 +28,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/TerminalWidget.vala
     Widgets/InfoWindow.vala
     Widgets/SourceList.vala
+    Widgets/ProjectView.vala
     Widgets/EditorView.vala
     Widgets/EditorWindow.vala
     Widgets/ToolBar.vala
