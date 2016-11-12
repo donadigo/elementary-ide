@@ -15,6 +15,7 @@ namespace IDE {
         public bool highlight_current_line { get; set; }
         public bool highlight_syntax { get; set; }
         public bool highlight_matching_brackets { get; set; }
+        public bool draw_spaces_tabs { get; set; }
         public string font_desc { get; set; }
         
         private IDESettings () {

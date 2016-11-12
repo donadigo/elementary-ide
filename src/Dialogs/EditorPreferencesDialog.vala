@@ -18,27 +18,7 @@
  */
 
 namespace IDE {
-    public class SettingsLabel : Gtk.Label {
-        construct {
-            halign = Gtk.Align.END;
-        }
-
-        public SettingsLabel (string title) {
-            label = title;
-        }
-    }
-
-    public class SettingsSwitch : Gtk.Switch {
-        construct {
-            halign = Gtk.Align.START;
-        }
-
-        public SettingsSwitch (string key) {
-            IDESettings.get_default ().schema.bind (key, this, "active", SettingsBindFlags.DEFAULT);
-        }
-    }
-
-    private class SettingsRow : Gtk.ListBoxRow {
+    private class CategoryRow : Gtk.ListBoxRow {
         public string id { get; construct; }
 
         private Gtk.Image image;
@@ -60,51 +40,10 @@ namespace IDE {
             add (box);
         }
 
-        public SettingsRow (string title, string icon_name, string id) {
+        public CategoryRow (string title, string icon_name, string id) {
             Object (id: id);
             label.label = title;
             image.icon_name = icon_name;
-        }
-    }
-
-    public class EmptyBox : Gtk.ListBoxRow {
-        public Gtk.Grid grid { get; construct; }
-        private Gtk.Label label;
-
-        construct {
-            activatable = false;
-            selectable = false;
-
-            label = new Gtk.Label (null);
-            label.hexpand = true;
-            label.halign = Gtk.Align.START;
-            label.margin = 6;
-
-            grid = new Gtk.Grid ();
-            grid.hexpand = true;
-            grid.halign = Gtk.Align.END;
-            grid.set_margin_end (12);
-            grid.set_margin_top (8);
-            grid.set_margin_bottom (8);            
-        }
-
-        public EmptyBox (string title, bool add_separator) {
-            set_activatable (false);
-            set_selectable (false);
-
-            label.label = title;
-
-            var main_grid = new Gtk.Grid ();
-
-            if (add_separator) {
-                main_grid.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 0, 2, 1);
-            }
-
-            main_grid.attach (label, 0, 1, 1, 1);
-            main_grid.attach (grid, 1, 1, 1, 1);
-            add (main_grid);
-
-            show_all ();
         }
     }
 
@@ -134,7 +73,7 @@ namespace IDE {
             box.add (paned);
             box.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
 
-            var editor_row = new SettingsRow (_("Editor"), "document-page-setup", "editor");
+            var editor_row = new CategoryRow (_("Editor"), "document-page-setup", "editor");
             list_box.add (editor_row);
 
             var ep_page = new EditorPreferencesPage ();

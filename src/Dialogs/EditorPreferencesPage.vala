@@ -21,12 +21,12 @@ namespace IDE {
     public class EditorPreferencesPage : Gtk.ScrolledWindow {
         construct {
             var grid = new Gtk.Grid ();
+            grid.row_spacing = 12;
             grid.margin = 12;
 
-            var list_box = new Gtk.ListBox ();
-
-            var frame = new Gtk.Frame (null);
-            frame.add (list_box);
+            var general_frame = new SettingsFrame ();
+            var highlight_frame = new SettingsFrame ();
+            var behaviour_frame = new SettingsFrame ();
 
             var font_button = new Gtk.FontButton ();
             font_button.use_font = true;
@@ -35,37 +35,46 @@ namespace IDE {
                 IDESettings.get_default ().font_desc = font_button.get_font_desc ().to_string ();
             });
 
-            var appearence_label = new Gtk.Label (_("General"));
-            appearence_label.margin_top = appearence_label.margin_bottom = 12;
-            appearence_label.halign = Gtk.Align.START;
-            appearence_label.get_style_context ().add_class ("h4");
+            var general_label = new HeaderLabel (_("General"));
+            var highlight_label = new HeaderLabel (_("Highlighting"));
+            var behaviour_label = new HeaderLabel (_("Behaviour"));
 
-            grid.attach (appearence_label, 0, 0, 1, 1);
-            grid.attach (frame, 0, 1, 1, 1);
+            grid.attach (general_label, 0, 0, 1, 1);
+            grid.attach (general_frame, 0, 1, 1, 1);
 
-            var font_box = new EmptyBox (_("Font"), false);
+            grid.attach (highlight_label, 0, 2, 1, 1);
+            grid.attach (highlight_frame, 0, 3, 1, 1);
+
+            grid.attach (behaviour_label, 0, 4, 1, 1);
+            grid.attach (behaviour_frame, 0, 5, 1, 1);
+
+            var font_box = new SettingBox (_("Font"), false);
             font_box.grid.add (font_button);
-            list_box.add (font_box);
+            general_frame.add_widget (font_box);
 
-            var sln_box = new EmptyBox (_("Show line numbers"), true);
-            sln_box.grid.add (new SettingsSwitch ("show-line-numbers"));
-            list_box.add (sln_box);
+            var sln_box = new SettingBox (_("Show line numbers"), true);
+            sln_box.grid.add (new SettingSwitch ("show-line-numbers"));
+            general_frame.add_widget (sln_box);
 
-            var hcl_box = new EmptyBox (_("Higlight current line"), true);
-            hcl_box.grid.add (new SettingsSwitch ("highlight-current-line"));
-            list_box.add (hcl_box);
+            var hcl_box = new SettingBox (_("Higlight current line"), false);
+            hcl_box.grid.add (new SettingSwitch ("highlight-current-line"));
+            highlight_frame.add_widget (hcl_box);
 
-            var hs_box = new EmptyBox (_("Highlight syntax"), true);
-            hs_box.grid.add (new SettingsSwitch ("highlight-syntax"));
-            list_box.add (hs_box);
+            var hs_box = new SettingBox (_("Highlight syntax"), true);
+            hs_box.grid.add (new SettingSwitch ("highlight-syntax"));
+            highlight_frame.add_widget (hs_box);
 
-            var hmb_box = new EmptyBox (_("Highlight matching brackets"), true);
-            hmb_box.grid.add (new SettingsSwitch ("highlight-matching-brackets"));
-            list_box.add (hmb_box);
+            var hmb_box = new SettingBox (_("Highlight matching brackets"), true);
+            hmb_box.grid.add (new SettingSwitch ("highlight-matching-brackets"));
+            highlight_frame.add_widget (hmb_box);
 
-            var tts_box = new EmptyBox (_("Convert tabs to spaces"), true);
-            tts_box.grid.add (new SettingsSwitch ("tabs-to-spaces"));
-            list_box.add (tts_box);
+            var tts_box = new SettingBox (_("Convert tabs to spaces"), false);
+            tts_box.grid.add (new SettingSwitch ("tabs-to-spaces"));
+            behaviour_frame.add_widget (tts_box);
+
+            var dst_box = new SettingBox (_("Draw spaces and tabs"), false);
+            dst_box.grid.add (new SettingSwitch ("draw-spaces-tabs"));
+            behaviour_frame.add_widget (dst_box);
 
             add (grid);
         }

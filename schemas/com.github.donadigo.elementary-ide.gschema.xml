@@ -1,20 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <schemalist>
-
-  <schema path="/com/github/donadigo/elementary-ide/" id="com.github.donadigo.elementary-ide">
-
-    <key name='dark-theme' type='b'>
-        <default>false</default>
-        <summary>Apply dark theme to the interface</summary>
-    </key>
+    <schema path="/com/github/donadigo/elementary-ide/" id="com.github.donadigo.elementary-ide">
+        <key name="dark-theme" type='b'>
+            <default>false</default>
+            <summary>Apply dark theme to the interface</summary>
+        </key>
     
-	<key name="show-line-numbers" type="b">
-	    <default>true</default>
-	    <summary>Display Line Numbers</summary>
-	    <description>Whether line numbers should be displayed.</description>
-    </key>
+        <key name="show-line-numbers" type="b">
+            <default>true</default>
+            <summary>Display Line Numbers</summary>
+            <description>True if line numbers should be displayed</description>
+        </key>
 
-  </schema>
-
+        <key name="highlight-current-line" type="b">
+            <default>true</default>
+            <summary>Hightlight current line</summary>
+            <description>True if current line should be highlighted</description>
+        </key>
+        <key name="font-desc" type="s">
+            <default>"Roboto 10"</default>
+            <summary>Font used in the editor</summary>
+            <description>The font that will be used in the editor</description>
+        </key>
+        <key name="highlight-syntax" type="b">
+            <default>true</default>
+            <summary>Highlight syntax</summary>
+            <description>Highlight syntax in the editor if the file type is recognized</description>
+        </key>
+        <key name="highlight-matching-brackets" type="b">
+            <default>true</default>
+            <summary>Highlight matching brackets</summary>
+            <description>True if matching brackets should be highlighted in the editor</description>
+        </key>
+        <key name="tabs-to-spaces" type="b">
+            <default>true</default>
+            <summary>Convert tabs to spaces</summary>
+            <description>True if the editor should insert spaces instead of tabs</description>
+        </key>
+        <key name="draw-spaces-tabs" type="b">
+            <default>true</default>
+            <summary>Draw spaces and tabs</summary>
+            <description>True if leading and trailing spaces and tabs should be drawn</description>
+        </key>
+    </schema>
 </schemalist>

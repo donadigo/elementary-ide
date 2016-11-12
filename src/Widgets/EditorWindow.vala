@@ -121,6 +121,14 @@ namespace IDE {
                 source_view.override_font (Pango.FontDescription.from_string (settings.font_desc));
             });
 
+            settings.notify["draw-spaces-tabs"].connect (() => {
+                if (settings.draw_spaces_tabs) {
+                    source_view.draw_spaces = Gtk.SourceDrawSpacesFlags.SPACE | Gtk.SourceDrawSpacesFlags.LEADING | Gtk.SourceDrawSpacesFlags.TAB;
+                } else {
+                    source_view.draw_spaces = 0;
+                }
+            });
+
             source_view.show_right_margin = false;
             source_view.smart_backspace = true;
             source_view.smart_home_end = Gtk.SourceSmartHomeEndType.BEFORE;
@@ -130,6 +138,11 @@ namespace IDE {
             source_view.completion.remember_info_visibility = true;
             source_view.left_margin = 6;
             source_view.motion_notify_event.connect (on_motion_notify_event);
+            if (settings.draw_spaces_tabs) {
+                source_view.draw_spaces = Gtk.SourceDrawSpacesFlags.SPACE | Gtk.SourceDrawSpacesFlags.LEADING | Gtk.SourceDrawSpacesFlags.TAB;
+            } else {
+                source_view.draw_spaces = 0;
+            }            
 
             progress_bar = new Gtk.ProgressBar ();
             progress_bar.show_text = false;  
