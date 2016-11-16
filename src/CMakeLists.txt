@@ -34,6 +34,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/ToolBar.vala
     Widgets/MenuButton.vala  
     Widgets/TabWidget.vala
+    Widgets/SearchToolbar.vala
     Widgets/Document.vala   
     Widgets/BottomWidget.vala   
     Widgets/FileSearchView.vala

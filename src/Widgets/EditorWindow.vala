@@ -22,12 +22,15 @@ namespace IDE {
         public signal void show_info_window (Gtk.TextIter start_iter, int x, int y);
         public signal void close_info_window ();
 
-        public Document document { public get; construct; }
-        public Gtk.SourceView source_view { public get; private set; }
-        public IDEBuffer source_buffer { public get; private set; }
+        public Document document { get; construct; }
+        public Gtk.SourceSearchSettings search_settings { get; construct; }
+        public Gtk.SourceSearchContext search_context { get; construct; }
+        public Gtk.SourceView source_view { get; construct; }
+        public IDEBuffer source_buffer { get; construct; }
         private Gtk.SourceMap source_map;
         private Gtk.ProgressBar progress_bar;
         private Gtk.ScrolledWindow view_scrolled;
+        private Cancellable? search_cancellable;
 
         private uint show_info_timeout_id = 0;
 
@@ -78,6 +81,9 @@ namespace IDE {
             expand = true;
 
             source_buffer = new IDEBuffer (document, null);
+            search_settings = new Gtk.SourceSearchSettings ();
+            search_context = new Gtk.SourceSearchContext (source_buffer, search_settings);
+            search_context.highlight = true;
 
             var red = Gdk.RGBA () {
                 red = 1,
@@ -203,6 +209,91 @@ namespace IDE {
             source_buffer.remove_tag_by_name ("error-tag", start_iter, end_iter);
             source_buffer.remove_tag_by_name ("warning-tag", start_iter, end_iter);
             source_buffer.remove_tag_by_name ("info-tag", start_iter, end_iter);
+        }
+
+        public async void search (string query, bool regex, bool case_sensitive, bool word_boundaries) {
+            search_cancellable = new Cancellable ();
+
+            search_settings.search_text = query;
+            search_settings.regex_enabled = regex;
+            search_settings.case_sensitive = case_sensitive;
+            search_settings.at_word_boundaries = word_boundaries;            
+
+            Gtk.TextIter start_iter, end_iter;
+            source_buffer.get_start_iter (out start_iter);
+
+            try {
+                bool found = yield search_context.forward_async (start_iter, search_cancellable, out start_iter, out end_iter);
+                if (found) {
+                    source_buffer.select_range (start_iter, end_iter);
+                    source_view.scroll_to_iter (start_iter, 0, false, 0, 0);
+                }   
+            } catch (Error e) {
+                warning (e.message);
+            }
+        }
+
+        public async void replace (string replace_query) {
+            Gtk.TextIter start_iter, end_iter;
+            source_buffer.get_iter_at_offset (out start_iter, source_buffer.cursor_position);
+
+            try {
+                bool found = yield search_context.forward_async (start_iter, search_cancellable, out start_iter, out end_iter);
+                if (found) {
+                    search_context.replace (start_iter, end_iter, replace_query, replace_query.length);
+                    yield search_next ();
+                }
+            } catch (Error e) {
+                warning (e.message);
+            }
+        }
+
+        public void replace_all (string replace_query) {
+            try {
+                search_context.replace_all (replace_query, replace_query.length);
+            } catch (Error e) {
+                warning (e.message);
+            }
+        }
+
+        public async void search_previous () {
+            search_cancellable = new Cancellable ();
+
+            Gtk.TextIter start_iter, end_iter;
+            source_buffer.get_selection_bounds (out start_iter, out end_iter);
+
+            try {
+                bool found = yield search_context.backward_async (start_iter, search_cancellable, out start_iter, out end_iter);
+                if (found) {
+                    source_buffer.select_range (start_iter, end_iter);
+                    source_view.scroll_to_iter (start_iter, 0, false, 0, 0);
+                }
+            } catch (Error e) {
+                warning (e.message);
+            }
+        }
+
+        public async void search_next () {
+            search_cancellable = new Cancellable ();
+            
+            Gtk.TextIter start_iter, end_iter;
+            source_buffer.get_selection_bounds (out start_iter, out end_iter);
+
+            try {
+                bool found = yield search_context.forward_async (end_iter, search_cancellable, out start_iter, out end_iter);
+                if (found) {
+                    source_buffer.select_range (start_iter, end_iter);
+                    source_view.scroll_to_iter (start_iter, 0, false, 0, 0);
+                }
+            } catch (Error e) {
+                warning (e.message);
+            }
+        }
+
+        public void cancel_search () {
+            if (search_cancellable != null && !search_cancellable.is_cancelled ()) {
+                search_cancellable.cancel ();
+            }
         }
 
         public void apply_report_message (ReportMessage message) {

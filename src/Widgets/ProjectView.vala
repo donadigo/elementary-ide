@@ -36,6 +36,8 @@ namespace IDE {
 
         private Gtk.SearchEntry search_entry;
 
+        private SearchToolbar document_search_toolbar;
+
         private ReportWidget report_widget;
         private InfoWindow info_window;
         private FileSearchView file_search_view;
@@ -71,8 +73,17 @@ namespace IDE {
 
             editors = new Gee.ArrayList<EditorView> ();
 
+            document_search_toolbar = new SearchToolbar ();
+            document_search_toolbar.request_search_replace.connect (on_request_search_replace);
+            document_search_toolbar.request_go_up.connect (on_request_go_up);
+            document_search_toolbar.request_go_down.connect (on_request_go_down);
+
             // TODO: make this a Gtk.Paned to have a split view
             var editors_container = new Gtk.Grid ();
+
+            var top_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+            top_box.add (document_search_toolbar);
+            top_box.add (editors_container);
 
             var main_editor = create_new_editor_view ();
             editors.add (main_editor);
@@ -157,7 +168,7 @@ namespace IDE {
             bottom_bar.attach (bottom_stack, 0, 2, 1, 1);
 
             vertical_paned = new Gtk.Paned (Gtk.Orientation.VERTICAL);
-            vertical_paned.pack1 (editors_container, true, false);
+            vertical_paned.pack1 (top_box, true, false);
             vertical_paned.pack2 (bottom_bar, false, false);
 
             var horizontal_paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
@@ -204,7 +215,7 @@ namespace IDE {
         }
 
         public void toggle_search () {
-
+            document_search_toolbar.reveal_child = !document_search_toolbar.reveal_child;
         }
 
         public Project? get_project () {
@@ -261,6 +272,66 @@ namespace IDE {
             update_report_widget (code_parser.report);
             update_view_tags (code_parser.report);
             return true;
+        }
+
+        private void on_request_search_replace (string query, string replace_query, bool regex, bool case_sensitive, bool word_boundaries, SearchMode mode) {
+            var document = get_current_document ();
+            if (document == null) {
+                return;
+            }
+
+            var editor_window = document.editor_window;
+            switch (mode) {
+                case SearchMode.SEARCH_ONLY:
+                    editor_window.cancel_search ();
+                    editor_window.search.begin (query, regex, case_sensitive, word_boundaries, (obj, res) => {
+                        editor_window.search.end (res);
+                        update_match_count_from_document ();
+                    });
+                    
+                    break;
+                case SearchMode.REPLACE:
+                    editor_window.replace.begin (replace_query, (obj, res) => {
+                        editor_window.replace.end (res);
+                        update_match_count_from_document ();
+                    });
+
+                    break;
+                case SearchMode.REPLACE_ALL:
+                    editor_window.replace_all (replace_query);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void on_request_go_up () {
+            var document = get_current_document ();
+            if (document == null) {
+                return;
+            }
+
+            var editor_window = document.editor_window;            
+            editor_window.cancel_search ();
+            editor_window.search_previous.begin ((obj, res) => {
+                editor_window.search_previous.end (res);
+                update_match_count_from_document ();
+            });
+        }
+
+        private void on_request_go_down () {
+            var document = get_current_document ();
+            if (document == null) {
+                return;
+            }
+
+            var editor_window = document.editor_window;            
+            editor_window.cancel_search ();
+            editor_window.search_next.begin ((obj, res) => {
+                editor_window.search_next.end (res);
+                update_match_count_from_document ();
+            });
+            
         }
 
         private void on_drag_data_received (Gdk.DragContext ctx, int x, int y, Gtk.SelectionData sel,  uint info, uint time) {
@@ -354,9 +425,13 @@ namespace IDE {
 
             document.content_changed.connect (() => document_content_changed (document));
 
-            document.editor_window.source_buffer.notify["cursor-position"].connect (() => update_location_label ());
-            document.editor_window.close_info_window.connect (on_close_info_window);
-            document.editor_window.show_info_window.connect ((iter, x, y) => on_show_info_window (document, iter, x, y));
+            var editor_window = document.editor_window;
+
+            editor_window.source_buffer.notify["cursor-position"].connect (() => update_location_label ());
+            editor_window.close_info_window.connect (on_close_info_window);
+            editor_window.show_info_window.connect ((iter, x, y) => on_show_info_window (document, iter, x, y));
+
+            editor_window.search_context.notify["occurrences-count"].connect (update_match_count_from_document);
 
             get_current_editor_view ().add_document (document, focus);
             update_location_label ();
@@ -444,6 +519,18 @@ namespace IDE {
             }
 
             return null;
+        }
+
+        private void update_match_count_from_document () {
+            var document = get_current_document ();
+            var search_context = document.editor_window.search_context;
+
+            Gtk.TextIter start_iter, end_iter;
+            search_context.buffer.get_selection_bounds (out start_iter, out end_iter);
+
+            int occurrence = search_context.get_occurrence_position (start_iter, end_iter);
+
+            document_search_toolbar.set_match_count_label (occurrence, search_context.occurrences_count);
         }
 
         private void on_show_info_window (Document document, Gtk.TextIter start_iter, int x, int y) {
