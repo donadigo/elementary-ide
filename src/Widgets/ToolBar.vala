@@ -35,6 +35,9 @@ namespace IDE {
         public signal void save_opened_documents ();
         public signal void toggle_search ();
 
+        public Gtk.MenuItem save_current_document_menuitem { get; construct; }
+        public Gtk.MenuItem save_opened_documents_menuitem { get; construct; }
+
         private Gtk.Button new_button;
         private Gtk.Button preferences_button;
         private Gtk.ToggleButton search_button;
@@ -88,11 +91,11 @@ namespace IDE {
             menu_item = open_button.add_menu_item (_("Open files"));
             menu_item.activate.connect (() => open_files ());
 
-            menu_item = save_button.add_menu_item (_("Save current document"));
-            menu_item.activate.connect (() => save_current_document ());
+            save_current_document_menuitem = save_button.add_menu_item (_("Save current document"));
+            save_current_document_menuitem.activate.connect (() => save_current_document ());
 
-            menu_item = save_button.add_menu_item (_("Save all opened documents"));
-            menu_item.activate.connect (() => save_opened_documents ());
+            save_opened_documents_menuitem = save_button.add_menu_item (_("Save all opened documents"));
+            save_opened_documents_menuitem.activate.connect (() => save_opened_documents ());
         }
 
         private void build () {

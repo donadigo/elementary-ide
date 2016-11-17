@@ -19,6 +19,8 @@
 
 namespace IDE {
     public class ProjectView : Gtk.Box, DocumentManager {
+        public signal void update_toolbar ();
+
         private const Gtk.TargetEntry[] targets = {{ "text/uri-list", 0, 0 }};
 
         private ValaCodeParser code_parser;
@@ -28,41 +30,25 @@ namespace IDE {
         private Gee.ArrayList<EditorView> editors;
         private int current_editor_index = 0;
 
-        private TerminalWidget terminal_widget;
-
-        private Gtk.Box sidebar;
-        private SourceList source_list;
+        private Sidebar sidebar;
         private Gtk.Paned vertical_paned;
-
-        private Gtk.SearchEntry search_entry;
 
         private SearchToolbar document_search_toolbar;
 
-        private ReportWidget report_widget;
         private InfoWindow info_window;
-        private FileSearchView file_search_view;
 
         private ValaDocumentProvider vala_provider;
         private Gtk.SourceCompletionWords words_provider;
 
-        private Granite.Widgets.ModeButton mode_button;
-        private Gtk.Stack bottom_stack;
-        private Gtk.Stack toolbar_stack;
-        private Gtk.Stack sidebar_stack;
-
-        private Gtk.Label report_label;
-        private Gtk.Label location_label;
+        private BottomStack bottom_stack;
 
         private uint update_report_view_timeout_id = 0;
-
-        private int report_widget_id = -1;
-        private int terminal_widget_id = -1;
-        private int build_output_widget_id = -1;
 
         construct {
             orientation = Gtk.Orientation.VERTICAL;
 
             code_parser = new ValaCodeParser ();
+
             vala_provider = new ValaDocumentProvider (this);
 
             words_provider = new Gtk.SourceCompletionWords (_("Word Completion"), null);
@@ -89,87 +75,21 @@ namespace IDE {
             editors.add (main_editor);
             editors_container.add (main_editor);
 
-            terminal_widget = new TerminalWidget ();
-
             Gtk.drag_dest_set (editors_container, Gtk.DestDefaults.ALL, targets, Gdk.DragAction.COPY);
             editors_container.drag_data_received.connect (on_drag_data_received);
 
-            search_entry = new Gtk.SearchEntry ();
-            search_entry.halign = Gtk.Align.CENTER;
-            search_entry.margin = 6;
-            search_entry.placeholder_text = _("Search files…");
-            search_entry.search_changed.connect (on_search_entry_changed);
+            bottom_stack = new BottomStack ();
+            bottom_stack.report_widget.jump_to.connect (on_jump_to);
 
-            source_list = new SourceList ();
-            source_list.set_filter_func (source_list_visible_func, true);
-            source_list.item_selected.connect (on_item_selected);
-
-            var scrolled = new Gtk.ScrolledWindow (null, null);
-            scrolled.min_content_width = 200;
-            scrolled.add (source_list);
-
-            file_search_view = new FileSearchView ();
-            file_search_view.result_activated.connect ((result) => open_focus_filename (result.filename));
-
-            sidebar_stack = new Gtk.Stack ();
-            sidebar_stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT;
-            sidebar_stack.add_named (scrolled, Constants.FILE_SIDEBAR_VIEW_NAME);
-            sidebar_stack.add_named (file_search_view, Constants.FILE_SEARCH_VIEW_NAME);
-
-            sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
-
-            sidebar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-            sidebar.add (search_entry);
-            sidebar.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            sidebar.add (sidebar_stack);
+            sidebar = new Sidebar ();
+            sidebar.file_search_view.result_activated.connect ((result) => open_focus_filename (result.filename));
+            sidebar.source_list.item_selected.connect (on_item_selected);
 
             info_window = new InfoWindow ();
 
-            report_widget = new ReportWidget ();
-            report_widget.jump_to.connect (on_jump_to);
-
-            var bottom_bar = new Gtk.Grid ();
-            bottom_bar.orientation = Gtk.Orientation.HORIZONTAL;
-
-            toolbar_stack = new Gtk.Stack ();
-            toolbar_stack.add (report_widget.toolbar_widget);
-
-            bottom_stack = new Gtk.Stack ();
-            bottom_stack.transition_type = Gtk.StackTransitionType.SLIDE_RIGHT;
-            bottom_stack.add_named (report_widget, Constants.REPORT_VIEW_NAME);
-            bottom_stack.add_named (terminal_widget, Constants.TERMINAL_VIEW_NAME);
-
-            bottom_stack.visible_child_name = Constants.REPORT_VIEW_NAME;
-
-            report_label = new Gtk.Label (null);
-            location_label = new Gtk.Label (null);
-
-            mode_button = new Granite.Widgets.ModeButton ();
-            mode_button.mode_changed.connect (on_mode_changed);
-            mode_button.halign = Gtk.Align.END;
-
-            report_widget_id = mode_button.append_icon ("dialog-information-symbolic", Gtk.IconSize.MENU);
-            terminal_widget_id = mode_button.append_icon ("utilities-terminal-symbolic", Gtk.IconSize.MENU);
-            build_output_widget_id = mode_button.append_icon ("system-run-symbolic", Gtk.IconSize.MENU);
-
-            var toolbar_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-            toolbar_box.margin = 6;
-            toolbar_box.add (toolbar_stack);
-            toolbar_box.add (report_label);
-            toolbar_box.add (location_label);
-            toolbar_box.pack_end (mode_button);
-
-            var size_group = new Gtk.SizeGroup (Gtk.SizeGroupMode.VERTICAL);
-            size_group.add_widget (toolbar_stack);
-            size_group.add_widget (mode_button);
-
-            bottom_bar.attach (toolbar_box, 0, 0, 1, 1);
-            bottom_bar.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 1, 1, 1);
-            bottom_bar.attach (bottom_stack, 0, 2, 1, 1);
-
             vertical_paned = new Gtk.Paned (Gtk.Orientation.VERTICAL);
             vertical_paned.pack1 (top_box, true, false);
-            vertical_paned.pack2 (bottom_bar, false, false);
+            vertical_paned.pack2 (bottom_stack, false, false);
 
             var horizontal_paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
             horizontal_paned.pack1 (sidebar, false, false);
@@ -179,8 +99,6 @@ namespace IDE {
 
             add (horizontal_paned);
             show_all ();
-
-            mode_button.selected = report_widget_id;
         }
 
         public void load_project (Project? project) {
@@ -188,12 +106,12 @@ namespace IDE {
 
             if (project == null) {
                 Utils.set_widget_visible (sidebar, false);
-                terminal_widget.spawn_default (Environment.get_home_dir ());
+                bottom_stack.terminal_widget.spawn_default (Environment.get_home_dir ());
                 return;
             }
 
             Utils.set_widget_visible (sidebar, true);
-            source_list.set_file (File.new_for_path (project.root_path));
+            sidebar.source_list.set_file (File.new_for_path (project.root_path));
 
             code_parser = new ValaCodeParser ();
 
@@ -205,10 +123,10 @@ namespace IDE {
                 code_parser.add_source (source);
             }
 
-            file_search_view.set_search_directory (project.root_path);
+            sidebar.file_search_view.set_search_directory (project.root_path);
 
-            terminal_widget.clear ();
-            terminal_widget.spawn_default (project.root_path);
+            bottom_stack.terminal_widget.clear ();
+            bottom_stack.terminal_widget.spawn_default (project.root_path);
 
             project.save ();      
             code_parser.queue_parse ();
@@ -222,38 +140,16 @@ namespace IDE {
             return project;
         }
 
-        public void add_new_document () {
-            var document = new Document.empty ();
-            add_document (document, true);
-        }
-
         private EditorView get_current_editor_view () {
             return editors[current_editor_index];
         }
 
         private EditorView create_new_editor_view () {
             var editor_view = new EditorView ();
-            editor_view.add_new_document.connect (add_new_document);
+            editor_view.new_tab_requested.connect (add_new_document);
             editor_view.tab_switched.connect (on_tab_switched);
-            editor_view.tab_removed.connect (on_tab_removed);
+            editor_view.document_removed.connect (on_document_removed);
             return editor_view;
-        }
-
-        private void on_search_entry_changed () {
-            if (search_entry.text != "") {
-                file_search_view.search.begin (search_entry.text, false);
-                sidebar_stack.visible_child_name = Constants.FILE_SEARCH_VIEW_NAME;
-            } else {
-                sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
-            }
-        }
-
-        private bool source_list_visible_func (Granite.Widgets.SourceList.Item item) {
-            if (item is SourceList.FileItem) {
-                return item.name.down ().contains (search_entry.text.down ());
-            }
-
-            return true;
         }
 
         private bool update_report_view () {
@@ -286,14 +182,14 @@ namespace IDE {
                     editor_window.cancel_search ();
                     editor_window.search.begin (query, regex, case_sensitive, word_boundaries, (obj, res) => {
                         editor_window.search.end (res);
-                        update_match_count_from_document ();
+                        update_search_match_count ();
                     });
                     
                     break;
                 case SearchMode.REPLACE:
                     editor_window.replace.begin (replace_query, (obj, res) => {
                         editor_window.replace.end (res);
-                        update_match_count_from_document ();
+                        update_search_match_count ();
                     });
 
                     break;
@@ -315,7 +211,7 @@ namespace IDE {
             editor_window.cancel_search ();
             editor_window.search_previous.begin ((obj, res) => {
                 editor_window.search_previous.end (res);
-                update_match_count_from_document ();
+                update_search_match_count ();
             });
         }
 
@@ -329,7 +225,7 @@ namespace IDE {
             editor_window.cancel_search ();
             editor_window.search_next.begin ((obj, res) => {
                 editor_window.search_next.end (res);
-                update_match_count_from_document ();
+                update_search_match_count ();
             });
             
         }
@@ -344,22 +240,6 @@ namespace IDE {
             }
 
             Gtk.drag_finish (ctx, true, false, time);
-        }
-
-        private void on_mode_changed () {
-            if (mode_button.selected == report_widget_id) {
-                bottom_stack.visible_child_name = Constants.REPORT_VIEW_NAME;
-            } else if (mode_button.selected == terminal_widget_id) {
-                bottom_stack.visible_child_name = Constants.TERMINAL_VIEW_NAME;
-            }
-
-            var selected_widget = (BottomWidget)bottom_stack.get_child_by_name (bottom_stack.visible_child_name);
-            if (selected_widget.toolbar_widget != null) {
-                toolbar_stack.visible_child = selected_widget.toolbar_widget;
-                Utils.set_widget_visible (toolbar_stack, true);
-            } else {
-                Utils.set_widget_visible (toolbar_stack, false);
-            }
         }
 
         private void on_item_selected (Granite.Widgets.SourceList.Item? item) {
@@ -404,15 +284,22 @@ namespace IDE {
             return document;
         }
 
-        private void on_tab_removed (EditorView editor_view, Granite.Widgets.Tab tab) {
-            var document = (Document)tab;
-            editor_view.remove_document (document);
-            remove_document_internal (document);
+        public void add_new_document () {
+            var document = new Document.empty ();
+            add_document (document, true);
         }
 
         private void on_tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab) {
             update_location_label ();
             current_document_changed ();
+        }
+
+        private void on_document_removed (EditorView editor_view, Document document) {
+            editor_view.remove_document (document);
+            remove_document_internal (document);
+
+            update_location_label ();
+            update_toolbar ();
         }
 
         public void add_document (Document document, bool focus = true) {
@@ -427,20 +314,18 @@ namespace IDE {
 
             var editor_window = document.editor_window;
 
-            editor_window.source_buffer.notify["cursor-position"].connect (() => update_location_label ());
+            editor_window.source_buffer.notify["cursor-position"].connect (update_location_label);
+            editor_window.search_context.notify["occurrences-count"].connect (update_search_match_count);
             editor_window.close_info_window.connect (on_close_info_window);
             editor_window.show_info_window.connect ((iter, x, y) => on_show_info_window (document, iter, x, y));
 
-            editor_window.search_context.notify["occurrences-count"].connect (update_match_count_from_document);
-
             get_current_editor_view ().add_document (document, focus);
             update_location_label ();
+            update_toolbar ();
         }
 
-
         private void remove_document_internal (Document document) {
-            words_provider.unregister (document.editor_window.source_buffer);
-            update_location_label ();             
+            words_provider.unregister (document.editor_window.source_buffer);          
         }
 
         public Gee.List<Document> get_opened_documents () {
@@ -474,22 +359,22 @@ namespace IDE {
         private void update_location_label () {
             var current = get_current_document ();
             if (current == null) {
-                Utils.set_widget_visible (location_label, false);
+                Utils.set_widget_visible (bottom_stack.location_label, false);
                 return;
             }
 
-            location_label.label = _("Line %i, Column %i".printf (current.current_line + 1, current.current_column));
-            Utils.set_widget_visible (location_label, true);
+            bottom_stack.location_label.label = _("Line %i, Column %i".printf (current.current_line + 1, current.current_column));
+            Utils.set_widget_visible (bottom_stack.location_label, true);
         }
 
         private void update_report_widget (Report report) {
             int errors, warnings;
             report.get_message_count (out errors, out warnings);
 
-            report_label.label = _("Errors: %i, Warnings: %i".printf (errors, warnings));
+            bottom_stack.report_label.label = _("Errors: %i, Warnings: %i".printf (errors, warnings));
 
-            report_widget.clear ();
-            report_widget.set_report (report);
+            bottom_stack.report_widget.clear ();
+            bottom_stack.report_widget.set_report (report);
         }
 
         private void clear_view_tags () {
@@ -521,7 +406,7 @@ namespace IDE {
             return null;
         }
 
-        private void update_match_count_from_document () {
+        private void update_search_match_count () {
             var document = get_current_document ();
             var search_context = document.editor_window.search_context;
 
@@ -529,7 +414,6 @@ namespace IDE {
             search_context.buffer.get_selection_bounds (out start_iter, out end_iter);
 
             int occurrence = search_context.get_occurrence_position (start_iter, end_iter);
-
             document_search_toolbar.set_match_count_label (occurrence, search_context.occurrences_count);
         }
 

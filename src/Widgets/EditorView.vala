@@ -19,9 +19,9 @@
 
 namespace IDE {
     public class EditorView : Gtk.Stack {
-        public signal void add_new_document ();
+        public signal void new_tab_requested ();
         public signal void tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab);
-        public signal void tab_removed (Granite.Widgets.Tab tab);
+        public signal void document_removed (Document document);
 
         public Granite.Widgets.DynamicNotebook notebook { get; construct; }
         private Gee.ArrayList<Document> documents;
@@ -38,9 +38,9 @@ namespace IDE {
             notebook.allow_new_window = true;
             notebook.allow_duplication = false;
             notebook.add_button_visible = true;
-            notebook.new_tab_requested.connect (() => add_new_document ());
+            notebook.new_tab_requested.connect (() => new_tab_requested ());
             notebook.tab_switched.connect ((old_tab, new_tab) => tab_switched (old_tab, new_tab));
-            notebook.tab_removed.connect ((tab) => tab_removed (tab));
+            notebook.tab_removed.connect (on_tab_removed);
             notebook.add_button_tooltip = _("New empty document");
 
             var no_documents_view = new Granite.Widgets.AlertView (_("No documents opened"), _("Open a document to begin editing"), "dialog-information");
@@ -65,6 +65,16 @@ namespace IDE {
             documents.remove (document);
             notebook.remove_tab (document);
             update_notebook_stack ();
+        }
+
+        private void on_tab_removed (Granite.Widgets.Tab tab) {
+            var document = (Document)tab;
+            if (document == null) {
+                return;
+            }
+
+            remove_document (document);
+            document_removed (document);
         }
 
         private void update_notebook_stack () {

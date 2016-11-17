@@ -43,7 +43,7 @@ namespace IDE {
 
             search_entry = new Gtk.SearchEntry ();
             search_entry.placeholder_text = _("Search");
-            search_entry.changed.connect (() => send_search_request ());
+            search_entry.changed.connect (on_search_entry_changed);
 
             var search_entry_item = new Gtk.ToolItem ();
             search_entry_item.margin_end = 3;
@@ -118,11 +118,17 @@ namespace IDE {
             toolbar.add (spacer);
             toolbar.add (matches_label_item);
             add (toolbar);
+
+            Utils.set_widget_visible (matches_label, false);
         }
 
         public void set_match_count_label (int occurrence, int matches) {
-            Utils.set_widget_visible (matches_label, matches >= 0);
             matches_label.label = _("%i of %i matches").printf (occurrence, matches);
+        }
+
+        private void on_search_entry_changed () {
+            Utils.set_widget_visible (matches_label, search_entry.text != "");
+            send_search_request ();
         }
 
         private void send_search_request (SearchMode mode = SearchMode.SEARCH_ONLY) {

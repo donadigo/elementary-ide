@@ -37,6 +37,8 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/SearchToolbar.vala
     Widgets/Document.vala   
     Widgets/BottomWidget.vala   
+    Widgets/BottomStack.vala
+    Widgets/Sidebar.vala
     Widgets/FileSearchView.vala
     Widgets/SettingsFrame.vala
     Dialogs/EditorPreferencesDialog.vala

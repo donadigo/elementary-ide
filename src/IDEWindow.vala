@@ -19,7 +19,7 @@
 
 namespace IDE {
     public class IDEWindow : Gtk.ApplicationWindow {
-        public DocumentManager document_manager { public get; private set; }
+        public ProjectView document_manager { public get; private set; }
         
         private ToolBar toolbar;
         private Gtk.Stack main_stack;
@@ -34,6 +34,7 @@ namespace IDE {
             window_position = Gtk.WindowPosition.CENTER;
 
             document_manager = new ProjectView ();
+            document_manager.update_toolbar.connect (on_update_toolbar);
 
             toolbar = new ToolBar ();
             toolbar.open_project.connect (show_open_project_dialog);
@@ -55,11 +56,13 @@ namespace IDE {
 
             main_stack = new Gtk.Stack ();
             main_stack.add_named (welcome, Constants.WELCOME_VIEW_NAME);
-            main_stack.add_named ((ProjectView)document_manager, Constants.EDITOR_VIEW_NAME);
+            main_stack.add_named (document_manager, Constants.EDITOR_VIEW_NAME);
 
             load_project (null);
 
             add (main_stack);    
+
+            on_update_toolbar ();
         }
 
         public IDEWindow (Gtk.Application application) {
@@ -103,14 +106,6 @@ namespace IDE {
             }
         }
 
-        private void on_activated (int idx) {
-            if (idx == open_file_id) {
-                show_open_files_dialog ();
-            } else if (idx == open_id) {
-                show_open_project_dialog ();
-            }
-        }
-
         public void show_open_files_dialog () {
             var dialog = new Gtk.FileChooserDialog (_("Open signle file…"), this, Gtk.FileChooserAction.OPEN,
                                                     _("Cancel"),
@@ -149,6 +144,19 @@ namespace IDE {
             }
 
             dialog.destroy ();
+        }
+
+        private void on_activated (int idx) {
+            if (idx == open_file_id) {
+                show_open_files_dialog ();
+            } else if (idx == open_id) {
+                show_open_project_dialog ();
+            }
+        }
+
+        private void on_update_toolbar () {
+            toolbar.save_current_document_menuitem.sensitive = (document_manager.get_current_document () != null);
+            toolbar.save_opened_documents_menuitem.sensitive = (document_manager.get_opened_documents ().size > 0);
         }
     }
 }
