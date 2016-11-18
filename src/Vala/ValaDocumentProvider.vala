@@ -68,9 +68,9 @@ namespace IDE {
             info_widget.show_all ();
         }
 
-    	public ValaDocumentProvider (DocumentManager manager) {
+        public ValaDocumentProvider (DocumentManager manager) {
             this.manager = manager;
-    	}
+        }
 
         public string get_name () {
             return _("Vala Completion");

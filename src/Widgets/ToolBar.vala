@@ -42,7 +42,7 @@ namespace IDE {
         private Gtk.Button preferences_button;
         private Gtk.ToggleButton search_button;
 
-    	private MenuButton open_button;
+        private MenuButton open_button;
         private MenuButton save_button;
         private MenuButton run_button;
 

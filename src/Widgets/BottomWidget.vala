@@ -18,7 +18,7 @@
  */
 
 namespace IDE {
-	public interface BottomWidget : Gtk.Widget {
-		public abstract Gtk.Widget? toolbar_widget { get; }
-	}
+    public interface BottomWidget : Gtk.Widget {
+        public abstract Gtk.Widget? toolbar_widget { get; }
+    }
 }

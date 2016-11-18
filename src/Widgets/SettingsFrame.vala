@@ -77,16 +77,16 @@ namespace IDE {
         }
     }
 
-	public class SettingsFrame : Gtk.Frame {
-		private Gtk.ListBox list_box;
+    public class SettingsFrame : Gtk.Frame {
+        private Gtk.ListBox list_box;
 
-		construct {
-			list_box = new Gtk.ListBox ();
-			add (list_box);
-		}
+        construct {
+            list_box = new Gtk.ListBox ();
+            add (list_box);
+        }
 
-		public void add_widget (Gtk.Widget widget) {
-			list_box.add (widget);
-		}
-	}
+        public void add_widget (Gtk.Widget widget) {
+            list_box.add (widget);
+        }
+    }
 }

@@ -19,15 +19,15 @@
 
 namespace IDE {
 
-	/* The buffer class which is holding document reference,
-	 * in future, it will have more functions / members
-	 */
-	public class IDEBuffer : Gtk.SourceBuffer {
-		public Document document { get; construct; }
-		public bool recently_changed { get; set; }
+    /* The buffer class which is holding document reference,
+     * in future, it will have more functions / members
+     */
+    public class IDEBuffer : Gtk.SourceBuffer {
+        public Document document { get; construct; }
+        public bool recently_changed { get; set; }
 
-		public IDEBuffer (Document document, Gtk.TextTagTable? tag_table) {
-			Object (document: document, tag_table: tag_table);
-		}
-	}
+        public IDEBuffer (Document document, Gtk.TextTagTable? tag_table) {
+            Object (document: document, tag_table: tag_table);
+        }
+    }
 }

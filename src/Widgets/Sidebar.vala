@@ -18,15 +18,15 @@
  */
 
 namespace IDE {
-	public class Sidebar : Gtk.Box {		
+    public class Sidebar : Gtk.Box {        
         public FileSearchView file_search_view { get; construct; }
-		public SourceList source_list { get; construct; }
+        public SourceList source_list { get; construct; }
 
-		private Gtk.Stack sidebar_stack;
-		private Gtk.SearchEntry search_entry;
+        private Gtk.Stack sidebar_stack;
+        private Gtk.SearchEntry search_entry;
 
-		construct {
-			orientation = Gtk.Orientation.VERTICAL;
+        construct {
+            orientation = Gtk.Orientation.VERTICAL;
             file_search_view = new FileSearchView ();
 
             source_list = new SourceList ();
@@ -36,7 +36,7 @@ namespace IDE {
             scrolled.min_content_width = 200;
             scrolled.add (source_list);
 
-			sidebar_stack = new Gtk.Stack ();
+            sidebar_stack = new Gtk.Stack ();
             sidebar_stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT;
             sidebar_stack.add_named (scrolled, Constants.FILE_SIDEBAR_VIEW_NAME);
             sidebar_stack.add_named (file_search_view, Constants.FILE_SEARCH_VIEW_NAME);
@@ -51,7 +51,7 @@ namespace IDE {
             add (search_entry);
             add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
             add (sidebar_stack);            
-		}
+        }
 
         private bool source_list_visible_func (Granite.Widgets.SourceList.Item item) {
             if (item is SourceList.FileItem) {
@@ -59,7 +59,7 @@ namespace IDE {
             }
 
             return true;
-        }		
+        }       
 
         private void on_search_entry_changed () {
             if (search_entry.text != "") {
@@ -69,5 +69,5 @@ namespace IDE {
                 sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
             }
         }        
-	}
+    }
 }

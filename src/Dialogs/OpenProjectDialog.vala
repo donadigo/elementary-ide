@@ -18,11 +18,11 @@
  */
 
 namespace IDE {
-	// TODO: remove this
-	public class OpenProjectDialog : Gtk.FileChooserDialog {
-		construct {
-			action = Gtk.FileChooserAction.SELECT_FOLDER;
-			title = _("Open project…");
-		}
-	}
+    // TODO: remove this
+    public class OpenProjectDialog : Gtk.FileChooserDialog {
+        construct {
+            action = Gtk.FileChooserAction.SELECT_FOLDER;
+            title = _("Open project…");
+        }
+    }
 }
