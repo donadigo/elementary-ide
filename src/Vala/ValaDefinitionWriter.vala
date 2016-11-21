@@ -598,6 +598,7 @@ namespace IDE {
 
                 write_string (" get;");
             }
+
             if (prop.set_accessor != null) {
                 write_attributes (prop.set_accessor);
 
@@ -614,6 +615,7 @@ namespace IDE {
                     write_string (" construct;");
                 }
             }
+            
             write_string (" }");
         }
 

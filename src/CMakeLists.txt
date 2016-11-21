@@ -19,7 +19,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     CMake/CMakeCommand.vala
     CMake/CMakeVariable.vala
     Vala/ValaDocumentProvider.vala
-    Vala/Locator.vala
+    Vala/ValaBlockLocator.vala
     Vala/ValaCodeParser.vala
     Vala/ValaDefinitionWriter.vala
     Projects/CMakeProject.vala

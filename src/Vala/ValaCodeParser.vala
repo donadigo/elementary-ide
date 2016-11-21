@@ -141,7 +141,7 @@ namespace IDE {
                 string definition = definition_writer.write_symbol_definition (symbol);
                 Vala.CodeContext.pop ();
 
-                return definition;
+                return definition.strip ();
             }   
         }
 

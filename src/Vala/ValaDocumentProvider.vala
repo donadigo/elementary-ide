@@ -21,12 +21,10 @@ namespace IDE {
     public class ValaDocumentProvider : Object, Gtk.SourceCompletionProvider {
         public class SymbolItem : GLib.Object, Gtk.SourceCompletionProposal {
             public Vala.Symbol symbol { get; construct; }
-            public string info { get; set; default = ""; }
+            public string definition { get; construct; }
 
-            public SymbolItem (Vala.Symbol symbol) {
-                GLib.Object (symbol: symbol);
-
-                //info = Utils.convert_symbol_to_definition (symbol);
+            public SymbolItem (Vala.Symbol symbol, string definition) {
+                Object (symbol: symbol, definition: definition);
             }
                 
             public unowned GLib.Icon? get_gicon () {
@@ -34,8 +32,8 @@ namespace IDE {
             }
 
             public unowned string? get_icon_name () { return null; }
-            public string? get_info () { return info; }
-            public string get_label () { return symbol.name; }
+            public string? get_info () { return null; }
+            public string get_label () { return definition; }
             public string get_markup () { return symbol.name; }
             public string get_text () { return symbol.name; }
         }
@@ -59,6 +57,9 @@ namespace IDE {
 
             definition_label = new Gtk.Label (null);
             definition_label.use_markup = true;
+            definition_label.max_width_chars = 70;
+            definition_label.wrap = true;
+            definition_label.wrap_mode = Pango.WrapMode.WORD;
 
             comment_label = new Gtk.Label (null);
 
@@ -135,7 +136,8 @@ namespace IDE {
                 var symbols = code_parser.lookup_visible_symbols_at (document.get_file_path (), document.current_line + 1, document.current_column);
                 foreach (var symbol in symbols) {
                     if (symbol != null && symbol.name != null && symbol.name.has_prefix (prefix)) {
-                        list.append (new SymbolItem (symbol));
+                        string definition = code_parser.write_symbol_definition (symbol);
+                        list.append (new SymbolItem (symbol, definition));
                     }
                 }
 
@@ -156,7 +158,8 @@ namespace IDE {
                     list = new List<Gtk.SourceCompletionProposal> ();
                     foreach (var symbol in symbols) {
                         if (symbol != null && symbol.name == names[0]) {
-                            list.append (new SymbolItem (symbol));
+                            string definition = code_parser.write_symbol_definition (symbol);
+                            list.append (new SymbolItem (symbol, definition));
                         }
                     }
 
@@ -167,7 +170,7 @@ namespace IDE {
                                 return;
                             }
 
-                            var sym = (prop as SymbolItem).symbol;
+                            var sym = ((SymbolItem)prop).symbol;
                             if (sym.name == names[i - 1]) {
                                 current = sym;
                             }
@@ -178,8 +181,9 @@ namespace IDE {
                         }
 
                         list = new List<Gtk.SourceCompletionProposal> ();
-                        code_parser.get_symbols_for_name (current, names[i], false).foreach (sym => {
-                            list.append (new SymbolItem (sym));
+                        code_parser.get_symbols_for_name (current, names[i], false).foreach (symbol => {
+                            string definition = code_parser.write_symbol_definition (symbol);
+                            list.append (new SymbolItem (symbol, definition));
                             return true;
                         });
                     }
@@ -209,19 +213,13 @@ namespace IDE {
 
         public unowned Gtk.Widget? get_info_widget (Gtk.SourceCompletionProposal proposal) {
             var symbol_item = (SymbolItem)proposal;
-            definition_label.label = "<b>" + Markup.escape_text (symbol_item.info) + "</b>";
-
-            var comment = symbol_item.symbol.comment;
-            comment_label.visible = comment != null;
-            if (comment != null) {
-                comment_label.label = null;
-            }
+            definition_label.label = "<b>%s</b>".printf (Markup.escape_text (symbol_item.definition));
 
             return info_widget;
         }
 
         public void update_info (Gtk.SourceCompletionProposal proposal, Gtk.SourceCompletionInfo info) {
-            // info.set_widget (null);
+
         }
 
         public int get_priority () {
