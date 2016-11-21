@@ -27,12 +27,12 @@ namespace IDE {
 
         private Vala.MemberBinding prev_binding;
         private bool prev_access;
-        private BlockLocator locator;
+        private ValaBlockLocator locator;
         private ValaDefinitionWriter definition_writer;
 
         construct {
             report = new Report ();
-            locator = new BlockLocator ();
+            locator = new ValaBlockLocator ();
             context = new Vala.CodeContext ();
             context.report = report;
             context.compile_only = true;

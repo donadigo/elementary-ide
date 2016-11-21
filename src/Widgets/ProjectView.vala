@@ -82,7 +82,7 @@ namespace IDE {
             bottom_stack.report_widget.jump_to.connect (on_jump_to);
 
             sidebar = new Sidebar ();
-            sidebar.file_search_view.result_activated.connect ((result) => open_focus_filename (result.filename));
+            sidebar.file_search_view.result_activated.connect (on_result_activated);
             sidebar.source_list.item_selected.connect (on_item_selected);
 
             info_window = new InfoWindow ();
@@ -230,6 +230,14 @@ namespace IDE {
             
         }
 
+        private void on_result_activated (FileSearchResult result) {
+            if (result.search_location != null) {
+                on_jump_to (result.filename, result.search_location.location.line - 1, 0);
+            } else {
+                open_focus_filename (result.filename);
+            }
+        }
+
         private void on_drag_data_received (Gdk.DragContext ctx, int x, int y, Gtk.SelectionData sel,  uint info, uint time) {
             foreach (string uri in sel.get_uris ()) {
                 try {
@@ -265,8 +273,8 @@ namespace IDE {
                 iter.set_line (line);
                 iter.set_line_offset (column);
                 
-                document.editor_window.source_view.scroll_to_iter (iter, 0.4, true, 0, 0);
                 document.editor_window.source_buffer.place_cursor (iter);
+                document.editor_window.source_view.scroll_to_iter (iter, 0.4, true, 0, 0);
                 return false;
             });
         }

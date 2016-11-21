@@ -32,7 +32,7 @@ namespace IDE.Constants {
     public const string FILE_SIDEBAR_VIEW_NAME = "file-sidebar";
     public const string FILE_SEARCH_VIEW_NAME = "file-search-view";
     public const string FILE_SEARCH_VIEW_SPINNER_NAME = "file-search-view-spinner";
-    public const string FILE_SEARCH_NO_RESULTS_VIEW_NAME = "file-search-view-no-results";
+    public const string FILE_SEARCH_ERROR_VIEW_NAME = "file-search-view-error";
 
     // Project targets constants
     public const string NATIVE_TARGET = ".elementary-ide.proj";

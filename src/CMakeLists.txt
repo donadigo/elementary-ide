@@ -6,6 +6,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     IDEWindow.vala
     Project.vala
     Utils.vala
+    Location.vala
     DocumentManager.vala
     CodeParser.vala
     IDEBuffer.vala

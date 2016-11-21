@@ -611,7 +611,7 @@ namespace IDE {
                     write_string (" set;");
                 }
                 if (prop.set_accessor.construction) {
-                    write_string (" construct");
+                    write_string (" construct;");
                 }
             }
             write_string (" }");

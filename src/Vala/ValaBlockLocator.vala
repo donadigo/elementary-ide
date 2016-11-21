@@ -16,36 +16,8 @@
  */
 
 namespace IDE {
-    public struct Location {
-        public int line;
-        public int column;
-
-        public Location (int line, int column) {
-            this.line = line;
-            this.column = column;
-        }
-
-        public bool inside (Vala.SourceReference src) {
-            var begin = Location (src.begin.line, src.begin.column);
-            var end = Location (src.end.line, src.end.column);
-            return begin.before (this) && this.before (end);
-        }
-        
-        public bool before (Location other) {
-            if (line > other.line) {
-                return false;
-            }
-
-            if (line == other.line && column > other.column) {
-                return false;
-            }
-
-            return true;
-        }
-    }
-    
     /* Finds the innermost block containing the given location */
-    public class BlockLocator : Vala.SymbolResolver {
+    public class ValaBlockLocator : Vala.SymbolResolver {
         private Location location;
         private Vala.Symbol innermost;
         private Location innermost_begin;
@@ -55,7 +27,7 @@ namespace IDE {
         public Vala.Symbol? locate (Vala.SourceFile file, int line, int column) {
             this.file = file;
             innermost = null;
-            location = Location (line, column);
+            location = new Location (line, column);
 
             file.accept_children (this);
             return innermost;
@@ -64,13 +36,16 @@ namespace IDE {
         private bool update_location (Vala.Symbol symbol) {
             if (symbol == null ||
                 symbol.source_reference == null ||
-                symbol.source_reference.file.filename != file.filename ||
-                !location.inside (symbol.source_reference)) {
+                symbol.source_reference.file.filename != file.filename) {
                 return false;
             }
 
-            var begin = Location (symbol.source_reference.begin.line, symbol.source_reference.begin.column);
-            var end = Location (symbol.source_reference.end.line, symbol.source_reference.end.column);
+            var begin = new Location (symbol.source_reference.begin.line, symbol.source_reference.begin.column);
+            var end = new Location (symbol.source_reference.end.line, symbol.source_reference.end.column);
+
+            if (!location.inside (begin, end)) {
+                return false;
+            }
 
             if (innermost == null || innermost_begin.before (begin) && end.before (innermost_end)) {
                 innermost = symbol;
@@ -85,13 +60,16 @@ namespace IDE {
         private bool update_expression_location (Vala.Expression expr) {
             if (expr == null ||
                 expr.source_reference == null ||
-                expr.source_reference.file.filename != file.filename ||
-                !location.inside (expr.source_reference)) {
+                expr.source_reference.file.filename != file.filename) {
                 return false;
             }
 
-            var begin = Location (expr.source_reference.begin.line, expr.source_reference.begin.column);
-            var end = Location (expr.source_reference.end.line, expr.source_reference.end.column);
+            var begin = new Location (expr.source_reference.begin.line, expr.source_reference.begin.column);
+            var end = new Location (expr.source_reference.end.line, expr.source_reference.end.column);
+
+            if (!location.inside (begin, end)) {
+                return false;
+            }
 
             if (innermost == null || innermost_begin.before (begin) && end.before (innermost_end)) {
                 innermost = expr.symbol_reference;

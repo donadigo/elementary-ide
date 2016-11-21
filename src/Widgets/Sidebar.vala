@@ -24,6 +24,7 @@ namespace IDE {
 
         private Gtk.Stack sidebar_stack;
         private Gtk.SearchEntry search_entry;
+        private Gtk.ToggleButton document_toogle_button;
 
         construct {
             orientation = Gtk.Orientation.VERTICAL;
@@ -43,14 +44,25 @@ namespace IDE {
             sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
 
             search_entry = new Gtk.SearchEntry ();
-            search_entry.halign = Gtk.Align.CENTER;
-            search_entry.margin = 6;
+            search_entry.hexpand = true;
             search_entry.placeholder_text = _("Search files…");
             search_entry.search_changed.connect (on_search_entry_changed);
 
-            add (search_entry);
+            var search_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+            search_box.margin = 6;
+
+            document_toogle_button = new Gtk.ToggleButton ();
+            document_toogle_button.tooltip_text = _("Search in document content");
+            document_toogle_button.get_style_context ().add_class ("flat");
+            document_toogle_button.image = new Gtk.Image.from_icon_name ("x-office-document-symbolic", Gtk.IconSize.MENU);
+            document_toogle_button.toggled.connect (on_search_entry_changed);
+
+            search_box.pack_start (search_entry, true, true);
+            search_box.pack_end (document_toogle_button, false, false);
+
+            add (search_box);
             add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            add (sidebar_stack);            
+            add (sidebar_stack);
         }
 
         private bool source_list_visible_func (Granite.Widgets.SourceList.Item item) {
@@ -63,7 +75,7 @@ namespace IDE {
 
         private void on_search_entry_changed () {
             if (search_entry.text != "") {
-                file_search_view.search.begin (search_entry.text, false);
+                file_search_view.search.begin (search_entry.text, document_toogle_button.active);
                 sidebar_stack.visible_child_name = Constants.FILE_SEARCH_VIEW_NAME;
             } else {
                 sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;

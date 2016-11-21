@@ -33,8 +33,8 @@ namespace IDE {
 
                 subtitle_label = new Gtk.Label (null);
                 subtitle_label.ellipsize = Pango.EllipsizeMode.MIDDLE;
-                subtitle_label.max_width_chars = 20;
                 subtitle_label.halign = Gtk.Align.START;
+                subtitle_label.hexpand = true;
 
                 var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
                 box.add (filename_label);
@@ -52,18 +52,36 @@ namespace IDE {
 
             public FileResultRow (FileSearchResult result, string root_filename) {
                 Object (result: result);
-                subtitle_label.label = Utils.get_basename_relative_path (root_filename, result.filename);
+                if (result.search_location != null) {
+                    var attr_list = new Pango.AttrList ();
+
+                    var font_desc = new Pango.FontDescription ();
+                    font_desc.set_weight (Pango.Weight.BOLD);
+
+                    var bold_attr = new Pango.AttrFontDesc (font_desc);
+                    bold_attr.start_index = result.search_location.location.column;
+                    bold_attr.end_index = result.search_location.column_end;
+
+                    attr_list.insert (bold_attr.copy ());
+                    subtitle_label.attributes = attr_list;
+                    subtitle_label.label = result.search_location.line.strip ();
+                } else {
+                    subtitle_label.label = Utils.get_basename_relative_path (root_filename, result.filename);
+                }
             }
         }
 
         public signal void result_activated (FileSearchResult result);
 
+        private const int RESULTS_LIMIT = 400;
+
         private Gtk.Stack stack_placeholder;
-        private Gtk.Label no_search_results_label;
+        private Gtk.Label error_results_label;
         private Gtk.Spinner spinner;
         private Gtk.ListBox list_box;
 
         private FileSearchEngine search_engine;
+        private Cancellable? cancellable;
 
         construct {
             hscrollbar_policy = Gtk.PolicyType.NEVER;
@@ -75,16 +93,16 @@ namespace IDE {
             grid.halign = grid.valign = Gtk.Align.CENTER;
             grid.add (spinner);
 
-            no_search_results_label = new Gtk.Label (null);
-            no_search_results_label.justify = Gtk.Justification.CENTER;
-            no_search_results_label.get_style_context ().add_class ("h3");
-            no_search_results_label.wrap_mode = Pango.WrapMode.WORD_CHAR;
-            no_search_results_label.wrap = true;
-            no_search_results_label.max_width_chars = 30;
+            error_results_label = new Gtk.Label (null);
+            error_results_label.justify = Gtk.Justification.CENTER;
+            error_results_label.get_style_context ().add_class ("h4");
+            error_results_label.wrap_mode = Pango.WrapMode.WORD_CHAR;
+            error_results_label.wrap = true;
+            error_results_label.max_width_chars = 30;
 
             stack_placeholder = new Gtk.Stack ();
             stack_placeholder.add_named (grid, Constants.FILE_SEARCH_VIEW_SPINNER_NAME);
-            stack_placeholder.add_named (no_search_results_label, Constants.FILE_SEARCH_NO_RESULTS_VIEW_NAME);
+            stack_placeholder.add_named (error_results_label, Constants.FILE_SEARCH_ERROR_VIEW_NAME);
             stack_placeholder.show_all ();
 
             list_box = new Gtk.ListBox ();
@@ -101,23 +119,34 @@ namespace IDE {
             search_engine.root_filename = filename;
         }
 
-        public async void search (string query, bool include_hidden) {
+        public async void search (string query, bool search_content) {
             if (search_engine.root_filename == null) {
                 return;
             }
 
-            spinner.start ();
-            stack_placeholder.visible_child_name = Constants.FILE_SEARCH_VIEW_SPINNER_NAME;
-            clear ();
-
-            var results = yield search_engine.search_files (query, include_hidden);
-            foreach (var result in results) {
-                var row = new FileResultRow (result, search_engine.root_filename);
-                list_box.add (row);
+            if (cancellable != null && !cancellable.is_cancelled ()) {
+                cancellable.cancel ();
             }
 
-            no_search_results_label.label = _("No search results for \"%s\"").printf (query);
-            stack_placeholder.visible_child_name = Constants.FILE_SEARCH_NO_RESULTS_VIEW_NAME;
+            cancellable = new Cancellable ();
+            clear ();
+
+            spinner.start ();
+            stack_placeholder.visible_child_name = Constants.FILE_SEARCH_VIEW_SPINNER_NAME;
+
+            var results = yield search_engine.search_files (query, search_content, cancellable);
+            if (results.size > RESULTS_LIMIT) {
+                error_results_label.label = _("Too many results for \"%s\". Try changing search terms.").printf (query);
+            } else if (results.size == 0) {
+                error_results_label.label = _("No search results for \"%s\"").printf (query);
+            } else {
+                foreach (var result in results) {
+                    var row = new FileResultRow (result, search_engine.root_filename);
+                    list_box.add (row);
+                }
+            }
+
+            stack_placeholder.visible_child_name = Constants.FILE_SEARCH_ERROR_VIEW_NAME;
             spinner.stop ();
             show_all ();
         }
