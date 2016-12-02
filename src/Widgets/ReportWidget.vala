@@ -99,6 +99,11 @@ namespace IDE {
         }
 
         private bool filter_func (Gtk.ListBoxRow row) {
+            var report_row = row as ReportRow;
+            if (report_row == null) {
+                return true;
+            }
+
             string? id = type_combo.get_active_id ();
             if (id == null) {
                 return true;
@@ -109,8 +114,7 @@ namespace IDE {
                 return true;
             }
 
-            int row_type = ((ReportRow)row).report_message.report_type;
-            return type == row_type;
+            return type == ((ReportRow)row).report_message.report_type;
         }
 
         private int sort_func (Gtk.ListBoxRow row1, Gtk.ListBoxRow row2) {
@@ -131,7 +135,11 @@ namespace IDE {
         }
 
         private void on_row_activated (Gtk.ListBoxRow row) {
-            var report_row = (ReportRow)row;
+            var report_row = row as ReportRow;
+            if (report_row == null) {
+                return;
+            }
+
             var message = report_row.report_message;
             if (message.source == null || message.source.file == null) {
                 return;

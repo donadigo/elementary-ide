@@ -20,7 +20,7 @@
 namespace IDE {
     public class FileSearchView : Gtk.ScrolledWindow {
         private class FileResultRow : Gtk.ListBoxRow {
-            public FileSearchResult result { public get; construct; }
+            public FileSearchResult result { get; construct; }
             private Gtk.Label subtitle_label;
 
             construct {
@@ -158,7 +158,7 @@ namespace IDE {
         }
 
         private void on_row_activated (Gtk.ListBoxRow row) {
-            var result_row = (FileResultRow)row;
+            var result_row = row as FileResultRow;
             if (result_row == null) {
                 return;
             }

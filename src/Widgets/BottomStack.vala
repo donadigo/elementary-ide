@@ -86,8 +86,8 @@ namespace IDE {
                 main_stack.visible_child_name = Constants.TERMINAL_VIEW_NAME;
             }
 
-            var selected_widget = (BottomWidget)main_stack.get_child_by_name (main_stack.visible_child_name);
-            if (selected_widget.toolbar_widget != null) {
+            var selected_widget = main_stack.get_child_by_name (main_stack.visible_child_name) as BottomWidget;
+            if (selected_widget != null && selected_widget.toolbar_widget != null) {
                 toolbar_stack.visible_child = selected_widget.toolbar_widget;
                 Utils.set_widget_visible (toolbar_stack, true);
             } else {

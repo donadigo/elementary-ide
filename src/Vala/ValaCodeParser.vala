@@ -185,7 +185,7 @@ namespace IDE {
         }   
         
         private Gee.List<Vala.Symbol> lookup_symbol_inherited (Vala.Symbol? sym) {
-            var list = new Gee.ArrayList<Vala.Symbol>();
+            var list = new Gee.ArrayList<Vala.Symbol> ();
             if (sym == null) {
                 return list;
             }
@@ -391,7 +391,7 @@ namespace IDE {
         private Gee.List<Vala.Symbol> get_symbols_for_error_domain (Vala.ErrorDomain ed, string name, bool match, Vala.MemberBinding binding) {
             var list = new Gee.ArrayList<Vala.Symbol>();
             if (binding == Vala.MemberBinding.CLASS) {
-                foreach (var code in ed.get_codes()) {
+                foreach (var code in ed.get_codes ()) {
                     if ((match && name == code.name) || code.name.has_prefix (name)) {
                         list.add (code);
                     }
@@ -597,16 +597,19 @@ namespace IDE {
                         list.add (c);
                     }
                 }
+
                 foreach (var d in klass.get_delegates ()) {
                     if ((match && name == d.name) || d.name.has_prefix (name)) {
                         list.add (d);
                     }
                 }
+
                 foreach (var e in klass.get_enums ()) {
                     if ((match && name == e.name) || e.name.has_prefix (name)) {
                         list.add (e);
                     }
                 }
+
                 foreach (var s in klass.get_structs ()) {
                     if ((match && name == s.name) || s.name.has_prefix (name)) {
                         list.add (s);
@@ -625,7 +628,7 @@ namespace IDE {
 
             foreach (var m in klass.get_methods ()) {
                 if (m.binding == Vala.MemberBinding.INSTANCE && binding != Vala.MemberBinding.CLASS && !(m is Vala.CreationMethod) ||
-                binding == Vala.MemberBinding.CLASS && (m.binding == Vala.MemberBinding.STATIC || m is Vala.CreationMethod)) {
+                    binding == Vala.MemberBinding.CLASS && (m.binding == Vala.MemberBinding.STATIC || m is Vala.CreationMethod)) {
                     if ((match && name == m.name) || m.name.has_prefix (name)) {
                         list.add (m);
                     }
