@@ -127,7 +127,9 @@ namespace IDE {
             }
 
             foreach (var message in report.get_messages ()) {
-                if (message.source.file.filename == filename && message.source.begin.line == line) {
+                if (message.source != null &&
+                    message.source.file.filename == filename &&
+                    message.source.begin.line == line) {
                     return message;
                 }
             }

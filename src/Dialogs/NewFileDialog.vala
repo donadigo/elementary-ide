@@ -30,9 +30,13 @@ namespace IDE {
         private Gtk.Entry name_entry;
         private Gtk.Entry inherits_entry;
 
+        private Gtk.Label mod_label;
+
         private Gtk.Label abstract_label;
         private Gtk.Switch abstract_switch;
-        private Gtk.Label mod_label;
+
+        private Gtk.Label compact_label;
+        private Gtk.Switch compact_switch;
 
         construct {
             resizable = false;
@@ -61,6 +65,7 @@ namespace IDE {
 
             package_name_entry = new Gtk.Entry ();
             package_name_entry.placeholder_text = _("Example.vala");
+            package_name_entry.changed.connect (on_package_name_entry_changed);
 
             var package_name_label = new Gtk.Label (_("Package name:"));
 
@@ -110,19 +115,46 @@ namespace IDE {
 
             main_grid.attach (abstract_label, 0, 6, 1, 1);
             main_grid.attach (switch_box, 1, 6, 1, 1);
+
+            compact_switch = new Gtk.Switch ();
+
+            compact_label = new Gtk.Label (_("Compact:"));
+            compact_label.halign = Gtk.Align.END;
+
+            switch_box = new Gtk.Grid ();
+            switch_box.add (compact_switch);
+
+            main_grid.attach (compact_label, 0, 7, 1, 1);
+            main_grid.attach (switch_box, 1, 7, 1, 1);            
+        }
+
+        private void on_package_name_entry_changed () {
+            name_entry.text = Utils.get_filename_display (package_name_entry.get_text ());
         }
 
         private void on_type_combo_changed () {
             bool sensitive = type_combo.get_active_id () == CLASS_ID;
             abstract_label.sensitive = sensitive;
             abstract_switch.sensitive = sensitive;
+
+            compact_label.sensitive = sensitive;
+            compact_switch.sensitive = sensitive;
         }
 
         private void on_create_button_clicked () {
-            var file = File.new_for_path ("/tmp/%s".printf (package_name_entry.get_text ()));
+            var document_manager = IDEApplication.get_main_window ().document_manager;
+            var project = document_manager.get_project ();
+            if (project == null) {
+                // TODO: Handle this properly
+                return;
+            }
+
+            var file = File.new_for_path (Path.build_filename (project.root_path, package_name_entry.get_text ()));
             try {
                 if (!file.query_exists ()) {
                     file.create (FileCreateFlags.NONE);
+                } else {
+                    // TODO: Handle this also
                 }
 
                 FileUtils.set_contents (file.get_path (), generate_current_template ());
@@ -130,7 +162,7 @@ namespace IDE {
                 warning (e.message);
             }
 
-            var document_manager = IDEApplication.get_main_window ().document_manager;
+            
             var document = new Document (file, null);
             document_manager.add_document (document, true);
 
@@ -138,17 +170,23 @@ namespace IDE {
         }
 
         private string generate_current_template () {
-            // TODO: use Vala.CodeWriter
-
             int ident = 4;
             string ident_str = string.nfill (ident, ' ');
             bool is_class = type_combo.get_active_id () == CLASS_ID;
-
             bool inherits = inherits_entry.get_text () != "";
 
-            var builder = new StringBuilder ("public ");
-            if (abstract_switch.get_active () && !is_class) {
-                builder.append ("abstract ");
+            var builder = new StringBuilder ();
+            if (is_class) {
+                if (compact_switch.get_active ()) {
+                    builder.append ("[Compact]\n");
+                }
+
+                builder.append ("public ");
+                if (abstract_switch.get_active ()) {
+                    builder.append ("abstract ");
+                }
+            } else {
+                builder.append ("public ");
             }
 
             builder.append ("%s %s ".printf (type_combo.get_active_id (), name_entry.get_text ()));

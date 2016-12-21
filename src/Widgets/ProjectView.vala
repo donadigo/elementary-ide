@@ -165,8 +165,12 @@ namespace IDE {
             }
 
             code_parser.queue_parse ();
-            update_report_widget (code_parser.report);
-            update_view_tags (code_parser.report);
+            Idle.add (() => {
+                update_report_widget (code_parser.report);  
+                update_view_tags (code_parser.report);
+                return false;
+            });
+
             return true;
         }
 

@@ -48,8 +48,20 @@ namespace IDE.Utils {
     public static string get_extension (File file) {
         string basename = file.get_basename ();
         int idx = basename.last_index_of (".");
+        if (idx == -1) {
+            return basename;
+        }
 
         return basename.substring (idx + 1);
+    }
+
+    public static string get_filename_display (string filename) {
+        int idx = filename.last_index_of (".");
+        if (idx == -1) {
+            return filename;
+        }
+
+        return filename.substring (0, idx);        
     }
 
     public static string esc_angle_brackets (string in) {

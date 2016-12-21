@@ -58,7 +58,7 @@ namespace IDE {
             }
 
             public override void query_data (Gtk.TextIter start, Gtk.TextIter end, Gtk.SourceGutterRendererState state) {
-                var buffer = (IDEBuffer)start.get_buffer ();
+                var buffer = start.get_buffer () as IDEBuffer;
                 if (buffer == null || buffer.recently_changed) {
                     return;
                 }
@@ -72,7 +72,7 @@ namespace IDE {
                     return;
                 }
 
-                icon_name = "%s-symbolic".printf (message.to_icon_name ());
+                set ("icon-name", "%s-symbolic".printf (message.to_icon_name ()));
             }
         }
 
