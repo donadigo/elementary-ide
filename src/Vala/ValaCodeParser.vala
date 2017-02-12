@@ -29,10 +29,12 @@ namespace IDE {
         private bool prev_access;
         private ValaBlockLocator locator;
         private ValaDefinitionWriter definition_writer;
+        private ValaSymbolTreeVisitor tree_visitor;
 
         construct {
             report = new Report ();
             locator = new ValaBlockLocator ();
+            tree_visitor = new ValaSymbolTreeVisitor ();
             context = new Vala.CodeContext ();
             context.report = report;
             context.compile_only = true;
@@ -137,6 +139,25 @@ namespace IDE {
             return null;            
         }
 
+        public Gee.TreeSet<Vala.Symbol> get_symbols (string filename) {
+            var file = get_source_file_for_filename (filename);
+            if (file == null) {
+                return new Gee.TreeSet<Vala.Symbol> ();
+            }
+
+            lock (context) {
+                Vala.CodeContext.push (context);
+                var symbols = tree_visitor.get_symbols (file);
+                Vala.CodeContext.pop ();
+
+                return symbols;
+            }
+        }
+
+        public void clear_symbol_tree () {
+            tree_visitor.clear ();
+        }
+
         public string write_symbol_definition (Vala.Symbol symbol) {
             lock (context) {
                 Vala.CodeContext.push (context);
@@ -149,7 +170,6 @@ namespace IDE {
 
         public Vala.Symbol? lookup_symbol_at (string filename, int line, int column) {
             var file = get_source_file_for_filename (filename);
-
             if (file == null) {
                 return null;
             }

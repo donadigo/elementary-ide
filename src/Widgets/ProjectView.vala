@@ -32,6 +32,7 @@ namespace IDE {
 
         private Sidebar sidebar;
         private Gtk.Paned vertical_paned;
+        private SymbolTreeView symbol_tree_view;
 
         private SearchToolbar document_search_toolbar;
 
@@ -83,7 +84,11 @@ namespace IDE {
 
             sidebar = new Sidebar ();
             sidebar.file_search_view.result_activated.connect (on_result_activated);
-            sidebar.source_list.item_selected.connect (on_item_selected);
+            sidebar.source_list.item_selected.connect (on_file_item_selected);
+
+            symbol_tree_view = new SymbolTreeView ();
+            symbol_tree_view.symbol_selected.connect (on_symbol_selected);
+            symbol_tree_view.width_request = 100;
 
             info_window = new InfoWindow ();
 
@@ -91,13 +96,18 @@ namespace IDE {
             vertical_paned.pack1 (top_box, true, false);
             vertical_paned.pack2 (bottom_stack, false, false);
 
-            var horizontal_paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
-            horizontal_paned.pack1 (sidebar, false, false);
-            horizontal_paned.pack2 (vertical_paned, true, true);
+            var horizontal_paned1 = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
+            horizontal_paned1.pack1 (sidebar, false, false);
+            horizontal_paned1.pack2 (vertical_paned, true, true);
 
-            update_report_view_timeout_id = Timeout.add (2000, update_report_view);
+            // GTK+, please :/
+            var horizontal_paned2 = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
+            horizontal_paned2.pack1 (horizontal_paned1, true, true);
+            horizontal_paned2.pack2 (symbol_tree_view, false, false);
 
-            add (horizontal_paned);
+            update_report_view_timeout_id = Timeout.add (2000, update_project_view_func);
+
+            add (horizontal_paned2);
             show_all ();
         }
 
@@ -130,6 +140,7 @@ namespace IDE {
 
             project.save ();      
             code_parser.queue_parse ();
+            update_project_view ();
         }
 
         public void toggle_search () {
@@ -150,28 +161,6 @@ namespace IDE {
             editor_view.tab_switched.connect (on_tab_switched);
             editor_view.document_removed.connect (on_document_removed);
             return editor_view;
-        }
-
-        private bool update_report_view () {
-            clear_view_tags ();
-            if (code_parser.parsing) {
-                return true;
-            }
-
-            var document = get_current_document ();
-            if (document != null && document.recently_changed) {
-                document.recently_changed = false;
-                return true;
-            }
-
-            code_parser.queue_parse ();
-            Idle.add (() => {
-                update_report_widget (code_parser.report);  
-                update_view_tags (code_parser.report);
-                return false;
-            });
-
-            return true;
         }
 
         private void on_request_search_replace (string query, string replace_query, bool regex, bool case_sensitive, bool word_boundaries, SearchMode mode) {
@@ -254,7 +243,7 @@ namespace IDE {
             Gtk.drag_finish (ctx, true, false, time);
         }
 
-        private void on_item_selected (Granite.Widgets.SourceList.Item? item) {
+        private void on_file_item_selected (Granite.Widgets.SourceList.Item? item) {
             if (item == null || !(item is SourceList.FileItem)) {
                 return;
             }
@@ -263,9 +252,17 @@ namespace IDE {
             open_focus_filename (filename);
         }
 
+        private void on_symbol_selected (SymbolTreeView.SymbolItem item) {
+            var sr = item.symbol.source_reference;
+            if (sr == null) {
+                return;
+            }
+
+            on_jump_to (sr.file.filename, sr.begin.line - 1, sr.begin.column);
+        }
+
         private void on_jump_to (string filename, int line, int column) {
             var document = open_focus_filename (filename);
-            document.grab_focus ();
 
             // Wait for the textview to compute line heights
             Idle.add (() => {
@@ -292,7 +289,11 @@ namespace IDE {
                 get_current_editor_view ().notebook.current = document;
             }
 
-            document.grab_focus ();
+            Idle.add (() => {
+                document.grab_focus ();
+                return false;
+            });
+
             return document;
         }
 
@@ -303,6 +304,7 @@ namespace IDE {
 
         private void on_tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab) {
             update_location_label ();
+            update_symbol_tree ();
             current_document_changed ();
         }
 
@@ -344,7 +346,7 @@ namespace IDE {
             var list = new Gee.ArrayList<Document> ();
             foreach (var editor in editors) {  
                 foreach (var tab in editor.notebook.tabs) {
-                    var document = (Document)tab;
+                    var document = tab as Document;
                     if (document == null) {
                         continue;
                     }
@@ -357,7 +359,7 @@ namespace IDE {
         }
 
         public Document? get_current_document () {
-            return (Document)get_current_editor_view ().notebook.current;
+            return get_current_editor_view ().notebook.current as Document;
         }
 
         public CodeParser get_code_parser () {
@@ -366,6 +368,35 @@ namespace IDE {
 
         private void document_content_changed (Document document) {
             code_parser.update_document_content (document);
+        }
+
+        private bool update_project_view_func () {
+            if (code_parser.parsing) {
+                return true;
+            }
+
+            var document = get_current_document ();
+            if (document != null) {
+                if (!document.recently_changed) {
+                    return true;
+                } else {
+                    document.recently_changed = false;
+                }
+            }
+
+            code_parser.queue_parse ();
+            Idle.add (() => {
+                update_project_view ();
+                return false;
+            });
+
+            return true;
+        }
+
+        private void update_project_view () {
+            update_report_widget (code_parser.report);  
+            update_view_tags (code_parser.report); 
+            update_symbol_tree ();
         }
 
         private void update_location_label () {
@@ -389,13 +420,9 @@ namespace IDE {
             bottom_stack.report_widget.set_report (report);
         }
 
-        private void clear_view_tags () {
-            foreach (var document in get_opened_documents ()) {
-                document.editor_window.reset_report_tags ();
-            }
-        }
-
         private void update_view_tags (Report report) {
+            clear_view_tags ();
+
             foreach (var message in report.get_messages ()) {
                 if (message.source == null) {
                     continue;
@@ -406,6 +433,28 @@ namespace IDE {
                     document.editor_window.apply_report_message (message);
                 }
             }
+        }
+
+        private void clear_view_tags () {
+            foreach (var document in get_opened_documents ()) {
+                document.editor_window.reset_report_tags ();
+            }
+        }
+
+        private void update_symbol_tree () {
+            symbol_tree_view.clear ();
+
+            var document = get_current_document ();
+            if (document == null) {
+                return;
+            }
+
+            var symbols = code_parser.get_symbols (document.get_file_path ());
+            symbol_tree_view.add_symbols (symbols);
+
+            //symbol_tree_view.expand_all ();
+
+            code_parser.clear_symbol_tree ();
         }
 
         private Document? get_document_by_filename (string filename) {
@@ -420,6 +469,10 @@ namespace IDE {
 
         private void update_search_match_count () {
             var document = get_current_document ();
+            if (document == null) {
+                return;
+            }
+
             var search_context = document.editor_window.search_context;
 
             Gtk.TextIter start_iter, end_iter;

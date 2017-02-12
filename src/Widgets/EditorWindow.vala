@@ -336,7 +336,7 @@ namespace IDE {
                 close_info_window ();
             }
 
-            show_info_timeout_id = Timeout.add (1000, () => {
+            show_info_timeout_id = Timeout.add (400, () => {
                 return show_info_func (event);
             });
 

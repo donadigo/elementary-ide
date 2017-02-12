@@ -22,6 +22,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Vala/ValaBlockLocator.vala
     Vala/ValaCodeParser.vala
     Vala/ValaDefinitionWriter.vala
+    Vala/ValaSymbolTree.vala
     Projects/CMakeProject.vala
     Projects/NativeProject.vala
     Projects/GenericProject.vala
@@ -42,6 +43,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/Sidebar.vala
     Widgets/FileSearchView.vala
     Widgets/SettingsFrame.vala
+    Widgets/SymbolTreeView.vala
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/NewFileDialog.vala
     Dialogs/OpenProjectDialog.vala

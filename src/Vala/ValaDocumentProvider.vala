@@ -100,9 +100,7 @@ namespace IDE {
 
             var list = new List<Gtk.SourceCompletionProposal> ();
             var cancellable = new GLib.Cancellable ();
-            context.cancelled.connect (() => {
-                cancellable.cancel ();
-            });
+            context.cancelled.connect (() => cancellable.cancel ());
 
             var code_parser = (ValaCodeParser)manager.get_code_parser ();
             if (code_parser == null) {
@@ -130,7 +128,7 @@ namespace IDE {
             string prefix = match_info.fetch (2);
             string[] names = member_access_split.split (match_info.fetch (1));
 
-            new Thread<bool> ("completion", () => {
+            new Thread<void*> ("completion", () => {
                 code_parser.parse ();
 
                 var symbols = code_parser.lookup_visible_symbols_at (document.get_file_path (), document.current_line + 1, document.current_column);
@@ -207,7 +205,7 @@ namespace IDE {
                     return false;
                 });
 
-                return false;
+                return null;
             });
         }    
 
