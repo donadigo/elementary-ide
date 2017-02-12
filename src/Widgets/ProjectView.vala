@@ -452,8 +452,6 @@ namespace IDE {
             var symbols = code_parser.get_symbols (document.get_file_path ());
             symbol_tree_view.add_symbols (symbols);
 
-            //symbol_tree_view.expand_all ();
-
             code_parser.clear_symbol_tree ();
         }
 
