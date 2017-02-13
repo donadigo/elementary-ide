@@ -20,7 +20,7 @@
 namespace IDE {
     public class EditorView : Gtk.Stack {
         public signal void new_tab_requested ();
-        public signal void tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab);
+        public signal void tab_switched ();
         public signal void document_removed (Document document);
 
         public Granite.Widgets.DynamicNotebook notebook { get; construct; }
@@ -39,7 +39,14 @@ namespace IDE {
             notebook.allow_duplication = false;
             notebook.add_button_visible = true;
             notebook.new_tab_requested.connect (() => new_tab_requested ());
-            notebook.tab_switched.connect ((old_tab, new_tab) => tab_switched (old_tab, new_tab));
+            notebook.tab_switched.connect (() => { 
+                // Wait for the current tab assignment
+                Idle.add (() => {
+                    tab_switched ();
+                    return false;
+                });
+            });
+
             notebook.tab_removed.connect (on_tab_removed);
             notebook.add_button_tooltip = _("New empty document");
 
@@ -68,7 +75,7 @@ namespace IDE {
         }
 
         private void on_tab_removed (Granite.Widgets.Tab tab) {
-            var document = (Document)tab;
+            var document = tab as Document;
             if (document == null) {
                 return;
             }

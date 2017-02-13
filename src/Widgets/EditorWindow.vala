@@ -60,13 +60,20 @@ namespace IDE {
             public override void query_data (Gtk.TextIter start, Gtk.TextIter end, Gtk.SourceGutterRendererState state) {
                 var buffer = start.get_buffer () as IDEBuffer;
                 if (buffer == null || buffer.recently_changed) {
+                    set ("pixbuf", null, null);
                     return;
                 }
 
                 var document_manager = IDEApplication.get_main_window ().document_manager;
                 var code_parser = document_manager.get_code_parser ();
 
-                var message = code_parser.get_report_message_at (buffer.document.get_file_path (), start.get_line () + 1);
+                string? filename = buffer.document.get_filename ();
+                if (filename == null) {
+                    set ("pixbuf", null, null);
+                    return;
+                }
+
+                var message = code_parser.get_report_message_at (filename, start.get_line () + 1);
                 if (message == null) {
                     set ("pixbuf", null, null);
                     return;

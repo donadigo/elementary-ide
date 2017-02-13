@@ -125,13 +125,19 @@ namespace IDE {
                 return;
             }
 
+            string? filename = document.get_filename ();
+            if (filename == null) {
+                context.add_proposals (this, null, true);
+                return;
+            }
+
             string prefix = match_info.fetch (2);
             string[] names = member_access_split.split (match_info.fetch (1));
 
             new Thread<void*> ("completion", () => {
                 code_parser.parse ();
 
-                var symbols = code_parser.lookup_visible_symbols_at (document.get_file_path (), document.current_line + 1, document.current_column);
+                var symbols = code_parser.lookup_visible_symbols_at (filename, document.current_line + 1, document.current_column);
                 foreach (var symbol in symbols) {
                     if (symbol != null && symbol.name != null && symbol.name.has_prefix (prefix)) {
                         string definition = code_parser.write_symbol_definition (symbol);

@@ -76,6 +76,11 @@ namespace IDE {
         }
         
         public override void add_document (Document document) {
+            string? filename = document.get_filename ();
+            if (filename == null) {
+                return;
+            }
+
             lock (context) {
                 Vala.CodeContext.push (context);
                 if (get_source_file_for_document (document) != null) {
@@ -83,7 +88,7 @@ namespace IDE {
                     return;
                 }
 
-                var source_file = new Vala.SourceFile (context, Vala.SourceFileType.SOURCE, document.get_file_path (), document.get_current_content ());
+                var source_file = new Vala.SourceFile (context, Vala.SourceFileType.SOURCE, filename, document.get_current_content ());
 
                 var unres = new Vala.UnresolvedSymbol (null, "GLib");
                 var udir = new Vala.UsingDirective (unres);
@@ -736,7 +741,12 @@ namespace IDE {
         }
 
         private Vala.SourceFile? get_source_file_for_document (Document document) {
-            return get_source_file_for_filename (document.get_file_path ());
+            string? filename = document.get_filename ();
+            if (filename == null) {
+                return null;
+            }
+
+            return get_source_file_for_filename (filename);
         }
 
         private void clear_source_file (Vala.SourceFile file) {

@@ -42,12 +42,34 @@ namespace IDE {
         }
 
         public signal void symbol_selected (SymbolItem item);
+
         private Granite.Widgets.SourceList source_list;
+        private Gtk.Stack stack;
+        private Gtk.Spinner spinner;
+        private Gtk.Label error_results_label;
 
         construct {
             source_list = new Granite.Widgets.SourceList ();
             source_list.item_selected.connect (on_item_selected);
-            add (source_list);
+
+            error_results_label = new Gtk.Label (_("No symbols found"));
+            error_results_label.justify = Gtk.Justification.CENTER;
+            error_results_label.get_style_context ().add_class ("h4");
+            error_results_label.wrap_mode = Pango.WrapMode.WORD_CHAR;
+            error_results_label.wrap = true;
+
+            spinner = new Gtk.Spinner ();
+
+            var spinner_grid = new Gtk.Grid ();
+            spinner_grid.halign = spinner_grid.valign = Gtk.Align.CENTER;
+            spinner_grid.add (spinner);
+
+            stack = new Gtk.Stack ();
+            stack.add_named (source_list, Constants.SYMBOL_TREE_VIEW_NAME);
+            stack.add_named (spinner_grid, Constants.SYMBOL_TREE_VIEW_SPINNER_NAME);
+            stack.add_named (error_results_label, Constants.SYMBOL_TREE_VIEW_ERROR_NAME);
+            stack.show_all ();
+            add (stack);
         }       
 
         public void clear () {
@@ -71,6 +93,14 @@ namespace IDE {
 
                 construct_child (symbol, source_list.root);
             }
+
+            stack.visible_child_name = symbols.size > 0 ? Constants.SYMBOL_TREE_VIEW_NAME : Constants.SYMBOL_TREE_VIEW_ERROR_NAME;
+            spinner.stop ();
+        }
+
+        public void set_working () {
+            spinner.start ();
+            stack.visible_child_name = Constants.SYMBOL_TREE_VIEW_SPINNER_NAME;
         }
 
         private SymbolItem? find_existing (Vala.Symbol symbol, Granite.Widgets.SourceList.ExpandableItem parent) {

@@ -106,7 +106,7 @@ namespace IDE {
 
         private void update_language () {
             var lang_manager = Gtk.SourceLanguageManager.get_default ();
-            var lang = lang_manager.guess_language (get_file_path (), null);
+            var lang = lang_manager.guess_language (get_filename (), null);
             if (lang != null) {
                 editor_window.set_language (lang);
             }
@@ -123,7 +123,6 @@ namespace IDE {
                 monitor = source_file.get_location ().monitor (FileMonitorFlags.NONE, null);
                 monitor_handle_id = monitor.changed.connect ((src, dest, event) => {
                     if (event == FileMonitorEvent.CHANGES_DONE_HINT && !saving) {
-                        saving = false;
                         load.begin ();
                     }
                 });
@@ -168,11 +167,12 @@ namespace IDE {
         }
 
         public bool get_is_vala_source () {
-            if (source_file.get_location () == null) {
+            var location = source_file.get_location ();
+            if (location == null) {
                 return false;
             }
 
-            string ext = Utils.get_extension (source_file.get_location ());
+            string ext = Utils.get_extension (location);
             return ext == "vala" || ext == "vapi";
         }
 
@@ -215,6 +215,7 @@ namespace IDE {
                 warning (e.message);
             }
 
+            saving = false;
             return is_saved;
         }
 
@@ -284,7 +285,7 @@ namespace IDE {
             editor_window.set_progress (total_num_bytes / current_num_bytes);
         }
 
-        public string? get_file_path () {
+        public string? get_filename () {
             if (source_file.get_location () == null) {
                 return null;
             }
@@ -297,16 +298,23 @@ namespace IDE {
         }  
 
         public bool get_exists () {
-            return Utils.get_file_exists (get_file_path ());
+            string? filename = get_filename ();
+            if (filename == null) {
+                return false;
+            }
+
+            return Utils.get_file_exists (filename);
         }
 
         private void ensure_file_exists () {
-            if (!get_exists ()) {
-                try {
-                    FileUtils.set_contents (get_file_path (), "");
-                } catch (Error e) {
-                    warning (e.message);
-                }
+            if (get_exists ()) {
+                return;
+            }
+
+            try {
+                FileUtils.set_contents (get_filename (), "");
+            } catch (Error e) {
+                warning (e.message);
             }
         }
 

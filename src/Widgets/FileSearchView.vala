@@ -84,14 +84,15 @@ namespace IDE {
         private Cancellable? cancellable;
 
         construct {
+            search_engine = new FileSearchEngine ();
+
             hscrollbar_policy = Gtk.PolicyType.NEVER;
 
             spinner = new Gtk.Spinner ();
-            spinner.start ();
 
-            var grid = new Gtk.Grid ();
-            grid.halign = grid.valign = Gtk.Align.CENTER;
-            grid.add (spinner);
+            var spinner_grid = new Gtk.Grid ();
+            spinner_grid.halign = spinner_grid.valign = Gtk.Align.CENTER;
+            spinner_grid.add (spinner);
 
             error_results_label = new Gtk.Label (null);
             error_results_label.justify = Gtk.Justification.CENTER;
@@ -101,8 +102,8 @@ namespace IDE {
             error_results_label.max_width_chars = 30;
 
             stack_placeholder = new Gtk.Stack ();
-            stack_placeholder.add_named (grid, Constants.FILE_SEARCH_VIEW_SPINNER_NAME);
-            stack_placeholder.add_named (error_results_label, Constants.FILE_SEARCH_ERROR_VIEW_NAME);
+            stack_placeholder.add_named (spinner_grid, Constants.FILE_SEARCH_VIEW_SPINNER_NAME);
+            stack_placeholder.add_named (error_results_label, Constants.FILE_SEARCH_VIEW_ERROR_NAME);
             stack_placeholder.show_all ();
 
             list_box = new Gtk.ListBox ();
@@ -111,8 +112,6 @@ namespace IDE {
             list_box.activate_on_single_click = true;
             list_box.selection_mode = Gtk.SelectionMode.SINGLE;
             add (list_box);
-
-            search_engine = new FileSearchEngine ();
         }
 
         public void set_search_directory (string? filename) {
@@ -146,7 +145,7 @@ namespace IDE {
                 }
             }
 
-            stack_placeholder.visible_child_name = Constants.FILE_SEARCH_ERROR_VIEW_NAME;
+            stack_placeholder.visible_child_name = Constants.FILE_SEARCH_VIEW_ERROR_NAME;
             spinner.stop ();
             show_all ();
         }

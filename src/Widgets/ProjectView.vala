@@ -139,7 +139,6 @@ namespace IDE {
             bottom_stack.terminal_widget.spawn_default (project.root_path);
 
             project.save ();      
-            code_parser.queue_parse ();
             update_project_view ();
         }
 
@@ -302,9 +301,9 @@ namespace IDE {
             add_document (document, true);
         }
 
-        private void on_tab_switched (Granite.Widgets.Tab? old_tab, Granite.Widgets.Tab new_tab) {
+        private void on_tab_switched () {
             update_location_label ();
-            update_symbol_tree ();
+            update_project_view ();
             current_document_changed ();
         }
 
@@ -384,19 +383,19 @@ namespace IDE {
                 }
             }
 
-            code_parser.queue_parse ();
-            Idle.add (() => {
-                update_project_view ();
-                return false;
-            });
-
+            update_project_view ();
             return true;
         }
 
         private void update_project_view () {
-            update_report_widget (code_parser.report);  
-            update_view_tags (code_parser.report); 
-            update_symbol_tree ();
+            code_parser.queue_parse ();
+
+            Idle.add (() => {
+                update_report_widget (code_parser.report);  
+                update_view_tags (code_parser.report); 
+                update_symbol_tree ();
+                return false;
+            });
         }
 
         private void update_location_label () {
@@ -449,15 +448,24 @@ namespace IDE {
                 return;
             }
 
-            var symbols = code_parser.get_symbols (document.get_file_path ());
-            symbol_tree_view.add_symbols (symbols);
+            string? filename = document.get_filename ();
+            if (filename == null) {
+                return;
+            }
+
+            symbol_tree_view.set_working ();
+            var symbols = code_parser.get_symbols (filename);
+            Idle.add (() => {
+                symbol_tree_view.add_symbols (symbols);
+                return false;
+            });
 
             code_parser.clear_symbol_tree ();
         }
 
         private Document? get_document_by_filename (string filename) {
             foreach (var document in get_opened_documents ()) {
-                if (document.get_file_path () == filename) {
+                if (document.get_filename () == filename) {
                     return document;
                 }
             }
@@ -481,12 +489,17 @@ namespace IDE {
         }
 
         private void on_show_info_window (Document document, Gtk.TextIter start_iter, int x, int y) {
-            var symbol = code_parser.lookup_symbol_at (document.get_file_path (), start_iter.get_line () + 1, start_iter.get_line_offset ());
+            string? filename = document.get_filename ();
+            if (filename == null) {
+                return;
+            }
+
+            var symbol = code_parser.lookup_symbol_at (filename, start_iter.get_line () + 1, start_iter.get_line_offset ());
             if (symbol == null || symbol.name == null) {
                 return;
             }        
 
-            string definition = code_parser.write_symbol_definition (symbol).strip ();
+            string definition = code_parser.write_symbol_definition (symbol);
             if (definition != "") {
                 info_window.set_label (definition);
                 info_window.show_at (x, y);    

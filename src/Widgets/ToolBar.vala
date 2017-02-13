@@ -68,6 +68,8 @@ namespace IDE {
             preferences_button.clicked.connect (() => ep_dialog.show_all ());
             pack_end (preferences_button);
 
+            ep_dialog.bind_property ("visible", preferences_button, "sensitive", BindingFlags.INVERT_BOOLEAN | BindingFlags.SYNC_CREATE);
+
             run_button = new MenuButton (_("Build & Run"), "media-playback-start");
             add (run_button);
 
@@ -84,6 +86,7 @@ namespace IDE {
             menu_item.activate.connect (build);
 
             menu_item = run_button.add_menu_item (_("Build & run"));
+            menu_item = run_button.add_menu_item (_("Rebuild"));
 
             menu_item = open_button.add_menu_item (_("Open project"));
             menu_item.activate.connect (() => open_project ());
