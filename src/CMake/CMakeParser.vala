@@ -205,7 +205,7 @@ namespace IDE {
                         break;
                     case TokenType.ERROR:
                         var type = (ErrorType)val.error;
-                        scanner.error ("Error parsing CMakeLists at %s:%i: %s", source, scanner.cur_line (), type.to_string ());
+                        scanner.error (type.to_string ());
                         break;
                     default:
                         break;
