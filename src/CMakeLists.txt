@@ -35,7 +35,6 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/EditorWindow.vala
     Widgets/ToolBar.vala
     Widgets/MenuButton.vala  
-    Widgets/TabWidget.vala
     Widgets/SearchToolbar.vala
     Widgets/Document.vala   
     Widgets/BottomWidget.vala   
@@ -46,7 +45,6 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/SymbolTreeView.vala
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/NewFileDialog.vala
-    Dialogs/OpenProjectDialog.vala
     Dialogs/EditorPreferencesPage.vala
     Services/IDESettings.vala
     config.vala

@@ -19,8 +19,6 @@
 
 namespace IDE {
     public class ProjectView : Gtk.Box, DocumentManager {
-        public signal void update_toolbar ();
-
         private const Gtk.TargetEntry[] targets = {{ "text/uri-list", 0, 0 }};
 
         private ValaCodeParser code_parser;
@@ -312,7 +310,6 @@ namespace IDE {
             remove_document_internal (document);
 
             update_location_label ();
-            update_toolbar ();
             current_document_changed ();
         }
 
@@ -335,7 +332,6 @@ namespace IDE {
 
             get_current_editor_view ().add_document (document, focus);
             update_location_label ();
-            update_toolbar ();
             current_document_changed ();
         }
 

@@ -77,7 +77,6 @@ namespace IDE.Constants {
                                                     "PACKAGES",
                                                     "OPTIONS",
                                                     "DIRECTORY",
-                                                    "PACKAGES",
                                                     "GENERATE_HEADER",
                                                     "DEFINITIONS",
                                                     "CUSTOM_VAPIS" };

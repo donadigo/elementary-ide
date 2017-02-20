@@ -1,4 +1,5 @@
 namespace IDE {
+    // TODO: make use of native tooltips, remove this
     public class InfoWindow : Gtk.Window {
         private Gtk.Label tooltip_label;
 

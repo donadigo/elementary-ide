@@ -34,7 +34,6 @@ namespace IDE {
             window_position = Gtk.WindowPosition.CENTER;
 
             document_manager = new ProjectView ();
-            document_manager.update_toolbar.connect (on_update_toolbar);
             document_manager.current_document_changed.connect (on_current_document_changed);
 
             toolbar = new ToolBar ();
@@ -63,7 +62,6 @@ namespace IDE {
 
             add (main_stack);    
 
-            on_update_toolbar ();
             on_current_document_changed ();
         }
 
@@ -156,13 +154,12 @@ namespace IDE {
             }
         }
 
-        private void on_update_toolbar () {
-            toolbar.save_current_document_menuitem.sensitive = (document_manager.get_current_document () != null);
-            toolbar.save_opened_documents_menuitem.sensitive = (document_manager.get_opened_documents ().size > 0);
-        }
-
         private void on_current_document_changed () {
-            toolbar.search_button.sensitive = document_manager.get_current_document () != null;
+            toolbar.save_opened_documents_menuitem.sensitive = (document_manager.get_opened_documents ().size > 0);
+
+            bool has_current_document = document_manager.get_current_document () != null;
+            toolbar.save_current_document_menuitem.sensitive = has_current_document;
+            toolbar.search_button.sensitive = has_current_document;
         }
     }
 }

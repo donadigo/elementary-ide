@@ -94,7 +94,11 @@ namespace IDE {
                                 }   
 
                                 if (current_header == Constants.VALA_PRECOMPILE_HEADERS[0]) {
-                                    sources.add (Path.build_filename (Path.get_dirname (command.filename), argument));
+                                    var file = File.new_for_path (Path.build_filename (Path.get_dirname (command.filename), argument));
+                                    string? path = file.get_path ();
+                                    if (path != null) {
+                                        sources.add (path);
+                                    }
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[1]) {
                                     string package = strip_package_version (argument);
                                     if (package != "") {

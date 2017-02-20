@@ -151,6 +151,7 @@ namespace IDE {
             source_view.completion.remember_info_visibility = true;
             source_view.left_margin = 6;
             source_view.motion_notify_event.connect (on_motion_notify_event);
+            source_view.leave_notify_event.connect (on_leave_notify_event);
             if (settings.draw_spaces_tabs) {
                 source_view.draw_spaces = Gtk.SourceDrawSpacesFlags.SPACE | Gtk.SourceDrawSpacesFlags.LEADING | Gtk.SourceDrawSpacesFlags.TAB;
             } else {
@@ -339,8 +340,7 @@ namespace IDE {
 
         private bool on_motion_notify_event (Gdk.EventMotion event) {
             if (show_info_timeout_id > 0) {
-                Source.remove (show_info_timeout_id);
-                close_info_window ();
+                hide_info_window ();
             }
 
             show_info_timeout_id = Timeout.add (400, () => {
@@ -348,6 +348,14 @@ namespace IDE {
             });
 
             return base.motion_notify_event (event);
+        }
+
+        private bool on_leave_notify_event (Gdk.EventCrossing event) {
+            if (show_info_timeout_id > 0) {
+                hide_info_window ();
+            }
+
+            return false;
         }
 
         private bool show_info_func (Gdk.EventMotion event) {
@@ -380,6 +388,12 @@ namespace IDE {
 
             show_info_window (start_iter, (int)event.x_root + 10, (int)event.y_root + 10);
             return false;
+        }
+
+        private void hide_info_window () {            
+            Source.remove (show_info_timeout_id);
+            close_info_window ();    
+            show_info_timeout_id = 0; 
         }
     }
 }

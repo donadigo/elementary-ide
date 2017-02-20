@@ -104,9 +104,10 @@ namespace IDE {
             scanner.config.skip_comment_multi = true;
             scanner.config.skip_comment_single = false;
             scanner.config.identifier_2_string = true;
-            scanner.config.scan_hex = false;
-            scanner.config.scan_octal = false;
-            scanner.config.scan_symbols = false;
+            scanner.config.scan_float = true;
+            scanner.config.scan_binary = false;
+            scanner.config.scan_identifier = true;
+            scanner.config.scan_identifier_NULL = false;
             scanner.config.scan_identifier_1char = true;
             scanner.input_name = source;
 
@@ -114,7 +115,7 @@ namespace IDE {
             string cset_identifier_first = scanner.config.cset_identifier_first;
 
             // TODO: Better config
-            scanner.config.cset_identifier_first = (string*)(cset_identifier_first + "$");
+            scanner.config.cset_identifier_first = (string*)(cset_identifier_first + "$_.");
             scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "<>=-+_.\\/");
             scanner.input_text (contents, contents.length);
 
@@ -144,9 +145,10 @@ namespace IDE {
                         } else if (current_command.name == Constants.ADD_SUBDIRECTORY_CMD) {
                             var arguments = current_command.get_arguments ();
                             if (arguments.length > 0) {
-                                string next_source = Path.build_filename (Path.get_dirname (source), arguments[0], Constants.CMAKE_TARGET);
-                                if (FileUtils.test (next_source, FileTest.IS_REGULAR)) {
-                                    parse_file (next_source);
+                                var file = File.new_for_path (Path.build_filename (Path.get_dirname (source), arguments[0], Constants.CMAKE_TARGET));
+                                string? path = file.get_path ();
+                                if (path != null && file.query_exists ()) {
+                                    parse_file (path);
                                 }
                             }
                         }
@@ -200,6 +202,10 @@ namespace IDE {
                         }
 
                         prev_value = str;
+                        break;
+                    case TokenType.ERROR:
+                        var type = (ErrorType)val.error;
+                        scanner.error ("Error parsing CMakeLists at %s:%i: %s", source, scanner.cur_line (), type.to_string ());
                         break;
                     default:
                         break;

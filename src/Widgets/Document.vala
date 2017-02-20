@@ -105,8 +105,13 @@ namespace IDE {
         }
 
         private void update_language () {
+            string? filename = get_filename ();
+            if (filename == null) {
+                return;
+            }
+
             var lang_manager = Gtk.SourceLanguageManager.get_default ();
-            var lang = lang_manager.guess_language (get_filename (), null);
+            var lang = lang_manager.guess_language (filename, null);
             if (lang != null) {
                 editor_window.set_language (lang);
             }
@@ -202,6 +207,7 @@ namespace IDE {
 
             ensure_file_exists ();
             if (yield get_is_saved ()) {
+                update_props ();
                 return true;
             }
 
