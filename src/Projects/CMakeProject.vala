@@ -19,6 +19,8 @@
 
 namespace IDE {
     public class CMakeProject : Project {
+        private const char[] PACKAGE_VERSION_DELIMS = { '=', '>', '<' };
+
         private CMakeParser parser;
 
         public new static async Project? load (File file) {
@@ -30,6 +32,20 @@ namespace IDE {
             var parser = new CMakeParser (target);
             var project = new CMakeProject (parser);
             return project;
+        }
+
+        private static string strip_package_version (string package) {
+            string res = "";
+
+            foreach (char ch in package.to_utf8 ()) {
+                if (ch in PACKAGE_VERSION_DELIMS) {
+                    break;
+                }
+
+                res += ch.to_string ();
+            }
+
+            return res;
         }
 
         public CMakeProject (CMakeParser parser) {
@@ -80,7 +96,10 @@ namespace IDE {
                                 if (current_header == Constants.VALA_PRECOMPILE_HEADERS[0]) {
                                     sources.add (Path.build_filename (Path.get_dirname (command.filename), argument));
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[1]) {
-                                    packages.add (argument);
+                                    string package = strip_package_version (argument);
+                                    if (package != "") {
+                                        packages.add (package);
+                                    }
                                 } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[2]) {
                                     vala_options.add (argument);
                                 }

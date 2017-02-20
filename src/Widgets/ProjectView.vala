@@ -313,6 +313,7 @@ namespace IDE {
 
             update_location_label ();
             update_toolbar ();
+            current_document_changed ();
         }
 
         public void add_document (Document document, bool focus = true) {
@@ -335,6 +336,7 @@ namespace IDE {
             get_current_editor_view ().add_document (document, focus);
             update_location_label ();
             update_toolbar ();
+            current_document_changed ();
         }
 
         private void remove_document_internal (Document document) {

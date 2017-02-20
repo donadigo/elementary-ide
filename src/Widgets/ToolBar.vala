@@ -37,10 +37,10 @@ namespace IDE {
 
         public Gtk.MenuItem save_current_document_menuitem { get; construct; }
         public Gtk.MenuItem save_opened_documents_menuitem { get; construct; }
+        public Gtk.ToggleButton search_button { get; construct; }
 
         private Gtk.Button new_button;
         private Gtk.Button preferences_button;
-        private Gtk.ToggleButton search_button;
 
         private MenuButton open_button;
         private MenuButton save_button;

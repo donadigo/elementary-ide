@@ -119,6 +119,8 @@ namespace IDE {
             toolbar.add (matches_label_item);
             add (toolbar);
 
+            notify["reveal-child"].connect (on_child_reveal);
+
             Utils.set_widget_visible (matches_label, false);
         }
 
@@ -138,6 +140,12 @@ namespace IDE {
                                     cs_button.active,
                                     wb_button.active,
                                     mode);
+        }
+
+        private void on_child_reveal () {
+            if (reveal_child) {
+                search_entry.grab_focus ();
+            }
         }
     }
 }

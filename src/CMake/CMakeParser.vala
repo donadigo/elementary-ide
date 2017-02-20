@@ -18,19 +18,15 @@
  */
 
 namespace IDE {
-    public class CMakeParser : Object {
+    public class CMakeParser : Object {   
         public string target { get; set; }
-        
+
         private Gee.ArrayList<string> sources;
         private Gee.ArrayList<CMakeCommand> commands;
         private Gee.ArrayList<CMakeVariable> variables;
         private Gee.ArrayList<string> comments;
 
-        private string prev_value;
-
         construct {
-            // TODO: Better config
-
             sources = new Gee.ArrayList<string> ();
             commands = new Gee.ArrayList<CMakeCommand> ();
             comments = new Gee.ArrayList<string> ();
@@ -57,11 +53,11 @@ namespace IDE {
             return comments;
         }
 
-        public void add_cmake_source (string source) {
+        public void add_source (string source) {
             sources.add (source);
         }   
 
-        public void remove_cmake_source (string source) {
+        public void remove_source (string source) {
             sources.remove (source);
         }
 
@@ -102,28 +98,30 @@ namespace IDE {
                 return;
             }
 
+            contents = contents.compress ();
+
             var scanner = new Scanner (null);
             scanner.config.skip_comment_multi = true;
             scanner.config.skip_comment_single = false;
             scanner.config.identifier_2_string = true;
-            scanner.config.scan_float = true;
-            scanner.config.scan_binary = false;
-            scanner.config.scan_identifier_NULL = false;
+            scanner.config.scan_hex = false;
+            scanner.config.scan_octal = false;
+            scanner.config.scan_symbols = false;
             scanner.config.scan_identifier_1char = true;
-            scanner.config.scan_identifier = true;            
+            scanner.input_name = source;
 
             string cset_identifier_nth = scanner.config.cset_identifier_nth;
             string cset_identifier_first = scanner.config.cset_identifier_first;
 
-            scanner.config.cset_identifier_first = (string*)(cset_identifier_first + "><=+_.");
-            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "{=-+_.\\/");
-
-            contents = contents.compress ();
+            // TODO: Better config
+            scanner.config.cset_identifier_first = (string*)(cset_identifier_first + "$");
+            scanner.config.cset_identifier_nth = (string*)(cset_identifier_nth + "<>=-+_.\\/");
             scanner.input_text (contents, contents.length);
 
             CMakeCommand? current_command = null;
-            bool parse_variable = false;
+            bool in_variable = false;
  
+            string prev_value = "";
             while (!scanner.eof ()) {
                 var token = scanner.get_next_token ();
                 var val = scanner.cur_value ();
@@ -146,7 +144,7 @@ namespace IDE {
                         } else if (current_command.name == Constants.ADD_SUBDIRECTORY_CMD) {
                             var arguments = current_command.get_arguments ();
                             if (arguments.length > 0) {
-                                string next_source = Path.build_filename (Path.get_dirname (target), arguments[0], Constants.CMAKE_TARGET);
+                                string next_source = Path.build_filename (Path.get_dirname (source), arguments[0], Constants.CMAKE_TARGET);
                                 if (FileUtils.test (next_source, FileTest.IS_REGULAR)) {
                                     parse_file (next_source);
                                 }
@@ -156,15 +154,16 @@ namespace IDE {
                         current_command = null;
                         break;
                     case TokenType.LEFT_CURLY:
-                        parse_variable = true;
+                        if (prev_value == "$") {
+                            in_variable = true;
+                        }
+
                         break;
                     case TokenType.STRING:
-                        // TODO: check if the previous string was a dollar
-
                         string str = val.string;
 
-                        if (current_command != null) {
-                            if (parse_variable) {
+                        if (current_command != null && str != "$") {
+                            if (in_variable) {
                                 var variable = find_variable_by_name (str);
                                 if (variable != null) {
                                     foreach (string value in variable.get_values ()) {
@@ -173,7 +172,7 @@ namespace IDE {
                                     }
                                 }
 
-                                parse_variable = false;                                
+                                in_variable = false;                                
                             } else {
                                 current_command.add_argument (str);
                                 prev_value = str;

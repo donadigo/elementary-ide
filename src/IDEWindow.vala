@@ -35,6 +35,7 @@ namespace IDE {
 
             document_manager = new ProjectView ();
             document_manager.update_toolbar.connect (on_update_toolbar);
+            document_manager.current_document_changed.connect (on_current_document_changed);
 
             toolbar = new ToolBar ();
             toolbar.open_project.connect (show_open_project_dialog);
@@ -63,6 +64,7 @@ namespace IDE {
             add (main_stack);    
 
             on_update_toolbar ();
+            on_current_document_changed ();
         }
 
         public IDEWindow (Gtk.Application application) {
@@ -157,6 +159,10 @@ namespace IDE {
         private void on_update_toolbar () {
             toolbar.save_current_document_menuitem.sensitive = (document_manager.get_current_document () != null);
             toolbar.save_opened_documents_menuitem.sensitive = (document_manager.get_opened_documents ().size > 0);
+        }
+
+        private void on_current_document_changed () {
+            toolbar.search_button.sensitive = document_manager.get_current_document () != null;
         }
     }
 }
