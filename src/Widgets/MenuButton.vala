@@ -1,4 +1,4 @@
-/*-
+ /*-
  * Copyright (c) 2015-2016 Adam Bieńkowski
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,25 +17,23 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class MenuButton : Gtk.MenuButton {
-        private Gtk.Menu menu;
+public class MenuButton : Gtk.MenuButton {
+    private Gtk.Menu menu;
 
-        construct {
-            menu = new Gtk.Menu ();
-            set_popup (menu);
-        }
+    construct {
+        menu = new Gtk.Menu ();
+        set_popup (menu);
+    }
 
-        public MenuButton (string tooltip, string icon_name, Gtk.IconSize size = Gtk.IconSize.LARGE_TOOLBAR) {
-            image = new Gtk.Image.from_icon_name (icon_name, size);
-            tooltip_text = tooltip;
-        }
+    public MenuButton (string tooltip, string icon_name, Gtk.IconSize size = Gtk.IconSize.LARGE_TOOLBAR) {
+        image = new Gtk.Image.from_icon_name (icon_name, size);
+        tooltip_text = tooltip;
+    }
 
-        public Gtk.MenuItem add_menu_item (string label) {
-            var menu_item = new Gtk.MenuItem.with_label (label);
-            menu.add (menu_item);
-            menu.show_all ();
-            return menu_item;
-        }
+    public Gtk.MenuItem add_menu_item (string label) {
+        var menu_item = new Gtk.MenuItem.with_label (label);
+        menu.add (menu_item);
+        menu.show_all ();
+        return menu_item;
     }
 }

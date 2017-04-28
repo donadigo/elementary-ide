@@ -17,37 +17,35 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public abstract class CodeParser : Object {
-        public abstract void parse ();
-        public abstract void add_document (Document document);
-        public abstract void remove_document (Document document);
-        public abstract ReportMessage? get_report_message_at (string? filename, int line);
+public abstract class CodeParser : Object {
+    public abstract void parse ();
+    public abstract void add_document (Document document);
+    public abstract void remove_document (Document document);
+    public abstract ReportMessage? get_report_message_at (string? filename, int line);
 
-        protected ThreadPool<void*> parse_pool;
+    protected ThreadPool<void*> parse_pool;
 
-        construct {
-            try {
-                parse_pool = new ThreadPool<void*>.with_owned_data (parse, 1, true);
-            } catch (ThreadError e) {
-                warning (e.message);
-            }                
+    construct {
+        try {
+            parse_pool = new ThreadPool<void*>.with_owned_data (parse, 1, true);
+        } catch (ThreadError e) {
+            warning (e.message);
+        }                
+    }
+
+    public virtual void queue_parse () {
+        try {
+            parse_pool.add ((void*)1);
+        } catch (ThreadError e) {
+            warning (e.message);
         }
+    }
 
-        public virtual void queue_parse () {
-            try {
-                parse_pool.add ((void*)1);
-            } catch (ThreadError e) {
-                warning (e.message);
-            }
-        }
+    public virtual signal void begin_parsing () {
 
-        public virtual signal void begin_parsing () {
+    }
 
-        }
-
-        public virtual signal void end_parsing () {
-            
-        }
+    public virtual signal void end_parsing () {
+        
     }
 }

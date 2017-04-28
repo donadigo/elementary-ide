@@ -17,69 +17,68 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class Sidebar : Gtk.Box {        
-        public FileSearchView file_search_view { get; construct; }
-        public SourceList source_list { get; construct; }
 
-        private Gtk.Stack sidebar_stack;
-        private Gtk.SearchEntry search_entry;
-        private Gtk.ToggleButton document_toogle_button;
+public class Sidebar : Gtk.Box {        
+    public FileSearchView file_search_view { get; construct; }
+    public SourceList source_list { get; construct; }
 
-        construct {
-            orientation = Gtk.Orientation.VERTICAL;
-            file_search_view = new FileSearchView ();
+    private Gtk.Stack sidebar_stack;
+    private Gtk.SearchEntry search_entry;
+    private Gtk.ToggleButton document_toogle_button;
 
-            source_list = new SourceList ();
-            source_list.set_filter_func (source_list_visible_func, true);
+    construct {
+        orientation = Gtk.Orientation.VERTICAL;
+        file_search_view = new FileSearchView ();
 
-            var scrolled = new Gtk.ScrolledWindow (null, null);
-            scrolled.min_content_width = 200;
-            scrolled.add (source_list);
+        source_list = new SourceList ();
+        source_list.set_filter_func (source_list_visible_func, true);
 
-            sidebar_stack = new Gtk.Stack ();
-            sidebar_stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT;
-            sidebar_stack.add_named (scrolled, Constants.FILE_SIDEBAR_VIEW_NAME);
-            sidebar_stack.add_named (file_search_view, Constants.FILE_SEARCH_VIEW_NAME);
-            sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
+        var scrolled = new Gtk.ScrolledWindow (null, null);
+        scrolled.min_content_width = 200;
+        scrolled.add (source_list);
 
-            search_entry = new Gtk.SearchEntry ();
-            search_entry.hexpand = true;
-            search_entry.placeholder_text = _("Search files…");
-            search_entry.search_changed.connect (on_search_entry_changed);
+        sidebar_stack = new Gtk.Stack ();
+        sidebar_stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT;
+        sidebar_stack.add_named (scrolled, Constants.FILE_SIDEBAR_VIEW_NAME);
+        sidebar_stack.add_named (file_search_view, Constants.FILE_SEARCH_VIEW_NAME);
+        sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
 
-            var search_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-            search_box.margin = 6;
+        search_entry = new Gtk.SearchEntry ();
+        search_entry.hexpand = true;
+        search_entry.placeholder_text = _("Search files…");
+        search_entry.search_changed.connect (on_search_entry_changed);
 
-            document_toogle_button = new Gtk.ToggleButton ();
-            document_toogle_button.tooltip_text = _("Search in document content");
-            document_toogle_button.get_style_context ().add_class ("flat");
-            document_toogle_button.image = new Gtk.Image.from_icon_name ("x-office-document-symbolic", Gtk.IconSize.MENU);
-            document_toogle_button.toggled.connect (on_search_entry_changed);
+        var search_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+        search_box.margin = 6;
 
-            search_box.pack_start (search_entry, true, true);
-            search_box.pack_end (document_toogle_button, false, false);
+        document_toogle_button = new Gtk.ToggleButton ();
+        document_toogle_button.tooltip_text = _("Search in document content");
+        document_toogle_button.get_style_context ().add_class ("flat");
+        document_toogle_button.image = new Gtk.Image.from_icon_name ("x-office-document-symbolic", Gtk.IconSize.MENU);
+        document_toogle_button.toggled.connect (on_search_entry_changed);
 
-            add (search_box);
-            add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            add (sidebar_stack);
+        search_box.pack_start (search_entry, true, true);
+        search_box.pack_end (document_toogle_button, false, false);
+
+        add (search_box);
+        add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+        add (sidebar_stack);
+    }
+
+    private bool source_list_visible_func (Granite.Widgets.SourceList.Item item) {
+        if (item is SourceList.FileItem) {
+            return item.name.down ().contains (search_entry.text.down ());
         }
 
-        private bool source_list_visible_func (Granite.Widgets.SourceList.Item item) {
-            if (item is SourceList.FileItem) {
-                return item.name.down ().contains (search_entry.text.down ());
-            }
+        return true;
+    }       
 
-            return true;
-        }       
-
-        private void on_search_entry_changed () {
-            if (search_entry.text != "") {
-                file_search_view.search.begin (search_entry.text, document_toogle_button.active);
-                sidebar_stack.visible_child_name = Constants.FILE_SEARCH_VIEW_NAME;
-            } else {
-                sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
-            }
-        }        
+    private void on_search_entry_changed () {
+        if (search_entry.text != "") {
+            file_search_view.search.begin (search_entry.text, document_toogle_button.active);
+            sidebar_stack.visible_child_name = Constants.FILE_SEARCH_VIEW_NAME;
+        } else {
+            sidebar_stack.visible_child_name = Constants.FILE_SIDEBAR_VIEW_NAME;
+        }
     }
 }

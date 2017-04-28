@@ -17,16 +17,14 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class GenericProject : Project {
-        public new static async Project? load (File file) {
-            var project = new GenericProject (file.get_path ());
-            return project;
-        }
+public class GenericProject : Project {
+    public new static async Project? load (File file) {
+        var project = new GenericProject (file.get_path ());
+        return project;
+    }
 
-        public GenericProject (string root_path) {
-            this.root_path = root_path;
-            name = Path.get_basename (root_path);
-        }
+    public GenericProject (string root_path) {
+        this.root_path = root_path;
+        name = Path.get_basename (root_path);
     }
 }

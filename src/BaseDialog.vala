@@ -17,23 +17,21 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class BaseDialog : Gtk.Dialog {
-        construct {
-            deletable = false;
-            margin = 24;
+public class BaseDialog : Gtk.Dialog {
+    construct {
+        deletable = false;
+        margin = 24;
 
-            set_transient_for (IDEApplication.get_main_window ());
-            var action_area = (Gtk.Box)get_action_area ();
+        set_transient_for (IDEApplication.get_main_window ());
+        var action_area = (Gtk.Box)get_action_area ();
 
-            var close_button = new Gtk.Button.with_label (_("Close"));
-            close_button.clicked.connect (() => hide ());
-            action_area.pack_end (close_button, false, false, 0);
-        }
-
-        public override bool delete_event (Gdk.EventAny event) {
-            hide ();
-            return true;
-        }        
+        var close_button = new Gtk.Button.with_label (_("Close"));
+        close_button.clicked.connect (() => hide ());
+        action_area.pack_end (close_button, false, false, 0);
     }
+
+    public override bool delete_event (Gdk.EventAny event) {
+        hide ();
+        return true;
+    }        
 }

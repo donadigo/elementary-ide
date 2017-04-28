@@ -17,29 +17,27 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public interface DocumentManager : Object {
-        public abstract Project? get_project ();
-        public abstract CodeParser get_code_parser ();
-        public abstract Document? get_current_document ();
-        public abstract Gee.List<Document> get_opened_documents ();
-        public abstract void load_project (Project? project);
-        public abstract void toggle_search ();
+public interface DocumentManager : Object {
+    public abstract Project? get_project ();
+    public abstract CodeParser get_code_parser ();
+    public abstract Document? get_current_document ();
+    public abstract Gee.List<Document> get_opened_documents ();
+    public abstract void load_project (Project? project);
+    public abstract void toggle_search ();
 
-        public virtual signal void add_document (Document document, bool focus = true) {
+    public virtual signal void add_document (Document document, bool focus = true) {
 
-        }
+    }
 
-        public virtual signal void remove_document (Document document) {
+    public virtual signal void remove_document (Document document) {
 
-        }
+    }
 
-        public virtual signal void current_document_changed () {
+    public virtual signal void current_document_changed () {
 
-        }
+    }
 
-        public virtual signal void queue_parse () {
+    public virtual signal void queue_parse () {
 
-        }
     }
 }

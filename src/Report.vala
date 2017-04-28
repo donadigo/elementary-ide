@@ -17,118 +17,116 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public enum ReportType {
-        ERROR = 0,
-        WARNING,
-        NOTE
+public enum ReportType {
+    ERROR = 0,
+    WARNING,
+    NOTE
+}
+
+public class ReportMessage : Object {
+    public ReportType report_type { public get; construct; }
+    public string message { public get; construct; }
+    public Vala.SourceReference? source { public get; construct; }
+
+    public ReportMessage (ReportType report_type, string message, Vala.SourceReference? source) {
+        Object (report_type: report_type, message: message, source: source);
     }
 
-    public class ReportMessage : Object {
-        public ReportType report_type { public get; construct; }
-        public string message { public get; construct; }
-        public Vala.SourceReference? source { public get; construct; }
-
-        public ReportMessage (ReportType report_type, string message, Vala.SourceReference? source) {
-            Object (report_type: report_type, message: message, source: source);
+    public unowned string? to_icon_name () {
+        switch (report_type) {
+            case ReportType.ERROR:
+                return "dialog-error";
+            case ReportType.WARNING:
+                return "dialog-warning";
+            case ReportType.NOTE:
+                return "dialog-information";
+            default:
+                break;
         }
 
-        public unowned string? to_icon_name () {
-            switch (report_type) {
+        return null;
+    }
+}
+
+public class Report : Vala.Report {
+    private Gee.ArrayList<ReportMessage> messages;
+
+    construct {
+        messages = new Gee.ArrayList<ReportMessage> ();
+    }
+
+    public void clear () {
+        this.errors = 0;
+        this.warnings = 0;          
+    }
+
+    public void reset_file (Vala.SourceFile target) {
+        var removal_list = new Gee.ArrayList<ReportMessage> ();
+        foreach (var message in messages) {
+            if (message.source.file.filename == target.filename) {
+                removal_list.add (message);
+            }
+        }
+
+        messages.remove_all (removal_list);
+    }
+
+    public void get_message_count (out int _errors, out int _warnings) {
+        _errors = 0;
+        _warnings = 0;
+
+        foreach (var message in messages) {
+            switch (message.report_type) {
                 case ReportType.ERROR:
-                    return "dialog-error";
-                case ReportType.WARNING:
-                    return "dialog-warning";
-                case ReportType.NOTE:
-                    return "dialog-information";
-                default:
+                    _errors++;
                     break;
+                case ReportType.WARNING:
+                    _warnings++;
+                    break;                        
             }
-
-            return null;
         }
     }
 
-    public class Report : Vala.Report {
-        private Gee.ArrayList<ReportMessage> messages;
-
-        construct {
-            messages = new Gee.ArrayList<ReportMessage> ();
-        }
-
-        public void clear () {
-            this.errors = 0;
-            this.warnings = 0;          
-        }
-
-        public void reset_file (Vala.SourceFile target) {
-            var removal_list = new Gee.ArrayList<ReportMessage> ();
-            foreach (var message in messages) {
-                if (message.source.file.filename == target.filename) {
-                    removal_list.add (message);
-                }
-            }
-
-            messages.remove_all (removal_list);
-        }
-
-        public void get_message_count (out int _errors, out int _warnings) {
-            _errors = 0;
-            _warnings = 0;
-
-            foreach (var message in messages) {
-                switch (message.report_type) {
-                    case ReportType.ERROR:
-                        _errors++;
-                        break;
-                    case ReportType.WARNING:
-                        _warnings++;
-                        break;                        
-                }
-            }
-        }
-
-        public unowned Gee.List<ReportMessage> get_messages () {
-            return messages;
-        }
-
-        public override void note (Vala.SourceReference? source, string message) {
-            if (source == null) {
-                return;
-            }
-
-            var report_message = new ReportMessage (ReportType.NOTE, message, source);
-            messages.add (report_message);
-        }
-
-        public override void depr (Vala.SourceReference? source, string message) {
-            warnings++;
-            if (source == null) {
-                return;
-            }
-
-            var report_message = new ReportMessage (ReportType.WARNING, message, source);
-            messages.add (report_message);          
-        }
-        
-        public override void warn (Vala.SourceReference? source, string message) {
-            warnings++;
-            if (source == null) {
-                return;
-            }
-
-            var report_message = new ReportMessage (ReportType.WARNING, message, source);
-            messages.add (report_message);              
-        }
-        
-        public override void err (Vala.SourceReference? source, string message) {
-            errors++;
-            if (source == null) {
-                return;
-            }
-
-            var report_message = new ReportMessage (ReportType.ERROR, message, source);
-            messages.add (report_message);              
-        }       
+    public unowned Gee.List<ReportMessage> get_messages () {
+        return messages;
     }
-} 
+
+    public override void note (Vala.SourceReference? source, string message) {
+        if (source == null) {
+            return;
+        }
+
+        var report_message = new ReportMessage (ReportType.NOTE, message, source);
+        messages.add (report_message);
+    }
+
+    public override void depr (Vala.SourceReference? source, string message) {
+        warnings++;
+        if (source == null) {
+            return;
+        }
+
+        var report_message = new ReportMessage (ReportType.WARNING, message, source);
+        messages.add (report_message);          
+    }
+    
+    public override void warn (Vala.SourceReference? source, string message) {
+        warnings++;
+        if (source == null) {
+            return;
+        }
+
+        var report_message = new ReportMessage (ReportType.WARNING, message, source);
+        messages.add (report_message);              
+    }
+    
+    public override void err (Vala.SourceReference? source, string message) {
+        errors++;
+        if (source == null) {
+            return;
+        }
+
+        var report_message = new ReportMessage (ReportType.ERROR, message, source);
+        messages.add (report_message);              
+    }       
+}

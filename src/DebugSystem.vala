@@ -17,37 +17,35 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class DebugSystem : Object {
-        public class EnvironmentVariable {
-            public string name { get; set; }
-            public string value { get; set; }
+public class DebugSystem : Object {
+    public class EnvironmentVariable {
+        public string name { get; set; }
+        public string value { get; set; }
 
-            public EnvironmentVariable (string name, string value) {
-                this.name = name;
-                this.value = value;
-            }
+        public EnvironmentVariable (string name, string value) {
+            this.name = name;
+            this.value = value;
         }
+    }
 
-        public class Template : Object {
-            public string name { get; set; }
-            public Gee.ArrayList<EnvironmentVariable> environment_variables { public get; construct; }
-            public Gee.ArrayList<string> run_arguments { public get; construct; }
-
-            construct {
-                environment_variables = new Gee.ArrayList<EnvironmentVariable> ();
-                run_arguments = new Gee.ArrayList<string> ();
-            }
-
-            public Template (string name) {
-                this.name = name;
-            }
-        }
-
-        public Gee.ArrayList<Template> templates { public get; construct; }
+    public class Template : Object {
+        public string name { get; set; }
+        public Gee.ArrayList<EnvironmentVariable> environment_variables { public get; construct; }
+        public Gee.ArrayList<string> run_arguments { public get; construct; }
 
         construct {
-            templates = new Gee.ArrayList<Template> ();
+            environment_variables = new Gee.ArrayList<EnvironmentVariable> ();
+            run_arguments = new Gee.ArrayList<string> ();
         }
+
+        public Template (string name) {
+            this.name = name;
+        }
+    }
+
+    public Gee.ArrayList<Template> templates { public get; construct; }
+
+    construct {
+        templates = new Gee.ArrayList<Template> ();
     }
 }

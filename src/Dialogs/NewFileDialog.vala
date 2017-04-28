@@ -17,195 +17,193 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class NewFileDialog : BaseDialog {
-        private const string CLASS_ID = "class";
-        private const string INTERFACE_ID = "interface";
+public class NewFileDialog : BaseDialog {
+    private const string CLASS_ID = "class";
+    private const string INTERFACE_ID = "interface";
 
-        private Gtk.Button create_button;
+    private Gtk.Button create_button;
 
-        private Gtk.ComboBoxText type_combo;
+    private Gtk.ComboBoxText type_combo;
 
-        private Gtk.Entry package_name_entry;
-        private Gtk.Entry name_entry;
-        private Gtk.Entry inherits_entry;
+    private Gtk.Entry package_name_entry;
+    private Gtk.Entry name_entry;
+    private Gtk.Entry inherits_entry;
 
-        private Gtk.Label mod_label;
+    private Gtk.Label mod_label;
 
-        private Gtk.Label abstract_label;
-        private Gtk.Switch abstract_switch;
+    private Gtk.Label abstract_label;
+    private Gtk.Switch abstract_switch;
 
-        private Gtk.Label compact_label;
-        private Gtk.Switch compact_switch;
+    private Gtk.Label compact_label;
+    private Gtk.Switch compact_switch;
 
-        construct {
-            resizable = false;
+    construct {
+        resizable = false;
 
-            create_button = new Gtk.Button.with_label (_("Create"));
-            create_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
-            create_button.clicked.connect (on_create_button_clicked);
+        create_button = new Gtk.Button.with_label (_("Create"));
+        create_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+        create_button.clicked.connect (on_create_button_clicked);
 
-            var action_area = (Gtk.Box)get_action_area ();
-            action_area.pack_end (create_button);
+        var action_area = (Gtk.Box)get_action_area ();
+        action_area.pack_end (create_button);
 
-            var main_grid = new Gtk.Grid ();
-            main_grid.margin = 12;
-            main_grid.row_spacing = 12;
-            main_grid.column_spacing = 6;
-            get_content_area ().add (main_grid);
+        var main_grid = new Gtk.Grid ();
+        main_grid.margin = 12;
+        main_grid.row_spacing = 12;
+        main_grid.column_spacing = 6;
+        get_content_area ().add (main_grid);
 
-            var title_label = new Gtk.Label (_("General"));
-            title_label.xalign = 0;
-            title_label.hexpand = true;
-            title_label.get_style_context ().add_class ("h4");
-            main_grid.attach (title_label, 0, 0, 1, 1);
+        var title_label = new Gtk.Label (_("General"));
+        title_label.xalign = 0;
+        title_label.hexpand = true;
+        title_label.get_style_context ().add_class ("h4");
+        main_grid.attach (title_label, 0, 0, 1, 1);
 
-            var type_label = new Gtk.Label (_("Type:"));
-            type_label.halign = Gtk.Align.END;
+        var type_label = new Gtk.Label (_("Type:"));
+        type_label.halign = Gtk.Align.END;
 
-            package_name_entry = new Gtk.Entry ();
-            package_name_entry.placeholder_text = _("Example.vala");
-            package_name_entry.changed.connect (on_package_name_entry_changed);
+        package_name_entry = new Gtk.Entry ();
+        package_name_entry.placeholder_text = _("Example.vala");
+        package_name_entry.changed.connect (on_package_name_entry_changed);
 
-            var package_name_label = new Gtk.Label (_("Package name:"));
+        var package_name_label = new Gtk.Label (_("Package name:"));
 
-            main_grid.attach (package_name_label, 0, 1, 1, 1);
-            main_grid.attach (package_name_entry, 1, 1, 1, 1);          
+        main_grid.attach (package_name_label, 0, 1, 1, 1);
+        main_grid.attach (package_name_entry, 1, 1, 1, 1);          
 
-            type_combo = new Gtk.ComboBoxText ();
-            type_combo.append (CLASS_ID, _("Class"));
-            type_combo.append (INTERFACE_ID, _("Interface"));
-            type_combo.active_id = CLASS_ID;
-            type_combo.changed.connect (on_type_combo_changed);
+        type_combo = new Gtk.ComboBoxText ();
+        type_combo.append (CLASS_ID, _("Class"));
+        type_combo.append (INTERFACE_ID, _("Interface"));
+        type_combo.active_id = CLASS_ID;
+        type_combo.changed.connect (on_type_combo_changed);
 
-            main_grid.attach (type_label, 0, 2, 1, 1);
-            main_grid.attach (type_combo, 1, 2, 1, 1);
+        main_grid.attach (type_label, 0, 2, 1, 1);
+        main_grid.attach (type_combo, 1, 2, 1, 1);
 
-            name_entry = new Gtk.Entry ();
-            name_entry.hexpand = true;
+        name_entry = new Gtk.Entry ();
+        name_entry.hexpand = true;
 
-            var name_label = new Gtk.Label (_("Name:"));
-            name_label.halign = Gtk.Align.END;
+        var name_label = new Gtk.Label (_("Name:"));
+        name_label.halign = Gtk.Align.END;
 
-            main_grid.attach (name_label, 0, 3, 1, 1);
-            main_grid.attach (name_entry, 1, 3, 1, 1);
+        main_grid.attach (name_label, 0, 3, 1, 1);
+        main_grid.attach (name_entry, 1, 3, 1, 1);
 
-            inherits_entry = new Gtk.Entry ();
-            inherits_entry.hexpand = true;
+        inherits_entry = new Gtk.Entry ();
+        inherits_entry.hexpand = true;
 
-            var inherits_label = new Gtk.Label (_("Inherits:"));
-            inherits_label.halign = Gtk.Align.END;
+        var inherits_label = new Gtk.Label (_("Inherits:"));
+        inherits_label.halign = Gtk.Align.END;
 
-            main_grid.attach (inherits_label, 0, 4, 1, 1);
-            main_grid.attach (inherits_entry, 1, 4, 1, 1);
+        main_grid.attach (inherits_label, 0, 4, 1, 1);
+        main_grid.attach (inherits_entry, 1, 4, 1, 1);
 
-            mod_label = new Gtk.Label (_("Modifiers"));
-            mod_label.xalign = 0;
-            mod_label.hexpand = true;
-            mod_label.get_style_context ().add_class ("h4");
-            main_grid.attach (mod_label, 0, 5, 1, 1);
+        mod_label = new Gtk.Label (_("Modifiers"));
+        mod_label.xalign = 0;
+        mod_label.hexpand = true;
+        mod_label.get_style_context ().add_class ("h4");
+        main_grid.attach (mod_label, 0, 5, 1, 1);
 
-            abstract_switch = new Gtk.Switch ();
+        abstract_switch = new Gtk.Switch ();
 
-            abstract_label = new Gtk.Label (_("Abstract:"));
-            abstract_label.halign = Gtk.Align.END;
+        abstract_label = new Gtk.Label (_("Abstract:"));
+        abstract_label.halign = Gtk.Align.END;
 
-            var switch_box = new Gtk.Grid ();
-            switch_box.add (abstract_switch);
+        var switch_box = new Gtk.Grid ();
+        switch_box.add (abstract_switch);
 
-            main_grid.attach (abstract_label, 0, 6, 1, 1);
-            main_grid.attach (switch_box, 1, 6, 1, 1);
+        main_grid.attach (abstract_label, 0, 6, 1, 1);
+        main_grid.attach (switch_box, 1, 6, 1, 1);
 
-            compact_switch = new Gtk.Switch ();
+        compact_switch = new Gtk.Switch ();
 
-            compact_label = new Gtk.Label (_("Compact:"));
-            compact_label.halign = Gtk.Align.END;
+        compact_label = new Gtk.Label (_("Compact:"));
+        compact_label.halign = Gtk.Align.END;
 
-            switch_box = new Gtk.Grid ();
-            switch_box.add (compact_switch);
+        switch_box = new Gtk.Grid ();
+        switch_box.add (compact_switch);
 
-            main_grid.attach (compact_label, 0, 7, 1, 1);
-            main_grid.attach (switch_box, 1, 7, 1, 1);            
+        main_grid.attach (compact_label, 0, 7, 1, 1);
+        main_grid.attach (switch_box, 1, 7, 1, 1);            
+    }
+
+    private void on_package_name_entry_changed () {
+        name_entry.text = Utils.get_filename_display (package_name_entry.get_text ());
+    }
+
+    private void on_type_combo_changed () {
+        bool sensitive = type_combo.get_active_id () == CLASS_ID;
+        abstract_label.sensitive = sensitive;
+        abstract_switch.sensitive = sensitive;
+
+        compact_label.sensitive = sensitive;
+        compact_switch.sensitive = sensitive;
+    }
+
+    private void on_create_button_clicked () {
+        var document_manager = IDEApplication.get_main_window ().document_manager;
+        var project = document_manager.get_project ();
+        if (project == null) {
+            // TODO: Handle this properly
+            return;
         }
 
-        private void on_package_name_entry_changed () {
-            name_entry.text = Utils.get_filename_display (package_name_entry.get_text ());
-        }
-
-        private void on_type_combo_changed () {
-            bool sensitive = type_combo.get_active_id () == CLASS_ID;
-            abstract_label.sensitive = sensitive;
-            abstract_switch.sensitive = sensitive;
-
-            compact_label.sensitive = sensitive;
-            compact_switch.sensitive = sensitive;
-        }
-
-        private void on_create_button_clicked () {
-            var document_manager = IDEApplication.get_main_window ().document_manager;
-            var project = document_manager.get_project ();
-            if (project == null) {
-                // TODO: Handle this properly
-                return;
-            }
-
-            var file = File.new_for_path (Path.build_filename (project.root_path, package_name_entry.get_text ()));
-            try {
-                if (!file.query_exists ()) {
-                    file.create (FileCreateFlags.NONE);
-                } else {
-                    // TODO: Handle this also
-                }
-
-                FileUtils.set_contents (file.get_path (), generate_current_template ());
-            } catch (Error e) {
-                warning (e.message);
-            }
-
-            
-            var document = new Document (file, null);
-            document_manager.add_document (document, true);
-
-            hide ();
-        }
-
-        private string generate_current_template () {
-            int ident = 4;
-            string ident_str = string.nfill (ident, ' ');
-            bool is_class = type_combo.get_active_id () == CLASS_ID;
-            bool inherits = inherits_entry.get_text () != "";
-
-            var builder = new StringBuilder ();
-            if (is_class) {
-                if (compact_switch.get_active ()) {
-                    builder.append ("[Compact]\n");
-                }
-
-                builder.append ("public ");
-                if (abstract_switch.get_active ()) {
-                    builder.append ("abstract ");
-                }
+        var file = File.new_for_path (Path.build_filename (project.root_path, package_name_entry.get_text ()));
+        try {
+            if (!file.query_exists ()) {
+                file.create (FileCreateFlags.NONE);
             } else {
-                builder.append ("public ");
+                // TODO: Handle this also
             }
 
-            builder.append ("%s %s ".printf (type_combo.get_active_id (), name_entry.get_text ()));
-
-            if (inherits) {
-                builder.append (": %s ".printf (inherits_entry.get_text ()));
-            }
-
-            builder.append ("{\n");
-
-            if (is_class) {
-                builder.append (ident_str);
-                builder.append ("public %s () {\n".printf (name_entry.get_text ()));
-                builder.append (ident_str);
-                builder.append ("\n" + ident_str + "}");
-            }
-
-            builder.append ("\n}");
-            return builder.str;
+            FileUtils.set_contents (file.get_path (), generate_current_template ());
+        } catch (Error e) {
+            warning (e.message);
         }
+
+        
+        var document = new Document (file, null);
+        document_manager.add_document (document, true);
+
+        hide ();
+    }
+
+    private string generate_current_template () {
+        int ident = 4;
+        string ident_str = string.nfill (ident, ' ');
+        bool is_class = type_combo.get_active_id () == CLASS_ID;
+        bool inherits = inherits_entry.get_text () != "";
+
+        var builder = new StringBuilder ();
+        if (is_class) {
+            if (compact_switch.get_active ()) {
+                builder.append ("[Compact]\n");
+            }
+
+            builder.append ("public ");
+            if (abstract_switch.get_active ()) {
+                builder.append ("abstract ");
+            }
+        } else {
+            builder.append ("public ");
+        }
+
+        builder.append ("%s %s ".printf (type_combo.get_active_id (), name_entry.get_text ()));
+
+        if (inherits) {
+            builder.append (": %s ".printf (inherits_entry.get_text ()));
+        }
+
+        builder.append ("{\n");
+
+        if (is_class) {
+            builder.append (ident_str);
+            builder.append ("public %s () {\n".printf (name_entry.get_text ()));
+            builder.append (ident_str);
+            builder.append ("\n" + ident_str + "}");
+        }
+
+        builder.append ("\n}");
+        return builder.str;
     }
 }

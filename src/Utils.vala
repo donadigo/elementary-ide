@@ -17,7 +17,7 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE.Utils {
+namespace Utils {
     public static void set_widget_visible (Gtk.Widget widget, bool visible) {
         widget.no_show_all = !visible;
         if (visible) {

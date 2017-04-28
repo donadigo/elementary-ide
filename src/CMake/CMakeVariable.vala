@@ -17,33 +17,31 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class CMakeVariable : Object {
-        public string name { get; set; }
-        private Gee.ArrayList<string> values;
+public class CMakeVariable : Object {
+    public string name { get; set; }
+    private Gee.ArrayList<string> values;
 
-        construct {
-            values = new Gee.ArrayList<string> ();
-        }
-
-        public CMakeVariable (string name) {
-            this.name = name;
-        }
-
-        public void add_value (string value) {
-            values.add (value);
-        }
-
-        public string get_first_value () {
-            if (values.size <= 0) {
-                return "";
-            }
-
-            return values[0];
-        }
-
-        public string[] get_values () {
-            return values.to_array ();
-        }       
+    construct {
+        values = new Gee.ArrayList<string> ();
     }
+
+    public CMakeVariable (string name) {
+        this.name = name;
+    }
+
+    public void add_value (string value) {
+        values.add (value);
+    }
+
+    public string get_first_value () {
+        if (values.size <= 0) {
+            return "";
+        }
+
+        return values[0];
+    }
+
+    public string[] get_values () {
+        return values.to_array ();
+    }       
 }

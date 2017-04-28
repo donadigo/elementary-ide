@@ -17,130 +17,144 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class CMakeProject : Project {
-        private const char[] PACKAGE_VERSION_DELIMS = { '=', '>', '<' };
+public class CMakeProject : Project {
+    private const char[] PACKAGE_VERSION_DELIMS = { '=', '>', '<' };
 
-        private CMakeParser parser;
+    private CMakeParser parser;
 
-        public new static async Project? load (File file) {
-            string target = Path.build_filename (file.get_path (), Constants.CMAKE_TARGET);
-            if (!FileUtils.test (target, FileTest.EXISTS)) {
-                return null;
-            }
-
-            var parser = new CMakeParser (target);
-            var project = new CMakeProject (parser);
-            return project;
+    public new static async Project? load (File file) {
+        string target = Path.build_filename (file.get_path (), Constants.CMAKE_TARGET);
+        if (!FileUtils.test (target, FileTest.EXISTS)) {
+            return null;
         }
 
-        private static string strip_package_version (string package) {
-            string res = "";
+        var parser = new CMakeParser (target);
+        var project = new CMakeProject (parser);
+        return project;
+    }
 
-            foreach (char ch in package.to_utf8 ()) {
-                if (ch in PACKAGE_VERSION_DELIMS) {
+    private static string strip_package_version (string package) {
+        string res = "";
+
+        foreach (char ch in package.to_utf8 ()) {
+            if (ch in PACKAGE_VERSION_DELIMS) {
+                break;
+            }
+
+            res += ch.to_string ();
+        }
+
+        return res;
+    }
+
+    public CMakeProject (CMakeParser parser) {
+        this.parser = parser;
+        root_path = Path.get_dirname (parser.target);
+
+        update ();
+    }
+
+    public override void update () {
+        parser.parse ();
+
+        bool has_vala_precompile = false;
+        foreach (var command in parser.get_commands ()) {
+            switch (command.name) {
+                case Constants.PROJECT_CMD:
+                    var arguments = command.get_arguments ();
+                    if (arguments.length > 0) {
+                        name = arguments[0];
+                    }
+
                     break;
-                }
-
-                res += ch.to_string ();
-            }
-
-            return res;
-        }
-
-        public CMakeProject (CMakeParser parser) {
-            this.parser = parser;
-            root_path = Path.get_dirname (parser.target);
-
-            update ();
-        }
-
-        public override void update () {
-            parser.parse ();
-
-            bool has_vala_precompile = false;
-            foreach (var command in parser.get_commands ()) {
-                switch (command.name) {
-                    case Constants.PROJECT_CMD:
-                        var arguments = command.get_arguments ();
-                        if (arguments.length > 0) {
-                            name = arguments[0];
+                case Constants.PKG_CHECK_MODULES_CMD:
+                    var arguments = command.get_arguments ();
+                    if (arguments.length > 2) {
+                        for (int i = 3; i < arguments.length; i++) {
+                            dependencies.add (arguments[i]);
                         }
+                    }
 
-                        break;
-                    case Constants.PKG_CHECK_MODULES_CMD:
-                        var arguments = command.get_arguments ();
-                        if (arguments.length > 2) {
-                            for (int i = 3; i < arguments.length; i++) {
-                                dependencies.add (arguments[i]);
-                            }
-                        }
+                    break;
+                case Constants.VALA_PRECOMPILE_CMD:
+                    if (!has_vala_precompile) {
+                        has_vala_precompile = true;
+                    }
 
-                        break;
-                    case Constants.VALA_PRECOMPILE_CMD:
-                        if (!has_vala_precompile) {
-                            has_vala_precompile = true;
-                        }
+                    string current_header = Constants.VALA_PRECOMPILE_HEADERS[0];
 
-                        string current_header = Constants.VALA_PRECOMPILE_HEADERS[0];
+                    var arguments = command.get_arguments ();
+                    if (arguments.length > 2) {
+                        for (int i = 1; i < arguments.length; i++) {
+                            string argument = arguments[i];
+                            if (argument in Constants.VALA_PRECOMPILE_HEADERS) {
+                                current_header = argument;
+                                continue;
+                            }   
 
-                        var arguments = command.get_arguments ();
-                        if (arguments.length > 2) {
-                            for (int i = 1; i < arguments.length; i++) {
-                                string argument = arguments[i];
-                                if (argument in Constants.VALA_PRECOMPILE_HEADERS) {
-                                    current_header = argument;
-                                    continue;
-                                }   
-
-                                if (current_header == Constants.VALA_PRECOMPILE_HEADERS[0]) {
+                            switch (current_header) {
+                                case "SOURCES":
                                     var file = File.new_for_path (Path.build_filename (Path.get_dirname (command.filename), argument));
                                     string? path = file.get_path ();
                                     if (path != null) {
                                         sources.add (path);
                                     }
-                                } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[1]) {
+
+                                    break;
+                                case "PACKAGES":
                                     string package = strip_package_version (argument);
                                     if (package != "") {
                                         packages.add (package);
                                     }
-                                } else if (current_header == Constants.VALA_PRECOMPILE_HEADERS[2]) {
+
+                                    break;
+                                case "OPTIONS":
                                     vala_options.add (argument);
-                                }
+                                    break;
+                                case "CUSTOM_VAPIS":
+                                    var file = File.new_for_path (Path.build_filename (Path.get_dirname (command.filename), argument));
+                                    string? path = file.get_path ();
+                                    if (path != null) {
+                                        sources.add (path);
+                                    }
+
+                                    break;
+                                default:
+                                    break;
                             }
                         }
+                    }
 
-                        break;
-                    default:
-                        break;
-                }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        var version_var = parser.find_variable_by_name ("VERSION");
+        if (version_var != null) {
+            version = version_var.get_first_value ();
+        }
+
+        var exec_name_var = parser.find_variable_by_name ("EXEC_NAME");
+        if (exec_name_var != null) {
+            executable_path = exec_name_var.get_first_value ();
+        }
+
+        var release_name_var = parser.find_variable_by_name ("RELEASE_NAME");
+        if (release_name_var != null) {
+            release_name = release_name_var.get_first_value ();
+        }
+
+        if (has_vala_precompile) {
+            var library_command = parser.find_command_by_name (Constants.ADD_LIBRARY_CMD);
+            if (library_command != null) {
+                project_type |= ProjectType.VALA_LIBRARY;
             }
 
-            var version_var = parser.find_variable_by_name ("VERSION");
-            if (version_var != null) {
-                version = version_var.get_first_value ();
-            }
-
-            var exec_name_var = parser.find_variable_by_name ("EXEC_NAME");
-            if (exec_name_var != null) {
-                executable_path = exec_name_var.get_first_value ();
-            }
-
-            var release_name_var = parser.find_variable_by_name ("RELEASE_NAME");
-            if (release_name_var != null) {
-                release_name = release_name_var.get_first_value ();
-            }
-
-            if (has_vala_precompile) {
-                var library_command = parser.find_command_by_name (Constants.ADD_LIBRARY_CMD);
-                if (library_command != null) {
-                    project_type |= ProjectType.VALA_LIBRARY;
-                }
-
-                var executable_command = parser.find_command_by_name (Constants.ADD_EXECUTABLE_CMD);
-                if (executable_command != null) {
-                    project_type |= ProjectType.VALA_APPLICATION;
-                }
+            var executable_command = parser.find_command_by_name (Constants.ADD_EXECUTABLE_CMD);
+            if (executable_command != null) {
+                project_type |= ProjectType.VALA_APPLICATION;
             }
         }
     }

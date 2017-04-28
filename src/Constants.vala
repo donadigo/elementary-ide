@@ -17,19 +17,19 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE.Constants {
+namespace Constants {
     // Application constants
     public const string APP_NAME = "elementary IDE";
     public const string EXEC_NAME = "elementary-ide";
 
     // ID constants
-    public const string WELCOME_VIEW_NAME = "welcome";
+    public const string WELCOME_VIEW_NAME = "welcome-view";
     public const string EDITOR_VIEW_NAME = "editor-view";
     public const string REPORT_VIEW_NAME = "report-view";
     public const string TERMINAL_VIEW_NAME = "terminal-view";
-    public const string NO_DOCUMENTS_VIEW_NAME = "no-documents";
-    public const string NOTEBOOK_VIEW_NAME = "notebook";
-    public const string FILE_SIDEBAR_VIEW_NAME = "file-sidebar";
+    public const string NO_DOCUMENTS_VIEW_NAME = "no-documents-view";
+    public const string NOTEBOOK_VIEW_NAME = "notebook-view";
+    public const string FILE_SIDEBAR_VIEW_NAME = "file-sidebar-view";
     public const string FILE_SEARCH_VIEW_NAME = "file-search-view";
     public const string FILE_SEARCH_VIEW_SPINNER_NAME = "file-search-view-spinner";
     public const string FILE_SEARCH_VIEW_ERROR_NAME = "file-search-view-error";

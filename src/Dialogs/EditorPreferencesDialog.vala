@@ -17,7 +17,7 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
+public class EditorPreferencesDialog : BaseDialog {
     private class CategoryRow : Gtk.ListBoxRow {
         public string id { get; construct; }
 
@@ -46,42 +46,40 @@ namespace IDE {
             image.icon_name = icon_name;
         }
     }
+    
+    private Gtk.Stack main_stack;
 
-    public class EditorPreferencesDialog : BaseDialog {
-        private Gtk.Stack main_stack;
+    construct {
+        set_default_size (800, 600);
+        main_stack = new Gtk.Stack ();
 
-        construct {
-            set_default_size (800, 600);
-            main_stack = new Gtk.Stack ();
+        var list_box = new Gtk.ListBox ();
 
-            var list_box = new Gtk.ListBox ();
+        var stack = new Gtk.Stack ();
 
-            var stack = new Gtk.Stack ();
+        var scrolled = new Gtk.ScrolledWindow (null, null);
+        scrolled.width_request = 176;
+        scrolled.add (list_box);
 
-            var scrolled = new Gtk.ScrolledWindow (null, null);
-            scrolled.width_request = 176;
-            scrolled.add (list_box);
+        var paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
+        paned.expand = true;
+        paned.pack1 (scrolled, false, false);
+        paned.add2 (stack);
 
-            var paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
-            paned.expand = true;
-            paned.pack1 (scrolled, false, false);
-            paned.add2 (stack);
+        var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        box.expand = true;
+        box.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+        box.add (paned);
+        box.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
 
-            var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-            box.expand = true;
-            box.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            box.add (paned);
-            box.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+        var editor_row = new CategoryRow (_("Editor"), "document-page-setup", "editor");
+        list_box.add (editor_row);
 
-            var editor_row = new CategoryRow (_("Editor"), "document-page-setup", "editor");
-            list_box.add (editor_row);
+        var ep_page = new EditorPreferencesPage ();
+        stack.add_named (ep_page, "editor");
+        stack.visible_child_name = "editor";
+        stack.show_all ();
 
-            var ep_page = new EditorPreferencesPage ();
-            stack.add_named (ep_page, "editor");
-            stack.visible_child_name = "editor";
-            stack.show_all ();
-
-            get_content_area ().add (box);
-        }
+        get_content_area ().add (box);
     }
 }

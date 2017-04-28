@@ -17,63 +17,61 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class TerminalWidget : Gtk.Box, BottomWidget {
-        public Gtk.Widget? toolbar_widget {
-            get {
-                return null;
-            }
+public class TerminalWidget : Gtk.Box, BottomWidget {
+    public Gtk.Widget? toolbar_widget {
+        get {
+            return null;
+        }
+    }
+
+    public Vte.Terminal terminal { get; construct; }
+
+    private Gtk.Grid toolbar_grid;
+    private Vte.Pty pty;
+
+    construct {
+        terminal = new Vte.Terminal ();
+        terminal.expand = true;
+
+        try {
+            pty = new Vte.Pty.sync (Vte.PtyFlags.DEFAULT);
+            terminal.set_pty (pty);
+        } catch (Error e) {
+            warning (e.message);
         }
 
-        public Vte.Terminal terminal { get; construct; }
+        toolbar_grid = new Gtk.Grid ();
 
-        private Gtk.Grid toolbar_grid;
-        private Vte.Pty pty;
+        add (terminal);
+    }
 
-        construct {
-            terminal = new Vte.Terminal ();
-            terminal.expand = true;
+    public void clear () {
+        terminal.reset (true, true);
+    }
 
+    public void spawn_default (string? working_directory = null) {
+        string[] argv = { Environment.get_variable ("SHELL") };
+        spawn_command (argv, working_directory);
+    }
+
+    public void spawn_command (string[] argv, string? working_directory = null) {
+        string[] _argv = {};
+        foreach (string arg in argv) {
+            _argv += arg;
+        }
+
+        string[] envv = Environ.get ();
+
+        Idle.add (() => {
             try {
-                pty = new Vte.Pty.sync (Vte.PtyFlags.DEFAULT);
-                terminal.set_pty (pty);
+                Pid child_pid;
+                terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
+                                envv, SpawnFlags.SEARCH_PATH, null, out child_pid, null);   
             } catch (Error e) {
                 warning (e.message);
             }
-
-            toolbar_grid = new Gtk.Grid ();
-
-            add (terminal);
-        }
-
-        public void clear () {
-            terminal.reset (true, true);
-        }
-
-        public void spawn_default (string? working_directory = null) {
-            string[] argv = { Environment.get_variable ("SHELL") };
-            spawn_command (argv, working_directory);
-        }
-
-        public void spawn_command (string[] argv, string? working_directory = null) {
-            string[] _argv = {};
-            foreach (string arg in argv) {
-                _argv += arg;
-            }
-
-            string[] envv = Environ.get ();
-
-            Idle.add (() => {
-                try {
-                    Pid child_pid;
-                    terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
-                                    envv, SpawnFlags.SEARCH_PATH, null, out child_pid, null);   
-                } catch (Error e) {
-                    warning (e.message);
-                }
-                
-                return false;
-            });
-        }
+            
+            return false;
+        });
     }
 }

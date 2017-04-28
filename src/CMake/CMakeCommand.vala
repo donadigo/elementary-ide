@@ -1,4 +1,3 @@
-
 /*-
  * Copyright (c) 2015-2016 Adam Bieńkowski
  *
@@ -18,27 +17,25 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class CMakeCommand : Object {
-        public string filename { get; set; }
-        public string name { get; set; }
-        private Gee.ArrayList<string> arguments;
+public class CMakeCommand : Object {
+    public string filename { get; set; }
+    public string name { get; set; }
+    private Gee.ArrayList<string> arguments;
 
-        construct {
-            arguments = new Gee.ArrayList<string> ();
-        }
+    construct {
+        arguments = new Gee.ArrayList<string> ();
+    }
 
-        public CMakeCommand (string filename, string name) {
-            this.filename = filename;
-            this.name = name;
-        }
+    public CMakeCommand (string filename, string name) {
+        this.filename = filename;
+        this.name = name;
+    }
 
-        public void add_argument (string argument) {
-            arguments.add (argument);
-        }
+    public void add_argument (string argument) {
+        arguments.add (argument);
+    }
 
-        public string[] get_arguments () {
-            return arguments.to_array ();
-        }
+    public string[] get_arguments () {
+        return arguments.to_array ();
     }
 }

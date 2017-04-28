@@ -17,91 +17,89 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-namespace IDE {
-    public class SourceList : Granite.Widgets.SourceList {
-        public class FileItem : Granite.Widgets.SourceList.Item {
-            public string filename { get; set; }
+public class SourceList : Granite.Widgets.SourceList {
+    public class FileItem : Granite.Widgets.SourceList.Item {
+        public string filename { get; set; }
 
-            public FileItem (string filename, string name, string icon_name) {
-                this.filename = filename;
-                this.name = name;
-                icon = new ThemedIcon (icon_name);
-            }
+        public FileItem (string filename, string name, string icon_name) {
+            this.filename = filename;
+            this.name = name;
+            icon = new ThemedIcon (icon_name);
         }
+    }
 
-        public class FolderItem : Granite.Widgets.SourceList.ExpandableItem {
-            public string filename { get; set; }
+    public class FolderItem : Granite.Widgets.SourceList.ExpandableItem {
+        public string filename { get; set; }
 
-            public FolderItem (string filename, string name) {
-                this.filename = filename;
-                this.name = name;
-                icon = new ThemedIcon ("folder");
-            }
+        public FolderItem (string filename, string name) {
+            this.filename = filename;
+            this.name = name;
+            icon = new ThemedIcon ("folder");
         }
+    }
 
-        private File file;
-        private FolderItem project_root;
+    private File file;
+    private FolderItem project_root;
 
-        public SourceList () {
-            ellipsize_mode = Pango.EllipsizeMode.MIDDLE;
-        }
+    public SourceList () {
+        ellipsize_mode = Pango.EllipsizeMode.MIDDLE;
+    }
 
-        public void set_file (File file) {
-            root.clear ();
+    public void set_file (File file) {
+        root.clear ();
 
-            this.file = file;
-            project_root = new FolderItem (file.get_path (), file.get_basename ());
-            project_root.expand_all (true, false);
-            root.add (project_root);
-            update_file ();
-        }
+        this.file = file;
+        project_root = new FolderItem (file.get_path (), file.get_basename ());
+        project_root.expand_all (true, false);
+        root.add (project_root);
+        update_file ();
+    }
 
-        private void update_file () {
-            process_directory.begin (file, null);
-        }
+    private void update_file () {
+        process_directory.begin (file, null);
+    }
 
-        private async void process_directory (File directory, Granite.Widgets.SourceList.ExpandableItem? prev_item) {
-            try {
-                var enumerator = yield directory.enumerate_children_async ("standard::*", FileQueryInfoFlags.NONE);
+    private async void process_directory (File directory, Granite.Widgets.SourceList.ExpandableItem? prev_item) {
+        try {
+            var enumerator = yield directory.enumerate_children_async ("standard::*", FileQueryInfoFlags.NONE);
 
-                FileInfo? info;
-                while ((info = enumerator.next_file ()) != null) {
-                    if (info.get_name ().has_prefix (".")) {
-                        continue;
+            FileInfo? info;
+            while ((info = enumerator.next_file ()) != null) {
+                if (info.get_name ().has_prefix (".")) {
+                    continue;
+                }
+
+                var subfile = directory.resolve_relative_path (info.get_name ());
+                if (info.get_file_type () == FileType.DIRECTORY) {
+                    var expandable_item = new FolderItem (subfile.get_path (), info.get_name ());
+                    if (prev_item != null) {
+                        prev_item.add (expandable_item);    
+                    } else {
+                        project_root.add (expandable_item);
                     }
 
-                    var subfile = directory.resolve_relative_path (info.get_name ());
-                    if (info.get_file_type () == FileType.DIRECTORY) {
-                        var expandable_item = new FolderItem (subfile.get_path (), info.get_name ());
-                        if (prev_item != null) {
-                            prev_item.add (expandable_item);    
-                        } else {
-                            project_root.add (expandable_item);
-                        }
+                    process_directory.begin (subfile, expandable_item);
+                } else {
+                    string icon_name;
+                    var icon = (ThemedIcon)info.get_icon ();
 
-                        process_directory.begin (subfile, expandable_item);
+                    string[] names = icon.get_names ();
+                    if (names.length > 0 && Gtk.IconTheme.get_default ().has_icon (names[0])) {
+                        icon_name = icon.get_names ()[0];
                     } else {
-                        string icon_name;
-                        var icon = (ThemedIcon)info.get_icon ();
+                        icon_name = "application-octet-stream";
+                    }
 
-                        string[] names = icon.get_names ();
-                        if (names.length > 0 && Gtk.IconTheme.get_default ().has_icon (names[0])) {
-                            icon_name = icon.get_names ()[0];
-                        } else {
-                            icon_name = "application-octet-stream";
-                        }
-
-                        var item = new FileItem (subfile.get_path (), info.get_name (), icon_name);
-                        if (prev_item != null) {
-                            prev_item.add (item);    
-                        } else {
-                            project_root.add (item);
-                        }
+                    var item = new FileItem (subfile.get_path (), info.get_name (), icon_name);
+                    if (prev_item != null) {
+                        prev_item.add (item);    
+                    } else {
+                        project_root.add (item);
                     }
                 }
-            } catch (Error e) {
-                warning (e.message);
             }
+        } catch (Error e) {
+            warning (e.message);
         }
     }
 }
