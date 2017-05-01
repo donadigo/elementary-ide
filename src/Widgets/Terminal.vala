@@ -17,20 +17,15 @@
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
  */
 
-public class BaseDialog : Gtk.Dialog {
-    construct {
-        deletable = false;
+public class Terminal : Vte.Terminal {
+    public void print (string message) {
+        string shell = Utils.get_default_shell ();
 
-        set_transient_for (IDEApplication.get_main_window ());
-        var action_area = (Gtk.Box)get_action_area ();
-
-        var close_button = new Gtk.Button.with_label (_("Close"));
-        close_button.clicked.connect (() => hide ());
-        action_area.pack_end (close_button, false, false, 0);
-    }
-
-    public override bool delete_event (Gdk.EventAny event) {
-        hide ();
-        return true;
-    }        
+        try {
+            spawn_sync (Vte.PtyFlags.DEFAULT, null, { shell, "-c", "printf \"%s\"".printf (message), null },
+                            Environ.get (), SpawnFlags.SEARCH_PATH, null, null, null);
+        } catch (Error e) {
+            warning (e.message);
+        }
+    }   
 }

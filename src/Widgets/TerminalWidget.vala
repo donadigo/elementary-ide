@@ -24,14 +24,17 @@ public class TerminalWidget : Gtk.Box, BottomWidget {
         }
     }
 
-    public Vte.Terminal terminal { get; construct; }
+    public Terminal terminal { get; construct; }
+    public Vte.Pty pty { get; construct; }
 
     private Gtk.Grid toolbar_grid;
-    private Vte.Pty pty;
 
     construct {
-        terminal = new Vte.Terminal ();
+        terminal = new Terminal ();
         terminal.expand = true;
+
+        var scrolled = new Gtk.ScrolledWindow (null, null);
+        scrolled.add (terminal);
 
         try {
             pty = new Vte.Pty.sync (Vte.PtyFlags.DEFAULT);
@@ -42,7 +45,7 @@ public class TerminalWidget : Gtk.Box, BottomWidget {
 
         toolbar_grid = new Gtk.Grid ();
 
-        add (terminal);
+        add (scrolled);
     }
 
     public void clear () {
@@ -50,8 +53,11 @@ public class TerminalWidget : Gtk.Box, BottomWidget {
     }
 
     public void spawn_default (string? working_directory = null) {
-        string[] argv = { Environment.get_variable ("SHELL") };
-        spawn_command (argv, working_directory);
+        string[] argv = { Utils.get_default_shell () };
+        Idle.add (() => {
+            spawn_command (argv, working_directory);
+            return false;
+        });
     }
 
     public void spawn_command (string[] argv, string? working_directory = null) {
@@ -60,18 +66,13 @@ public class TerminalWidget : Gtk.Box, BottomWidget {
             _argv += arg;
         }
 
-        string[] envv = Environ.get ();
+        _argv += null;
 
-        Idle.add (() => {
-            try {
-                Pid child_pid;
-                terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
-                                envv, SpawnFlags.SEARCH_PATH, null, out child_pid, null);   
-            } catch (Error e) {
-                warning (e.message);
-            }
-            
-            return false;
-        });
+        try {
+            terminal.spawn_sync (Vte.PtyFlags.DEFAULT, working_directory, _argv,
+                            Environ.get (), SpawnFlags.SEARCH_PATH, null, null, null);
+        } catch (Error e) {
+            warning (e.message);
+        }
     }
 }

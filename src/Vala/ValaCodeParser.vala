@@ -37,6 +37,8 @@ public class ValaCodeParser : CodeParser {
         context = new Vala.CodeContext ();
         context.report = report;
         context.compile_only = true;
+        context.verbose_mode = false;
+        context.assert = false;
         context.profile = Vala.Profile.GOBJECT;
         context.thread = true;
         context.save_temps = false;

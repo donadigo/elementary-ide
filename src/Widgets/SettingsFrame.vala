@@ -47,7 +47,6 @@ public class SettingBox : Gtk.ListBoxRow {
         selectable = false;
 
         label = new Gtk.Label (null);
-        label.hexpand = true;
         label.halign = Gtk.Align.START;
         label.margin = 6;
 
@@ -63,6 +62,7 @@ public class SettingBox : Gtk.ListBoxRow {
         label.label = title;
 
         var main_grid = new Gtk.Grid ();
+        main_grid.column_spacing = 12;
 
         if (add_separator) {
             main_grid.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 0, 2, 1);

@@ -18,25 +18,82 @@
  */
 
 public class BuildSystem : Object {
-    public string clean_command { get; set; default = ""; }
     public string prebuild_command { get; set; default = ""; }
     public string build_command { get; set; default = ""; }
     public string install_command { get; set; default = ""; }
     public string run_command { get; set; default = ""; }
 
-    public void clean () throws Error {
+    public void build (string build_path, Terminal terminal, bool run_target) throws Error {
+        string shell = Utils.get_default_shell ();
 
+        try {
+            Pid child_pid;
+            terminal.spawn_sync (Vte.PtyFlags.DEFAULT, build_path, { shell, "-c", build_command, null },
+                                Environ.get (), SpawnFlags.SEARCH_PATH, null, out child_pid, null);
+            ChildWatch.add (child_pid, (pid, status) => {
+                Process.close_pid (pid);
+
+                if (status != 0) {
+                    terminal.print (_("\nBuild failed: child process exited with status %i\n").printf (status));
+                }
+
+                if (run_target) {
+                    run (build_path, terminal);
+                }
+            });            
+        } catch (Error e) {
+            terminal.print (_("\nInternal error: %s\n").printf (e.message));
+        }
     }
 
-    public void build () throws Error {
+    public void rebuild (string root_path, Terminal terminal, bool run_target) throws Error {
+        string shell = Utils.get_default_shell ();
 
+        string build_path = Path.build_path (Path.DIR_SEPARATOR_S, root_path, Constants.DEFAULT_BUILD_FOLDER_NAME);
+        var build_file = File.new_for_path (build_path);
+        if (build_file.query_exists ()) {
+            try {
+                Utils.remove_directory (build_file);
+            } catch (Error e) {
+                terminal.print (_("\nBuild failed: failed to remove build directory: %s\n").printf (e.message));
+                return;
+            }
+        }
+
+        build_file.make_directory ();
+
+        try {
+            Pid child_pid;
+            terminal.spawn_sync (Vte.PtyFlags.DEFAULT, build_path, { shell, "-c", prebuild_command, null },
+                                Environ.get (), SpawnFlags.SEARCH_PATH, null, out child_pid, null);
+
+            ChildWatch.add (child_pid, (pid, status) => {
+                Process.close_pid (pid);
+
+                if (status != 0) {
+                    string message = _("\nPrebuild failed: child process exited with status %i\n").printf (status);
+                    terminal.print (message);
+                    return;
+                }
+
+                try {
+                    build (build_path, terminal, run_target);
+                } catch (Error e) {
+                    terminal.print (_("\nInternal error: %s\n").printf (e.message));
+                }
+            });
+        } catch (Error e) {
+            terminal.print (_("\nInternal error: %s\n").printf (e.message));
+        }
     }
 
-    public void install () throws Error {
-        
-    }
-
-    public void run () throws Error {
-
+    public void run (string build_path, Terminal terminal) {
+        string shell = Utils.get_default_shell ();
+        try {
+            terminal.spawn_sync (Vte.PtyFlags.DEFAULT, build_path, { shell, "-c", run_command, null },
+                            Environ.get (), SpawnFlags.SEARCH_PATH, null, null, null);
+        } catch (Error e) {
+            warning (e.message);
+        }
     }
 }

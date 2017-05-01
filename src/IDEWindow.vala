@@ -24,6 +24,8 @@ public class IDEWindow : Gtk.ApplicationWindow {
     private Gtk.Stack main_stack;
     private Granite.Widgets.Welcome welcome;
 
+    private BuildOptionsDialog bo_dialog;
+
     private int new_id = -1;
     private int open_id = -1;
     private int open_file_id = -1;
@@ -35,12 +37,18 @@ public class IDEWindow : Gtk.ApplicationWindow {
         document_manager = new ProjectView ();
         document_manager.current_document_changed.connect (on_current_document_changed);
 
+        bo_dialog = new BuildOptionsDialog ();
+
         toolbar = new ToolBar ();
+        toolbar.build.connect (on_build);
+        toolbar.rebuild.connect (on_rebuild);
+
         toolbar.open_project.connect (show_open_project_dialog);
         toolbar.open_files.connect (show_open_files_dialog);
         toolbar.save_current_document.connect (save_current_document);
         toolbar.save_opened_documents.connect (save_opened_documents);
         toolbar.toggle_search.connect (document_manager.toggle_search);
+        toolbar.show_bo_dialog.connect (() => bo_dialog.show_all ());
         set_titlebar (toolbar);
 
         welcome = new Granite.Widgets.Welcome (_("Start coding"), _("Open or create a new project to start"));
@@ -74,6 +82,11 @@ public class IDEWindow : Gtk.ApplicationWindow {
             document_manager.remove_document (document);
         }
 
+        var project = document_manager.get_project ();
+        if (project != null) {
+            project.save ();
+        }
+
         return false;
     }
 
@@ -99,6 +112,9 @@ public class IDEWindow : Gtk.ApplicationWindow {
 
         document_manager.load_project (project);
         if (valid) {
+            project.build_system.bind_property ("prebuild-command", bo_dialog.prebuild_entry, "text", BindingFlags.BIDIRECTIONAL | BindingFlags.SYNC_CREATE);
+            project.build_system.bind_property ("build-command", bo_dialog.build_entry, "text", BindingFlags.BIDIRECTIONAL | BindingFlags.SYNC_CREATE);
+            project.build_system.bind_property ("run-command", bo_dialog.run_entry, "text", BindingFlags.BIDIRECTIONAL | BindingFlags.SYNC_CREATE);
             main_stack.visible_child_name = Constants.EDITOR_VIEW_NAME;
         } else {
             main_stack.visible_child_name = Constants.WELCOME_VIEW_NAME;
@@ -159,5 +175,13 @@ public class IDEWindow : Gtk.ApplicationWindow {
         bool has_current_document = document_manager.get_current_document () != null;
         toolbar.save_current_document_menuitem.sensitive = has_current_document;
         toolbar.search_button.sensitive = has_current_document;
+    }
+
+    private void on_build (bool run) {
+        document_manager.build (run);
+    }
+
+    private void on_rebuild () {
+        document_manager.rebuild ();
     }
 }

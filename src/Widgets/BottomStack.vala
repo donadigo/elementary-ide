@@ -24,6 +24,7 @@ public class BottomStack : Gtk.Grid {
 
     public TerminalWidget terminal_widget { get; construct; }
     public ReportWidget report_widget { get; construct; }
+    public BuildOutputWidget build_output_widget { get; construct; }
 
     private Gtk.Stack toolbar_stack;
     private Gtk.Stack main_stack;
@@ -42,13 +43,17 @@ public class BottomStack : Gtk.Grid {
         terminal_widget = new TerminalWidget ();
         terminal_widget.visible = true;
 
+        build_output_widget = new BuildOutputWidget ();
+        build_output_widget.visible = true;
+
         toolbar_stack = new Gtk.Stack ();
         toolbar_stack.add (report_widget.toolbar_widget);
 
         main_stack = new Gtk.Stack ();
-        main_stack.transition_type = Gtk.StackTransitionType.SLIDE_RIGHT;
+        main_stack.transition_type = Gtk.StackTransitionType.SLIDE_UP_DOWN;
         main_stack.add_named (report_widget, Constants.REPORT_VIEW_NAME);
         main_stack.add_named (terminal_widget, Constants.TERMINAL_VIEW_NAME);
+        main_stack.add_named (build_output_widget, Constants.BUILD_OUTPUT_VIEW_NAME);
 
         report_label = new Gtk.Label (null);
         location_label = new Gtk.Label (null);
@@ -84,6 +89,8 @@ public class BottomStack : Gtk.Grid {
             main_stack.visible_child_name = Constants.REPORT_VIEW_NAME;
         } else if (mode_button.selected == terminal_widget_id) {
             main_stack.visible_child_name = Constants.TERMINAL_VIEW_NAME;
+        } else if (mode_button.selected == build_output_widget_id) {
+            main_stack.visible_child_name = Constants.BUILD_OUTPUT_VIEW_NAME;
         }
 
         var selected_widget = main_stack.get_child_by_name (main_stack.visible_child_name) as BottomWidget;

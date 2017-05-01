@@ -28,7 +28,7 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Projects/GenericProject.vala
     Widgets/ReportWidget.vala
     Widgets/TerminalWidget.vala
-    Widgets/InfoWindow.vala
+    Widgets/BuildOutputWidget.vala
     Widgets/SourceList.vala
     Widgets/ProjectView.vala
     Widgets/EditorView.vala
@@ -37,15 +37,17 @@ vala_precompile(VALA_C ${EXEC_NAME}
     Widgets/MenuButton.vala  
     Widgets/SearchToolbar.vala
     Widgets/Document.vala   
-    Widgets/BottomWidget.vala   
+    Widgets/BottomWidget.vala 
     Widgets/BottomStack.vala
     Widgets/Sidebar.vala
     Widgets/FileSearchView.vala
     Widgets/SettingsFrame.vala
     Widgets/SymbolTreeView.vala
+    Widgets/Terminal.vala
     Dialogs/EditorPreferencesDialog.vala
     Dialogs/NewFileDialog.vala
     Dialogs/EditorPreferencesPage.vala
+    Dialogs/BuildOptionsDialog.vala
     Services/IDESettings.vala
     config.vala
 PACKAGES

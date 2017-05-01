@@ -19,8 +19,7 @@
 
 
 public class EditorWindow : Gtk.Box {
-    public signal void show_info_window (Gtk.TextIter start_iter, int x, int y);
-    public signal void close_info_window ();
+    public signal string? show_info_window (Gtk.TextIter start_iter);
 
     public Document document { get; construct; }
     public Gtk.SourceSearchSettings search_settings { get; construct; }
@@ -33,6 +32,7 @@ public class EditorWindow : Gtk.Box {
     private Cancellable? search_cancellable;
 
     private uint show_info_timeout_id = 0;
+    private bool show_definition_tooltip = false;
 
     public int current_line { 
         get {
@@ -86,6 +86,7 @@ public class EditorWindow : Gtk.Box {
     construct {
         orientation = Gtk.Orientation.VERTICAL;
         expand = true;
+        has_tooltip = true;
 
         source_buffer = new IDEBuffer (document, null);
         search_settings = new Gtk.SourceSearchSettings ();
@@ -125,23 +126,6 @@ public class EditorWindow : Gtk.Box {
         source_view.add_events (Gdk.EventMask.STRUCTURE_MASK);
         source_view.override_font (Pango.FontDescription.from_string (settings.font_desc));
 
-        settings.schema.bind ("show-line-numbers", source_view, "show-line-numbers", SettingsBindFlags.DEFAULT);
-        settings.schema.bind ("highlight-current-line", source_view, "highlight-current-line", SettingsBindFlags.DEFAULT);
-        settings.schema.bind ("highlight-syntax", source_buffer, "highlight-syntax", SettingsBindFlags.DEFAULT);
-        settings.schema.bind ("highlight-matching-brackets", source_buffer, "highlight-matching-brackets", SettingsBindFlags.DEFAULT);
-        settings.schema.bind ("tabs-to-spaces", source_view, "insert-spaces-instead-of-tabs", SettingsBindFlags.DEFAULT);
-        settings.notify["font-desc"].connect (() => {
-            source_view.override_font (Pango.FontDescription.from_string (settings.font_desc));
-        });
-
-        settings.notify["draw-spaces-tabs"].connect (() => {
-            if (settings.draw_spaces_tabs) {
-                source_view.draw_spaces = Gtk.SourceDrawSpacesFlags.SPACE | Gtk.SourceDrawSpacesFlags.LEADING | Gtk.SourceDrawSpacesFlags.TAB;
-            } else {
-                source_view.draw_spaces = 0;
-            }
-        });
-
         source_view.show_right_margin = false;
         source_view.smart_backspace = true;
         source_view.smart_home_end = Gtk.SourceSmartHomeEndType.BEFORE;
@@ -151,7 +135,6 @@ public class EditorWindow : Gtk.Box {
         source_view.completion.remember_info_visibility = true;
         source_view.left_margin = 6;
         source_view.motion_notify_event.connect (on_motion_notify_event);
-        source_view.leave_notify_event.connect (on_leave_notify_event);
         if (settings.draw_spaces_tabs) {
             source_view.draw_spaces = Gtk.SourceDrawSpacesFlags.SPACE | Gtk.SourceDrawSpacesFlags.LEADING | Gtk.SourceDrawSpacesFlags.TAB;
         } else {
@@ -179,9 +162,13 @@ public class EditorWindow : Gtk.Box {
         source_map = new Gtk.SourceMap ();
         source_map.set_view (source_view);
 
+        var map_revealer = new Gtk.Revealer ();
+        map_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_LEFT;
+        map_revealer.add (source_map);
+
         var editor_container = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         editor_container.pack_start (overlay, true, true, 0);
-        editor_container.pack_start (source_map, false, true, 0);
+        editor_container.pack_start (map_revealer, false, true, 0);
 
         var report_message_renderer = new GutterReportMessageRenderer ();
 
@@ -189,10 +176,38 @@ public class EditorWindow : Gtk.Box {
         gutter.insert (report_message_renderer, -100);
 
         pack_start (editor_container, true, true, 0);
+
+        var schema = settings.schema;
+        schema.bind ("show-line-numbers", source_view, "show-line-numbers", SettingsBindFlags.DEFAULT);
+        schema.bind ("show-mini-map", map_revealer, "reveal-child", SettingsBindFlags.DEFAULT);
+        schema.bind ("highlight-current-line", source_view, "highlight-current-line", SettingsBindFlags.DEFAULT);
+        schema.bind ("highlight-syntax", source_buffer, "highlight-syntax", SettingsBindFlags.DEFAULT);
+        schema.bind ("highlight-matching-brackets", source_buffer, "highlight-matching-brackets", SettingsBindFlags.DEFAULT);
+        schema.bind ("tabs-to-spaces", source_view, "insert-spaces-instead-of-tabs", SettingsBindFlags.DEFAULT);
+        settings.notify["font-desc"].connect (() => {
+            source_view.override_font (Pango.FontDescription.from_string (settings.font_desc));
+        });
+
+        settings.notify["draw-spaces-tabs"].connect (() => {
+            if (settings.draw_spaces_tabs) {
+                source_view.draw_spaces = Gtk.SourceDrawSpacesFlags.SPACE | Gtk.SourceDrawSpacesFlags.LEADING | Gtk.SourceDrawSpacesFlags.TAB;
+            } else {
+                source_view.draw_spaces = 0;
+            }
+        });        
     }
 
     public EditorWindow (Document document) {
         Object (document: document);
+    }
+
+    public override bool query_tooltip (int x, int y, bool keyboard_tooltip, Gtk.Tooltip tooltip) {
+        if (!show_definition_tooltip) {
+            return false;
+        }
+
+        show_definition_tooltip = false;
+        return base.query_tooltip (x, y, keyboard_tooltip, tooltip);
     }
 
     public void set_language (Gtk.SourceLanguage lang) {
@@ -340,7 +355,8 @@ public class EditorWindow : Gtk.Box {
 
     private bool on_motion_notify_event (Gdk.EventMotion event) {
         if (show_info_timeout_id > 0) {
-            hide_info_window ();
+            Source.remove (show_info_timeout_id);
+            show_info_timeout_id = 0;
         }
 
         show_info_timeout_id = Timeout.add (400, () => {
@@ -348,14 +364,6 @@ public class EditorWindow : Gtk.Box {
         });
 
         return base.motion_notify_event (event);
-    }
-
-    private bool on_leave_notify_event (Gdk.EventCrossing event) {
-        if (show_info_timeout_id > 0) {
-            hide_info_window ();
-        }
-
-        return false;
     }
 
     private bool show_info_func (Gdk.EventMotion event) {
@@ -386,13 +394,10 @@ public class EditorWindow : Gtk.Box {
             return false;
         }
 
-        show_info_window (start_iter, (int)event.x_root + 10, (int)event.y_root + 10);
-        return false;
-    }
+        string? definition = show_info_window (start_iter);
+        show_definition_tooltip = true;
+        tooltip_text = definition;
 
-    private void hide_info_window () {            
-        Source.remove (show_info_timeout_id);
-        close_info_window ();    
-        show_info_timeout_id = 0; 
+        return false;
     }
 }

@@ -33,8 +33,6 @@ public class ProjectView : Gtk.Box, DocumentManager {
 
     private SearchToolbar document_search_toolbar;
 
-    private InfoWindow info_window;
-
     private ValaDocumentProvider vala_provider;
     private Gtk.SourceCompletionWords words_provider;
 
@@ -87,8 +85,6 @@ public class ProjectView : Gtk.Box, DocumentManager {
         symbol_tree_view.symbol_selected.connect (on_symbol_selected);
         symbol_tree_view.width_request = 100;
 
-        info_window = new InfoWindow ();
-
         vertical_paned = new Gtk.Paned (Gtk.Orientation.VERTICAL);
         vertical_paned.pack1 (top_box, true, false);
         vertical_paned.pack2 (bottom_stack, false, false);
@@ -133,6 +129,7 @@ public class ProjectView : Gtk.Box, DocumentManager {
         sidebar.file_search_view.set_search_directory (project.root_path);
 
         bottom_stack.terminal_widget.clear ();
+        bottom_stack.build_output_widget.clear ();
         bottom_stack.terminal_widget.spawn_default (project.root_path);
 
         project.save ();      
@@ -145,6 +142,24 @@ public class ProjectView : Gtk.Box, DocumentManager {
 
     public Project? get_project () {
         return project;
+    }
+
+    public void build (bool run) {
+        var project = get_project ();
+        if (project == null || project.root_path.strip () == "") {
+            return;
+        }
+
+        bottom_stack.build_output_widget.build (project, run);
+    }
+
+    public void rebuild () {
+        var project = get_project ();
+        if (project == null || project.root_path.strip () == "") {
+            return;
+        }
+
+        bottom_stack.build_output_widget.rebuild (project);
     }
 
     private EditorView get_current_editor_view () {
@@ -326,8 +341,7 @@ public class ProjectView : Gtk.Box, DocumentManager {
 
         editor_window.source_buffer.notify["cursor-position"].connect (update_location_label);
         editor_window.search_context.notify["occurrences-count"].connect (update_search_match_count);
-        editor_window.close_info_window.connect (on_close_info_window);
-        editor_window.show_info_window.connect ((iter, x, y) => on_show_info_window (document, iter, x, y));
+        editor_window.show_info_window.connect ((iter) => { return on_show_info_window (document, iter); });
 
         get_current_editor_view ().add_document (document, focus);
         update_location_label ();
@@ -485,25 +499,22 @@ public class ProjectView : Gtk.Box, DocumentManager {
         document_search_toolbar.set_match_count_label (occurrence, search_context.occurrences_count);
     }
 
-    private void on_show_info_window (Document document, Gtk.TextIter start_iter, int x, int y) {
+    private string? on_show_info_window (Document document, Gtk.TextIter start_iter) {
         string? filename = document.get_filename ();
         if (filename == null) {
-            return;
+            return null;
         }
 
         var symbol = code_parser.lookup_symbol_at (filename, start_iter.get_line () + 1, start_iter.get_line_offset ());
         if (symbol == null || symbol.name == null) {
-            return;
+            return null;
         }        
 
         string definition = code_parser.write_symbol_definition (symbol);
         if (definition != "") {
-            info_window.set_label (definition);
-            info_window.show_at (x, y);    
+            return definition;
         }
-    }
 
-    private void on_close_info_window () {
-        info_window.hide ();
+        return null;
     }
 }

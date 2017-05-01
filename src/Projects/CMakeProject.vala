@@ -19,6 +19,8 @@
 
 public class CMakeProject : Project {
     private const char[] PACKAGE_VERSION_DELIMS = { '=', '>', '<' };
+    private const string DEFAULT_PREBUILD_COMMAND = "cmake .. -DCMAKE_INSTALL_PREFIX=/usr";
+    private const string DEFAULT_BUILD_COMMAND = "make";
 
     private CMakeParser parser;
 
@@ -45,6 +47,11 @@ public class CMakeProject : Project {
         }
 
         return res;
+    }
+
+    construct {
+        build_system.prebuild_command = DEFAULT_PREBUILD_COMMAND;
+        build_system.build_command = DEFAULT_BUILD_COMMAND;        
     }
 
     public CMakeProject (CMakeParser parser) {
@@ -154,6 +161,12 @@ public class CMakeProject : Project {
 
             var executable_command = parser.find_command_by_name (Constants.ADD_EXECUTABLE_CMD);
             if (executable_command != null) {
+                string[] arguments = executable_command.get_arguments ();
+                if (arguments.length > 0) {
+                    string path = Utils.get_basename_relative_path (root_path, executable_command.filename);
+                    build_system.run_command = "./%s/%s".printf (path, arguments[0]);    
+                }
+                
                 project_type |= ProjectType.VALA_APPLICATION;
             }
         }

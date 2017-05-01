@@ -55,6 +55,10 @@ public class EditorPreferencesPage : Gtk.ScrolledWindow {
         sln_box.grid.add (new SettingSwitch ("show-line-numbers"));
         general_frame.add_widget (sln_box);
 
+        var smm_box = new SettingBox (_("Show code mini map"), true);
+        smm_box.grid.add (new SettingSwitch ("show-mini-map"));
+        general_frame.add_widget (smm_box);
+
         var hcl_box = new SettingBox (_("Higlight current line"), false);
         hcl_box.grid.add (new SettingSwitch ("highlight-current-line"));
         highlight_frame.add_widget (hcl_box);

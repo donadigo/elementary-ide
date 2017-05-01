@@ -106,8 +106,7 @@ public class NativeProject : Project {
     }
 
 
-    private void read_build_system_object (Json.Object build_obj) {                            
-        build_system.clean_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_CLEAN_CMD);
+    private void read_build_system_object (Json.Object build_obj) {
         build_system.prebuild_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_PREBUILD_CMD);
         build_system.build_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_BUILD_CMD);
         build_system.install_command = build_obj.get_string_member (Constants.NATIVE_PROJECT_BS_INTALL_CMD);

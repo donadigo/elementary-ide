@@ -28,11 +28,15 @@ public class ToolBar : Gtk.HeaderBar {
         }
     }
 
+    public signal void build (bool run);
+    public signal void rebuild ();
+
     public signal void open_project ();
     public signal void open_files ();
     public signal void save_current_document ();
     public signal void save_opened_documents ();
     public signal void toggle_search ();
+    public signal void show_bo_dialog ();
 
     public Gtk.MenuItem save_current_document_menuitem { get; construct; }
     public Gtk.MenuItem save_opened_documents_menuitem { get; construct; }
@@ -51,7 +55,7 @@ public class ToolBar : Gtk.HeaderBar {
         show_close_button = true;
 
         new_button = new Gtk.Button.from_icon_name ("document-new", Gtk.IconSize.LARGE_TOOLBAR);
-        new_button.tooltip_text = _("New class");
+        new_button.tooltip_text = _("New class…");
         new_button.clicked.connect (show_new_file_dialog);
         add (new_button);
 
@@ -64,6 +68,7 @@ public class ToolBar : Gtk.HeaderBar {
         ep_dialog = new EditorPreferencesDialog ();
 
         preferences_button = new Gtk.Button.from_icon_name ("open-menu", Gtk.IconSize.LARGE_TOOLBAR);
+        preferences_button.tooltip_text = _("Preferences");
         preferences_button.clicked.connect (() => ep_dialog.show_all ());
         pack_end (preferences_button);
 
@@ -82,10 +87,16 @@ public class ToolBar : Gtk.HeaderBar {
 
         // TODO: change sensitivity of menu items
         var menu_item = run_button.add_menu_item (_("Only build"));
-        menu_item.activate.connect (build);
+        menu_item.activate.connect (() => build (false));
 
         menu_item = run_button.add_menu_item (_("Build & run"));
+        menu_item.activate.connect (() => build (true));
+
         menu_item = run_button.add_menu_item (_("Rebuild"));
+        menu_item.activate.connect (() => rebuild ());
+
+        menu_item = run_button.add_menu_item (_("Build options…"));
+        menu_item.activate.connect (() => show_bo_dialog ());
 
         menu_item = open_button.add_menu_item (_("Open project"));
         menu_item.activate.connect (() => open_project ());
@@ -100,9 +111,6 @@ public class ToolBar : Gtk.HeaderBar {
         save_opened_documents_menuitem.activate.connect (() => save_opened_documents ());
     }
 
-    private void build () {
-
-    }
 
     private void show_new_file_dialog () {
         new_button.sensitive = false;

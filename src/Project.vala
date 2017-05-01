@@ -160,9 +160,6 @@ public class Project : Object {
         builder.set_member_name (Constants.NATIVE_PROJECT_BUILD_SYSTEM);
         builder.begin_object ();
 
-        builder.set_member_name (Constants.NATIVE_PROJECT_BS_CLEAN_CMD);
-        builder.add_string_value (build_system.clean_command);
-
         builder.set_member_name (Constants.NATIVE_PROJECT_BS_PREBUILD_CMD);
         builder.add_string_value (build_system.prebuild_command);
 

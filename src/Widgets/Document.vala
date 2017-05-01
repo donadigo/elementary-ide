@@ -21,7 +21,7 @@
 public class Document : Granite.Widgets.Tab {
     public signal void content_changed ();
 
-    public EditorWindow editor_window;
+    public EditorWindow editor_window { get; construct; }
     public bool is_loaded { get; set; default = false; }
     private Gtk.SourceFile? source_file;
     private ThemedIcon unsaved_icon;

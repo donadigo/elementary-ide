@@ -45,6 +45,35 @@ namespace Utils {
         return skipped;
     }
 
+    public static void remove_directory (File file) throws Error {
+        var enumerator = file.enumerate_children ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
+
+        FileInfo? info = null;
+        while ((info = enumerator.next_file (null)) != null) {
+            if (info.get_file_type () == FileType.DIRECTORY) {
+                var subdir = file.resolve_relative_path (info.get_name ());
+                remove_directory (subdir);
+            } else {
+                var subfile = file.resolve_relative_path (info.get_name ());
+                try {
+                    subfile.@delete ();
+                } catch (Error e) {
+                    throw e;
+                }
+            }
+        }
+
+        try {
+            file.@delete ();
+        } catch (Error e) {
+            throw e;
+        }
+    }
+
+    public static string get_default_shell () {
+        return Environment.get_variable ("SHELL");
+    }
+
     public static string get_extension (File file) {
         string basename = file.get_basename ();
         int idx = basename.last_index_of (".");

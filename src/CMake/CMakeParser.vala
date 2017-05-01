@@ -134,25 +134,42 @@ public class CMakeParser : Object {
                     break;
                 case TokenType.RIGHT_PAREN:
                     commands.add (current_command);
-                    if (current_command.name == Constants.SET_CMD) {
-                        var arguments = current_command.get_arguments ();
-                        if (arguments.length > 0) {
-                            var variable = new CMakeVariable (arguments[0]);
-                            for (int i = 1; i < arguments.length; i++) {
-                                variable.add_value (arguments[i]);
+                    switch (current_command.name) {
+                        case Constants.SET_CMD:
+                            var arguments = current_command.get_arguments ();
+                            if (arguments.length > 0) {
+                                var variable = new CMakeVariable (arguments[0]);
+                                for (int i = 1; i < arguments.length; i++) {
+                                    variable.add_value (arguments[i]);
+                                }
+
+                                variables.add (variable);
                             }
 
-                            variables.add (variable);
-                        }
-                    } else if (current_command.name == Constants.ADD_SUBDIRECTORY_CMD) {
-                        var arguments = current_command.get_arguments ();
-                        if (arguments.length > 0) {
-                            var file = File.new_for_path (Path.build_filename (Path.get_dirname (source), arguments[0], Constants.CMAKE_TARGET));
-                            string? path = file.get_path ();
-                            if (path != null && file.query_exists ()) {
-                                parse_file (path);
+                            break;
+                        case Constants.ADD_SUBDIRECTORY_CMD:
+                            var arguments = current_command.get_arguments ();
+                            if (arguments.length > 0) {
+                                var file = File.new_for_path (Path.build_filename (Path.get_dirname (source), arguments[0], Constants.CMAKE_TARGET));
+                                string? path = file.get_path ();
+                                if (path != null && file.query_exists ()) {
+                                    parse_file (path);
+                                }
                             }
-                        }
+
+                            break;
+                        case Constants.PROJECT_CMD:
+                            var arguments = current_command.get_arguments ();
+                            if (arguments.length > 0) {
+                                var variable = new CMakeVariable (Constants.PROJECT_NAME_VARIABLE);
+                                foreach (string argument in arguments) {
+                                    variable.add_value (argument);
+                                }
+
+                                variables.add (variable);
+                            }
+
+                            break;
                     }
 
                     current_command = null;
@@ -176,7 +193,7 @@ public class CMakeParser : Object {
                                 }
                             }
 
-                            in_variable = false;                                
+                            in_variable = false;
                         } else {
                             current_command.add_argument (str);
                             prev_value = str;

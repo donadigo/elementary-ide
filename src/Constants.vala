@@ -27,6 +27,7 @@ namespace Constants {
     public const string EDITOR_VIEW_NAME = "editor-view";
     public const string REPORT_VIEW_NAME = "report-view";
     public const string TERMINAL_VIEW_NAME = "terminal-view";
+    public const string BUILD_OUTPUT_VIEW_NAME = "build-output-view";
     public const string NO_DOCUMENTS_VIEW_NAME = "no-documents-view";
     public const string NOTEBOOK_VIEW_NAME = "notebook-view";
     public const string FILE_SIDEBAR_VIEW_NAME = "file-sidebar-view";
@@ -54,7 +55,6 @@ namespace Constants {
 
     // Native project build system constants
     public const string NATIVE_PROJECT_BUILD_SYSTEM = "buildSystem";
-    public const string NATIVE_PROJECT_BS_CLEAN_CMD = "cleanCmd";
     public const string NATIVE_PROJECT_BS_PREBUILD_CMD = "prebuildCmd";
     public const string NATIVE_PROJECT_BS_BUILD_CMD = "buildCmd";
     public const string NATIVE_PROJECT_BS_INTALL_CMD = "installCmd";
@@ -73,6 +73,7 @@ namespace Constants {
     public const string ADD_EXECUTABLE_CMD = "add_executable";
     public const string SET_CMD = "set";
     public const string ADD_SUBDIRECTORY_CMD = "add_subdirectory";
+    public const string PROJECT_NAME_VARIABLE = "CMAKE_PROJECT_NAME";
     public const string[] VALA_PRECOMPILE_HEADERS =  { "SOURCES",
                                                     "PACKAGES",
                                                     "OPTIONS",
@@ -80,4 +81,7 @@ namespace Constants {
                                                     "GENERATE_HEADER",
                                                     "DEFINITIONS",
                                                     "CUSTOM_VAPIS" };
+
+    // Other constants
+    public const string DEFAULT_BUILD_FOLDER_NAME = "build";
 }
