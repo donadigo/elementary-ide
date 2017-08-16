@@ -15,11 +15,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * Authored by: Adam Bieńkowski <donadigos159@gmail.com>
+ * Authored by: Artem Anufrij <artem.anufrij@live.de>
  */
 
 public class IDEWindow : Gtk.ApplicationWindow {
     public ProjectView document_manager { public get; private set; }
-    
+
     private ToolBar toolbar;
     private Gtk.Stack main_stack;
     private Granite.Widgets.Welcome welcome;
@@ -34,7 +35,7 @@ public class IDEWindow : Gtk.ApplicationWindow {
         set_default_size (1200, 800);
         window_position = Gtk.WindowPosition.CENTER;
 
-        document_manager = new ProjectView ();
+        document_manager = new ProjectView (); 
         document_manager.current_document_changed.connect (on_current_document_changed);
 
         bo_dialog = new BuildOptionsDialog ();
@@ -67,13 +68,13 @@ public class IDEWindow : Gtk.ApplicationWindow {
 
         load_project (null);
 
-        add (main_stack);    
+        add (main_stack);
 
         on_current_document_changed ();
     }
 
     public IDEWindow (Gtk.Application application) {
-        Object (application: application);        
+        Object (application: application);
     }
 
     public override bool delete_event (Gdk.EventAny event) {
@@ -153,7 +154,7 @@ public class IDEWindow : Gtk.ApplicationWindow {
             Project.load.begin (File.new_for_path (root_path), (obj, res) => {
                 var project = Project.load.end (res);
                 if (project != null) {
-                    load_project (project);                  
+                    load_project (project);
                 }
             });
         }
@@ -183,5 +184,31 @@ public class IDEWindow : Gtk.ApplicationWindow {
 
     private void on_rebuild () {
         document_manager.rebuild ();
+    }
+
+    public override bool key_press_event (Gdk.EventKey event) {
+        bool handled = true;
+            switch (event.keyval) {
+                case Gdk.Key.s:
+                    if (Gdk.ModifierType.CONTROL_MASK in event.state && Gdk.ModifierType.SHIFT_MASK in event.state) {
+                        save_current_document ();
+                    } else if (Gdk.ModifierType.CONTROL_MASK in event.state) {
+                        save_current_document ();
+                    } else {
+                        handled = false;
+                    }
+                    break;
+                case Gdk.Key.F5:
+                    on_build (true);
+                    break;
+                default:
+                   handled = false;
+                   break;
+            }
+        if (handled) {
+            return true;
+        }
+
+        return (base.key_press_event != null) ? base.key_press_event (event) : true;
     }
 }
