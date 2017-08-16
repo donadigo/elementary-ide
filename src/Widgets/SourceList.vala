@@ -19,13 +19,14 @@
 
 public class SourceList : Granite.Widgets.SourceList {
     public class Item : Granite.Widgets.SourceList.ExpandableItem, Granite.Widgets.SourceListSortable {
+        public string filename { get; construct set; }
         public int compare (Granite.Widgets.SourceList.Item a, Granite.Widgets.SourceList.Item b) {
             if (a is FolderItem && b is FileItem) {
                 return -1;
             } else if (a is FileItem && b is FolderItem) {
                 return 1;
             }
-            return 1;
+            return strcmp ((a as Item).filename, (b as Item).filename);
         }
         public bool allow_dnd_sorting () {
             return false;
@@ -33,8 +34,6 @@ public class SourceList : Granite.Widgets.SourceList {
     }
 
     public class FileItem : Item {
-        public string filename { get; set; }
-
         public FileItem (string filename, string name, string icon_name) {
             this.filename = filename;
             this.name = name;
@@ -43,8 +42,6 @@ public class SourceList : Granite.Widgets.SourceList {
     }
 
     public class FolderItem : Item {
-        public string filename { get; set; }
-
         public FolderItem (string filename, string name) {
             this.filename = filename;
             this.name = name;
