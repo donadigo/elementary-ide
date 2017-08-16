@@ -178,37 +178,11 @@ public class IDEWindow : Gtk.ApplicationWindow {
         toolbar.search_button.sensitive = has_current_document;
     }
 
-    private void on_build (bool run) {
+    public void on_build (bool run) {
         document_manager.build (run);
     }
 
     private void on_rebuild () {
         document_manager.rebuild ();
-    }
-
-    public override bool key_press_event (Gdk.EventKey event) {
-        bool handled = true;
-            switch (event.keyval) {
-                case Gdk.Key.s:
-                    if (Gdk.ModifierType.CONTROL_MASK in event.state && Gdk.ModifierType.SHIFT_MASK in event.state) {
-                        save_current_document ();
-                    } else if (Gdk.ModifierType.CONTROL_MASK in event.state) {
-                        save_current_document ();
-                    } else {
-                        handled = false;
-                    }
-                    break;
-                case Gdk.Key.F5:
-                    on_build (true);
-                    break;
-                default:
-                   handled = false;
-                   break;
-            }
-        if (handled) {
-            return true;
-        }
-
-        return (base.key_press_event != null) ? base.key_press_event (event) : true;
     }
 }
