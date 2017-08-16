@@ -45,6 +45,34 @@ public class IDEApplication : Granite.Application {
         about_license_type = Gtk.License.GPL_3_0;
 
         flags |= GLib.ApplicationFlags.HANDLES_OPEN;
+
+        var save_action = new SimpleAction ("save", null);
+        add_action (save_action);
+        add_accelerator ("<Control>s", "app.save", null);
+        save_action.activate.connect (() => {
+            var mainwindow = get_main_window ();
+            if (mainwindow != null) {
+                mainwindow.save_current_document ();
+            }
+        });
+        var save_all_action = new SimpleAction ("save-all", null);
+        add_action (save_all_action);
+        add_accelerator ("<Control><Shift>s", "app.save-all", null);
+        save_all_action.activate.connect (() => {
+            var mainwindow = get_main_window ();
+            if (mainwindow != null) {
+                mainwindow.save_opened_documents ();
+            }
+        });
+        var build_and_run_action = new SimpleAction ("build-and-run", null);
+        add_action (build_and_run_action);
+        add_accelerator ("F5", "app.build-and-run", null);
+        build_and_run_action.activate.connect (() => {
+            var mainwindow = get_main_window ();
+            if (mainwindow != null) {
+                mainwindow.on_build (true);
+            }
+        });
     }
 
     public static unowned IDEWindow? get_main_window () {
