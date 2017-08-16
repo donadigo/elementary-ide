@@ -18,9 +18,22 @@
  */
 
 public class SourceList : Granite.Widgets.SourceList {
-    public class FileItem : Granite.Widgets.SourceList.Item {
-        public string filename { get; set; }
+    public class Item : Granite.Widgets.SourceList.ExpandableItem, Granite.Widgets.SourceListSortable {
+        public string filename { get; construct set; }
+        public int compare (Granite.Widgets.SourceList.Item a, Granite.Widgets.SourceList.Item b) {
+            if (a is FolderItem && b is FileItem) {
+                return -1;
+            } else if (a is FileItem && b is FolderItem) {
+                return 1;
+            }
+            return strcmp ((a as Item).filename, (b as Item).filename);
+        }
+        public bool allow_dnd_sorting () {
+            return false;
+        }
+    }
 
+    public class FileItem : Item {
         public FileItem (string filename, string name, string icon_name) {
             this.filename = filename;
             this.name = name;
@@ -28,9 +41,7 @@ public class SourceList : Granite.Widgets.SourceList {
         }
     }
 
-    public class FolderItem : Granite.Widgets.SourceList.ExpandableItem {
-        public string filename { get; set; }
-
+    public class FolderItem : Item {
         public FolderItem (string filename, string name) {
             this.filename = filename;
             this.name = name;
@@ -73,7 +84,7 @@ public class SourceList : Granite.Widgets.SourceList {
                 if (info.get_file_type () == FileType.DIRECTORY) {
                     var expandable_item = new FolderItem (subfile.get_path (), info.get_name ());
                     if (prev_item != null) {
-                        prev_item.add (expandable_item);    
+                        prev_item.add (expandable_item);
                     } else {
                         project_root.add (expandable_item);
                     }
@@ -92,7 +103,7 @@ public class SourceList : Granite.Widgets.SourceList {
 
                     var item = new FileItem (subfile.get_path (), info.get_name (), icon_name);
                     if (prev_item != null) {
-                        prev_item.add (item);    
+                        prev_item.add (item);
                     } else {
                         project_root.add (item);
                     }
