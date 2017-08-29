@@ -13,15 +13,16 @@ set (DOLLAR "$")
 add_definitions (-DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}")
 add_definitions (-w)
 
-find_package (PkgConfig)
-pkg_check_modules (DEPS REQUIRED granite gtksourceview-3.0 libvala-0.34 vte-2.91 gee-0.8 valadoc-1.0 json-glib-1.0)
+find_package (Vala REQUIRED)
+string(REGEX REPLACE ".(\\*|[0-9])$" "" LIBVALA_VERSION "${VALA_VERSION}")
+include (ValaVersion)
+ensure_vala_version ("0.30" MINIMUM)
 
+find_package (PkgConfig)
+pkg_check_modules (DEPS REQUIRED granite libvala-${LIBVALA_VERSION} gtksourceview-3.0 vte-2.91 gee-0.8 valadoc-1.0 json-glib-1.0)
 add_definitions (${DEPS_CFLAGS})
 link_directories (${DEPS_LIBRARY_DIRS})
 
-find_package (Vala REQUIRED)
-include (ValaVersion)
-ensure_vala_version ("0.30" MINIMUM)
 
 include (ValaPrecompile)
 

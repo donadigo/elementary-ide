@@ -12,12 +12,6 @@
             <summary>Display Line Numbers</summary>
             <description>True if line numbers should be displayed</description>
         </key>
-    
-        <key name="show-mini-map" type="b">
-            <default>true</default>
-            <summary>Display Mini Map</summary>
-            <description>True if mini map should be displayed</description>
-        </key>
 
         <key name="highlight-current-line" type="b">
             <default>true</default>

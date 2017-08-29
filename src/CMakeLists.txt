@@ -57,7 +57,7 @@ PACKAGES
     json-glib-1.0
     posix
     gee-0.8
-    libvala-0.34
+    libvala-${LIBVALA_VERSION}
 OPTIONS
   --target-glib=2.32
   --thread

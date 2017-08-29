@@ -40,7 +40,7 @@ public class ValaCodeParser : CodeParser {
         context.verbose_mode = false;
         context.assert = false;
         context.profile = Vala.Profile.GOBJECT;
-        context.thread = true;
+        //context.thread = true;
         context.save_temps = false;
         context.mem_profiler = true;
         context.hide_internal = false;
